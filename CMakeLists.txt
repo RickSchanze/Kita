@@ -14,3 +14,5 @@ target_compile_definitions(Kita
         $<$<CONFIG:Debug>:DEBUG>
 )
 
+target_link_libraries(Kita PRIVATE KitaCore)
+

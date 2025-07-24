@@ -9,10 +9,10 @@ class StringView;
 
 class String {
 public:
-  KITA_FORCE_INLINE explicit String(const StringView& Str);
+  FORCE_INLINE explicit String(const StringView& Str);
   explicit String(const char* Str) : mStr(Str) {}
   explicit String(const char* Str, const Size InSize) : mStr(Str, InSize) {}
-  KITA_INLINE_NODISCARD const std::string& GetStdString() const { return mStr; }
+  INLINE_NODISCARD const std::string& GetStdString() const { return mStr; }
 
 private:
   std::string mStr;

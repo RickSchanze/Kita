@@ -7,9 +7,11 @@
 #endif
 
 #ifdef KITA_DEBUG
-#define KITA_FORCE_INLINE inline
+#define FORCE_INLINE inline
+#define DEBUG_BREAK() __debugbreak()
 #else
 #define KITA_FORCE_INLINE __forceinline
+#define DEBUG_BREAK()
 #endif
 
-#define KITA_INLINE_NODISCARD [[nodiscard]] KITA_FORCE_INLINE
+#define INLINE_NODISCARD [[nodiscard]] FORCE_INLINE
