@@ -1,0 +1,9 @@
+{
+  "name" : "tiny",
+  "version-string" : "1.0.0",
+  "builtin-baseline" : "c0f2272fa7934cf52d33b098f24a7757b14ff15e",
+  "dependencies" : [ {
+    "name" : "spdlog",
+    "version>=" : "1.15.3"
+  } ]
+}
