@@ -3,3 +3,7 @@
 //
 
 #include "Malloc.h"
+void* Malloc(Size InSize, EMemoryLabel Label) {
+  return nullptr;
+}
+void Free(void* Ptr, EMemoryLabel Label) {}
