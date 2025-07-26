@@ -14,5 +14,8 @@
   }, {
     "name" : "cpptrace",
     "version>=" : "1.0.2"
+  }, {
+    "name" : "abseil",
+    "version>=" : "20250127.1#2"
   } ]
 }

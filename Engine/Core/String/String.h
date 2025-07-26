@@ -2,6 +2,7 @@
 
 #include "Core/Macros.h"
 #include "Core/TypeDefs.h"
+#include "StringView.h"
 
 #include <string>
 #include <utility>
@@ -26,3 +27,5 @@ private:
 };
 
 FORCE_INLINE String operator+(const String& Str1, const String& Str2) { return {Str1.GetStdString() + Str2.GetStdString()}; }
+String operator+(const String& Str1, const StringView& Str2);
+FORCE_INLINE String operator+(const String& Str1, const char* Str2) { return {Str1.GetStdString() + StringView(Str2)}; }

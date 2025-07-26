@@ -71,10 +71,10 @@ inline std::ostream& operator<<(std::ostream& OS, const StringView& Str) {
 }
 template <> struct fmt::formatter<StringView> : ostream_formatter {};
 
-template <Traits::IStringable T> std::ostream& operator<<(std::ostream& OS, const T& Str) {
+template <Traits::IToString T> std::ostream& operator<<(std::ostream& OS, const T& Str) {
   OS << Str.ToString();
   return OS;
 }
 
-template <Traits::IStringable T> struct fmt::formatter<T> : ostream_formatter {};
+template <Traits::IToString T> struct fmt::formatter<T> : ostream_formatter {};
 

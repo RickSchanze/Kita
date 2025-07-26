@@ -11,6 +11,7 @@ class StringView {
 public:
   // ReSharper disable once CppNonExplicitConvertingConstructor
   StringView(const char* Str) : mStr(Str) {} // NOLINT(*-explicit-constructor)
+  explicit StringView(const std::string_view Str) : mStr(Str) {}
 
   // ReSharper disable once CppNonExplicitConvertingConstructor
   FORCE_INLINE StringView(const String& Str); // NOLINT(*-explicit-constructor)
