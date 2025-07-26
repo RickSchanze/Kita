@@ -60,7 +60,7 @@ inline Logger gLogger = {};
 #endif
 
 inline std::ostream& operator<<(std::ostream& OS, const String& Str) {
-  OS << Str.GetStdString();
+  OS << Str.GetStdStringView();
   return OS;
 }
 template <> struct fmt::formatter<String> : ostream_formatter {};

@@ -4,5 +4,4 @@
 #include "Core/Memory/UniquePtr.h"
 #include "Windows.h"
 
-int main() {
-}
+int main() { Map<String, Int32> t = {{"12", 13}}; }

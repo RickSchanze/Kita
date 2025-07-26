@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Memory/Malloc.h"
 #include "Core/String/StringView.h"
 
 struct Type {
@@ -10,7 +11,17 @@ struct Type {
   const bool IsEnum;
 };
 
-const Type* CreateType() {
-  // todo
-  return nullptr;
+namespace Pri {
+void RegisterTypeToRegistry(const Type* Type);
+}
+
+template <typename T>
+const Type* CreateType(const char* Name) {
+  static SizeType HashCodeHolder{};
+  SizeType HashCode = reinterpret_cast<SizeType>(&HashCodeHolder);
+  bool IsEnum = std::is_enum_v<T>;
+  SizeType Size = sizeof(T);
+  const Type* NewType = New<Type>(Name, Size, IsEnum, HashCode);
+  Pri::RegisterTypeToRegistry(NewType);
+  return NewType;
 }

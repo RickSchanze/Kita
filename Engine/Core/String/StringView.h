@@ -2,6 +2,7 @@
 
 #include "Core/Macros.h"
 #include "Core/TypeDefs.h"
+#include "String.h"
 
 #include <string_view>
 
@@ -14,7 +15,7 @@ public:
   explicit StringView(const std::string_view Str) : mStr(Str) {}
 
   // ReSharper disable once CppNonExplicitConvertingConstructor
-  FORCE_INLINE StringView(const String& Str); // NOLINT(*-explicit-constructor)
+  StringView(const String& Str); // NOLINT(*-explicit-constructor)
 
   StringView(const char* Str, const SizeType InSize) : mStr(Str, InSize) {}
 
@@ -32,3 +33,7 @@ private:
 inline bool operator==(const StringView& Lhs, const StringView& Rhs) {
   return Lhs.GetStdStringView() == Rhs.GetStdStringView();
 }
+
+template <> struct std::hash<String> {
+  SizeType operator()(const String& Value) const noexcept { return std::hash<std::string_view>{}(Value.GetStdStringView()); }
+};

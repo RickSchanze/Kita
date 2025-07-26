@@ -3,3 +3,6 @@
 //
 
 #include "Type.h"
+#include "TypeRegistry.h"
+
+void Pri::RegisterTypeToRegistry(const Type* Type) { GetTypeRegistry().RegisterType(Type); }

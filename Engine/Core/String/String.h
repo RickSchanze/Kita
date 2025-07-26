@@ -15,7 +15,7 @@ public:
   String(const char* Str) : mStr(Str) {}
   explicit String(const char* Str, const SizeType InSize) : mStr(Str, InSize) {}
   String(std::string Str) : mStr(std::move(Str)) {}
-  INLINE_NODISCARD const std::string& GetStdString() const { return mStr; }
+  INLINE_NODISCARD const std::string& GetStdStringView() const { return mStr; }
 
   String& operator+=(const String& Str) {
     mStr += Str.mStr;
@@ -26,6 +26,10 @@ private:
   std::string mStr;
 };
 
-FORCE_INLINE String operator+(const String& Str1, const String& Str2) { return {Str1.GetStdString() + Str2.GetStdString()}; }
+FORCE_INLINE String operator+(const String& Str1, const String& Str2) { return {Str1.GetStdStringView() + Str2.GetStdStringView()}; }
 String operator+(const String& Str1, const StringView& Str2);
-FORCE_INLINE String operator+(const String& Str1, const char* Str2) { return {Str1.GetStdString() + StringView(Str2)}; }
+FORCE_INLINE String operator+(const String& Str1, const char* Str2) { return {Str1.GetStdStringView() + StringView(Str2)}; }
+
+template <> struct std::hash<String> {
+  SizeType operator()(const String& Value) const noexcept { return std::hash<std::string>{}(Value.GetStdStringView()); }
+};

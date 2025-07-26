@@ -6,6 +6,7 @@
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/hash/hash.h"
 
 template <typename K, typename V, EMemoryLabel Label = EMemoryLabel::Default>
 
@@ -13,7 +14,7 @@ class Map {
 public:
   using key_type = K;
   using value_type = V;
-  using map_type = absl::flat_hash_map<K, V, absl::DefaultHashContainerHash<K>, absl::DefaultHashContainerEq<K>, STLAllocator<std::pair<const K, V>, Label>>;
+  using map_type = absl::flat_hash_map<K, V, std::hash<K>, absl::DefaultHashContainerEq<K>, STLAllocator<std::pair<const K, V>, Label>>;
 
   Map() = default;
   Map(const Map&) = default;
@@ -64,16 +65,3 @@ private:
   map_type mData;
 };
 
-#define DEFINE_TYPE_HASH_STD(Type, ...) \
-  template <> struct std::hash<Type> { \
-    static Size operator()(const Type& Value) noexcept { __VA_ARGS__ } \
-  }
-
-#define DEFINE_TYPE_HASH_ABSL(Type, ...) \
-  template <> struct absl::Hash<Type> { \
-    static Size operator()(const Type& Value) noexcept { __VA_ARGS__ } \
-  }
-
-#define DEFINE_TYPE_HASH(Type, ...) \
-  DEFINE_TYPE_HASH_ABSL(Type, __VA_ARGS__) \
-  DEFINE_TYPE_HASH_STD(Type, __VA_ARGS__)
