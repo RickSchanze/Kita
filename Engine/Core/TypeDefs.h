@@ -13,3 +13,5 @@ using UInt64 = std::uint64_t;
 using Float32 = float;
 using Float64 = double;
 using Size = std::size_t;
+
+constexpr Size INVALID_INDEX = static_cast<Size>(-1);

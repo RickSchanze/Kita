@@ -13,6 +13,8 @@ struct TestB {
 
 int main() {
   UniquePtr<int> a = MakeUnique<int>(1);
-  Array Test{TestB{},TestB{}};
+  Array Test{1,2,3};
+  auto& m = Test[1];
+  m = 12;
   LOG_INFO_TAG("Test", "{}", Test);
 }
