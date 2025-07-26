@@ -3,7 +3,19 @@
 //
 
 #include "Malloc.h"
-void* Malloc(Size InSize, EMemoryLabel Label) {
+#include "mimalloc.h"
+
+void* Malloc(const Size InSize, const EMemoryLabel Label) {
+  if (Label == EMemoryLabel::Default) {
+    return mi_malloc(InSize);
+  }
   return nullptr;
 }
-void Free(void* Ptr, EMemoryLabel Label) {}
+
+void Free(void* Ptr, const EMemoryLabel Label) {
+  if (Label == EMemoryLabel::Default) {
+    mi_free(Ptr);
+  }
+}
+
+void* Pri::NewN(const Size Count, const Size TypeSize) { return mi_new_n(Count, TypeSize); }

@@ -77,3 +77,4 @@ template <Traits::IStringable T> std::ostream& operator<<(std::ostream& OS, cons
 }
 
 template <Traits::IStringable T> struct fmt::formatter<T> : ostream_formatter {};
+

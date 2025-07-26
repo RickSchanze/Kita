@@ -1,15 +1,18 @@
-#include "Core/Assert.h"
+#include "Core/Container/Array.h"
+#include "Core/Event/Callback.h"
 #include "Core/Logging/Logger.hpp"
-#include "Core/Trace.h"
-
-#include "Core/Memory/SharedPtr.h"
 #include "Core/Memory/UniquePtr.h"
-#include "malloc.h"
+
+Callback<void, int> A;
+
+struct TestB {
+  static String ToString() {
+    return "B";
+  }
+};
 
 int main() {
-  UniquePtr<int> a = MakeUnique<int>(12);
-  LOG_INFO("Hello World! {}", *a);
-  SharedPtr<int> b = MakeShared<int>(13);
-  LOG_INFO("Hello World! {}", *b);
-  return 0;
+  UniquePtr<int> a = MakeUnique<int>(1);
+  Array Test{TestB{},TestB{}};
+  LOG_INFO_TAG("Test", "{}", Test);
 }
