@@ -13,7 +13,7 @@ class String {
 public:
   FORCE_INLINE explicit String(const StringView& Str);
   String(const char* Str) : mStr(Str) {}
-  explicit String(const char* Str, const Size InSize) : mStr(Str, InSize) {}
+  explicit String(const char* Str, const SizeType InSize) : mStr(Str, InSize) {}
   String(std::string Str) : mStr(std::move(Str)) {}
   INLINE_NODISCARD const std::string& GetStdString() const { return mStr; }
 

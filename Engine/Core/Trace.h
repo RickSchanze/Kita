@@ -3,5 +3,5 @@
 
 class Trace {
 public:
-  static String GenerateTraceString(Size Skip = 0);
+  static String GenerateTraceString(SizeType Skip = 0);
 };

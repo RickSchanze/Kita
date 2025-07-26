@@ -8,9 +8,9 @@ template <typename T> struct SharedPtrAllocator {
   SharedPtrAllocator() = default;
   template <typename U> explicit SharedPtrAllocator(const SharedPtrAllocator<U>&) noexcept {}
 
-  static T* allocate(const Size N) { return static_cast<T*>(Malloc(N * sizeof(T), EMemoryLabel::Default)); }
+  static T* allocate(const SizeType N) { return static_cast<T*>(Malloc(N * sizeof(T), EMemoryLabel::Default)); }
 
-  static void deallocate(T* p, Size) noexcept { Free(p, EMemoryLabel::Default); }
+  static void deallocate(T* p, SizeType) noexcept { Free(p, EMemoryLabel::Default); }
 };
 
 template <typename T> struct SharedPtr {

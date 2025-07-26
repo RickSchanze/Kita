@@ -25,7 +25,7 @@ public:
   Map(const std::initializer_list<std::pair<const K, V>>& Init) : mData(Init) {}
 
   [[nodiscard]] bool Empty() const { return mData.empty(); }
-  [[nodiscard]] Size Count() const { return mData.size(); }
+  [[nodiscard]] SizeType Count() const { return mData.size(); }
   auto begin() { return mData.begin(); }
   auto end() { return mData.end(); }
   auto begin() const { return mData.begin(); }

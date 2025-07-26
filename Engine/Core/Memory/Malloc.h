@@ -6,7 +6,7 @@ enum class EMemoryLabel {
   Count,
 };
 
-void* Malloc(Size InSize, EMemoryLabel Label);
+void* Malloc(SizeType InSize, EMemoryLabel Label);
 void Free(void* Ptr, EMemoryLabel Label);
 
 template <typename T, typename... Args> T* New(Args&&... InArgs) { return new (Malloc(sizeof(T), EMemoryLabel::Default)) T(std::forward<Args...>(InArgs...)); }
@@ -18,7 +18,7 @@ template <typename T, EMemoryLabel Label = EMemoryLabel::Default> void Delete(T*
 }
 
 namespace Pri {
-void* NewN(Size Count, Size TypeSize);
+void* NewN(SizeType Count, SizeType TypeSize);
 }
 
 template <typename T, EMemoryLabel Label> struct STLAllocator {
@@ -34,7 +34,7 @@ template <typename T, EMemoryLabel Label> struct STLAllocator {
   using propagate_on_container_swap = std::true_type;
   template <class U, class... Args> void construct(U* p, Args&&... args) { ::new (p) U(std::forward<Args>(args)...); }
   template <class U> static void destroy(U* p) noexcept { p->~U(); }
-  [[nodiscard]] static Size max_size() noexcept { return (PTRDIFF_MAX / sizeof(value_type)); }
+  [[nodiscard]] static SizeType max_size() noexcept { return (PTRDIFF_MAX / sizeof(value_type)); }
   static pointer address(reference x) { return &x; }
   static const_pointer address(const_reference x) { return &x; }
 

@@ -12,6 +12,18 @@ using UInt32 = std::uint32_t;
 using UInt64 = std::uint64_t;
 using Float32 = float;
 using Float64 = double;
-using Size = std::size_t;
+using SizeType = std::size_t;
 
-constexpr Size INVALID_INDEX = static_cast<Size>(-1);
+constexpr SizeType INVALID_INDEX = static_cast<SizeType>(-1);
+
+struct NonCopyable {
+  NonCopyable() = default;
+  NonCopyable(const NonCopyable&) = delete;
+  NonCopyable& operator=(const NonCopyable&) = delete;
+};
+
+struct NonMovable {
+  NonMovable() = default;
+  NonMovable(NonMovable&&) = delete;
+  NonMovable& operator=(NonMovable&&) = delete;
+};

@@ -16,7 +16,7 @@ public:
   // ReSharper disable once CppNonExplicitConvertingConstructor
   FORCE_INLINE StringView(const String& Str); // NOLINT(*-explicit-constructor)
 
-  StringView(const char* Str, const Size InSize) : mStr(Str, InSize) {}
+  StringView(const char* Str, const SizeType InSize) : mStr(Str, InSize) {}
 
   StringView(StringView&&) = default;
   StringView& operator=(StringView&&) = default;
@@ -28,3 +28,7 @@ public:
 private:
   std::string_view mStr;
 };
+
+inline bool operator==(const StringView& Lhs, const StringView& Rhs) {
+  return Lhs.GetStdStringView() == Rhs.GetStdStringView();
+}

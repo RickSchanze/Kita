@@ -5,7 +5,7 @@
 #include "Trace.h"
 #include "cpptrace/cpptrace.hpp"
 
-String Trace::GenerateTraceString(Size Skip) {
+String Trace::GenerateTraceString(SizeType Skip) {
   const auto MyTrace = cpptrace::generate_trace(Skip);
   return MyTrace.to_string();
 }

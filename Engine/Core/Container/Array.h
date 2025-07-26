@@ -5,13 +5,14 @@
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
+#include "Function.h"
 
 #include <vector>
 
 template <typename T, EMemoryLabel Label = EMemoryLabel::Default> class Array {
 public:
   Array() = default;
-  explicit Array(Size InSize) : mData(InSize) {}
+  explicit Array(SizeType InSize) : mData(InSize) {}
   Array(std::initializer_list<T> InList) : mData(InList) {}
   Array(const Array&) = default;
   Array(Array&&) = default;
@@ -23,15 +24,24 @@ public:
   auto begin() const { return mData.begin(); }
   auto end() const { return mData.end(); }
 
-  [[nodiscard]] Size Count() const { return mData.size(); }
-  void Resize(Size NewSize) { mData.resize(NewSize); }
-  void Reserve(Size NewCapacity) { mData.reserve(NewCapacity); }
+  [[nodiscard]] SizeType Count() const { return mData.size(); }
+  void Resize(SizeType NewSize) { mData.resize(NewSize); }
+  void Reserve(SizeType NewCapacity) { mData.reserve(NewCapacity); }
   void Clear() { mData.clear(); }
 
-  Size IndexOf(const T& InValue) {
+  SizeType IndexOf(const T& InValue) const {
     static_assert(Traits::IEquatable<T>, "T must be equatable when use IndexOf(const T&)");
-    for (Size Index = 0; Index < mData.size(); Index++) {
+    for (SizeType Index = 0; Index < mData.size(); Index++) {
       if (mData[Index] == InValue) {
+        return Index;
+      }
+    }
+    return INVALID_INDEX;
+  }
+
+  SizeType IndexOf(auto&& InPredicate) const {
+    for (SizeType Index = 0; Index < mData.size(); Index++) {
+      if (InPredicate(mData[Index])) {
         return Index;
       }
     }
@@ -41,14 +51,14 @@ public:
   // 交换然后删除 erase-remove
   void Remove(const T& InValue) {
     static_assert(Traits::IEquatable<T>, "T must be equatable when use IndexOf(const T&)");
-    for (Size Index = 0; Index < mData.size(); Index++) {
+    for (SizeType Index = 0; Index < mData.size(); Index++) {
       if (mData[Index] == InValue) {
         mData.erase(std::remove(mData.begin() + Index, mData.begin() + Index + 1), mData.end());
       }
     }
   }
 
-  auto&& operator[](this auto&& Self, Size Index) {
+  auto&& operator[](this auto&& Self, SizeType Index) {
     DEBUG_ASSERT_MSG(Index < Self.Count(), "Index out of range");
     return Self.mData[Index];
   }
@@ -70,6 +80,12 @@ public:
     }
     Result += "]";
     return Result;
+  }
+
+  void AddUnique(const T& Value) {
+    if (IndexOf(Value) == INVALID_INDEX) {
+      Add(Value);
+    }
   }
 
 private:
