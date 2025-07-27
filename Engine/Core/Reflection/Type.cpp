@@ -3,9 +3,9 @@
 //
 
 #include "Type.h"
+#include "Core/Assert.h"
+#include "Core/Trace.h"
 #include "TypeRegistry.h"
-
-void Pri::RegisterTypeToRegistry(const Type* Type) { GetTypeRegistry().RegisterType(Type); }
 
 static void FindFieldsRecursive(const Type* Type, Array<const struct Field*>& Fields) {
   if (!Type->HasParent()) {
@@ -30,12 +30,7 @@ bool Type::IsDerivedFrom(const Type* const InBase) const {
   if (mBases.Empty()) {
     return false;
   }
-  for (const Type* Base : mBases) {
-    if (Base->IsDerivedFrom(InBase)) {
-      return true;
-    }
-  }
-  return false;
+  return Ranges::AnyOf(mBases, [InBase](const Type* Base) { return Base->IsDerivedFrom(InBase); });
 }
 
 bool Type::IsParentOf(const Type* Child) const {
@@ -45,3 +40,8 @@ bool Type::IsParentOf(const Type* Child) const {
 }
 
 void Type::RegisterField(const Field* Field) { mFields.Add(Field); }
+
+void Type::SetAttribute(const StringView Key, const StringView Value) {
+  DEBUG_ASSERT_MSG(!mAttributes.Contains(Key), Format("TypeAttribute {} already registered", Key));
+  mAttributes[Key] = Value;
+}

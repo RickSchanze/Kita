@@ -1,11 +1,11 @@
 #pragma once
+#include "Core/Assert.h" // for assert
 #include "Core/Logging/Logger.hpp"
 #include "Core/Memory/Malloc.h"
 #include "Core/Ranges.h"
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
-#include "Function.h"
 
 #include <vector>
 

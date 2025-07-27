@@ -4,6 +4,8 @@
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/StringView.h"
+// ReSharper disable once CppUnusedIncludeDirective
+#include "Core/Trace.h" // for Error and Fatal log stack trace
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
 
@@ -78,3 +80,4 @@ template <Traits::IToString T> std::ostream& operator<<(std::ostream& OS, const 
 
 template <Traits::IToString T> struct fmt::formatter<T> : ostream_formatter {};
 
+template <typename... Args> String Format(fmt::format_string<Args...> FormatString, Args&&... InArgs) { return String(fmt::format(FormatString, std::forward<Args>(InArgs)...)); }

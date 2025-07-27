@@ -2,7 +2,6 @@
 
 #include "Core/Macros.h"
 #include "Core/TypeDefs.h"
-#include "String.h"
 
 #include <string_view>
 
@@ -10,6 +9,7 @@ class String;
 
 class StringView {
 public:
+  StringView() = default;
   // ReSharper disable once CppNonExplicitConvertingConstructor
   StringView(const char* Str) : mStr(Str) {} // NOLINT(*-explicit-constructor)
   explicit StringView(const std::string_view Str) : mStr(Str) {}

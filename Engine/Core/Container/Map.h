@@ -9,13 +9,15 @@
 #include "absl/hash/hash.h"
 
 template <typename K, typename V, EMemoryLabel Label = EMemoryLabel::Default>
-
 class Map {
 public:
   using key_type = K;
   using value_type = V;
+#if KITA_DEBUG
+  using map_type = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>, STLAllocator<std::pair<const K, V>, Label>>;
+#else
   using map_type = absl::flat_hash_map<K, V, std::hash<K>, absl::DefaultHashContainerEq<K>, STLAllocator<std::pair<const K, V>, Label>>;
-
+#endif
   Map() = default;
   Map(const Map&) = default;
   Map(Map&&) = default;

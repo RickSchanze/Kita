@@ -22,6 +22,9 @@ concept SameAs = std::is_same_v<T1, T2>;
 template <typename T>
 using Pure = std::remove_cvref_t<T>;
 
+template <typename T>
+concept IsEnum = std::is_enum_v<T>;
+
 // 一些通用性概念接口
 template <typename T>
 concept IEquatable = requires(const T& a, const T& b) {

@@ -6,12 +6,17 @@
 #include "Core/String/StringView.h"
 
 struct Type {
-  Type(const char* InName, const Int32 InSize, const bool InIsEnum, const SizeType InHashCode) : mName(InName), mSize(InSize), mHashCode(InHashCode), mIsEnum(InIsEnum) {}
+  Type() = default;
+  Type(const StringView InName, const Int32 InSize, const SizeType InHashCode) : mName(InName), mSize(InSize), mHashCode(InHashCode) {}
 
   [[nodiscard]] StringView GetName() const { return mName; }
-  [[nodiscard]] Int32 GetSize() const { return mSize; }
+  [[nodiscard]] Int32 GetSize() const {
+    if (IsEnum())
+      return sizeof(Int32);
+    return mSize;
+  }
   [[nodiscard]] SizeType GetHashCode() const noexcept { return mHashCode; }
-  [[nodiscard]] bool IsEnum() const { return mIsEnum; }
+  [[nodiscard]] bool IsEnum() const { return mSize == -1; }
   [[nodiscard]] Array<const Type*> GetBases() const { return mBases; }
 
   /// @brief 获取此类型的所有字段, 包括基类的字段
@@ -54,28 +59,39 @@ struct Type {
     return NullOpt;
   }
 
+  /// 设置此类型的属性, Key不应该重复
+  void SetAttribute(StringView Key, StringView Value);
+
 private:
   StringView mName;
   /// 这个类的大小, 当其Size = -1时, 此类型表示枚举
   Int32 mSize{0};
-  SizeType mHashCode;
+  SizeType mHashCode{};
   Array<const Type*> mBases;
-  Array<const struct Field*> mFields;
+  Array<const Field*> mFields;
   /// 类的元数据属性, 其键值都是StringView说明都必须是字符串字面量
   Map<StringView, StringView> mAttributes;
-  bool mIsEnum;
 };
 
-namespace Pri {
-void RegisterTypeToRegistry(const Type* Type);
+template <typename T> SizeType GetTypeStaticHashCode() {
+  static SizeType HashCodeHolder{};
+  return reinterpret_cast<SizeType>(&HashCodeHolder);
 }
 
-template <typename T> const Type* CreateType(const char* Name) {
-  static SizeType HashCodeHolder{};
-  auto HashCode = reinterpret_cast<SizeType>(&HashCodeHolder);
-  bool IsEnum = std::is_enum_v<T>;
-  SizeType Size = sizeof(T);
-  const Type* NewType = New<Type>(Name, Size, IsEnum, HashCode);
-  Pri::RegisterTypeToRegistry(NewType);
+/// @brief 创建一个类型的Type 不负责生命周期, 请注册至TypeRegistry或者自己进行管理
+/// @tparam T
+/// @param Name
+/// @return
+template <typename T> Type* CreateType(StringView Name) {
+  auto HashCode = GetTypeStaticHashCode<T>();
+  Int32 Size = sizeof(T);
+  Type* NewType = New<Type>(Name, Size, HashCode);
+  return NewType;
+}
+
+template <Traits::IsEnum T> Type* CreateType(StringView Name) {
+  auto HashCode = GetTypeStaticHashCode<T>();
+  Int32 Size = -1;
+  Type* NewType = New<Type>(Name, Size, HashCode);
   return NewType;
 }

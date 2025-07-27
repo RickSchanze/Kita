@@ -14,7 +14,7 @@
 #ifdef KITA_DEBUG
 #define DEBUG_ASSERT_MSG(Condition, ...) \
   if (!(Condition)) { \
-    LOG_ERROR("[Assert] " __VA_ARGS__); \
+    LOG_ERROR(String("[Assert] ") + __VA_ARGS__); \
   }
 
 #define DEBUG_ASSERT(Condition) \
