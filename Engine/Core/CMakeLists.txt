@@ -7,6 +7,10 @@ add_library(KitaCore
         String/StringView.cpp
         String/StringView.h
         String/StringTraits.h
+        Container/Optional.h
+        Container/Function.h
+        Container/Array.h
+        Container/Map.h
         Logging/Logger.hpp
         Logging/Logger.cpp
         Event/Callback.h
@@ -16,6 +20,12 @@ add_library(KitaCore
         Memory/SharedPtr.h
         Memory/Malloc.cpp
         Memory/Malloc.h
+        Reflection/Type.h
+        Reflection/Type.cpp
+        Reflection/Field.h
+        Reflection/Field.cpp
+        Reflection/TypeRegistry.h
+        Reflection/TypeRegistry.cpp
         Assert.h
         Trace.cpp
         Trace.h)

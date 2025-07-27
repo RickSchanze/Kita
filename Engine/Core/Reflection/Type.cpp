@@ -43,3 +43,5 @@ bool Type::IsParentOf(const Type* Child) const {
     return false;
   return Child->IsDerivedFrom(this);
 }
+
+void Type::RegisterField(const Field* Field) { mFields.Add(Field); }

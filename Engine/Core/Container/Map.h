@@ -32,11 +32,20 @@ public:
   auto begin() const { return mData.begin(); }
   auto end() const { return mData.end(); }
 
+  /// 符合项目命名约定的转发
+  auto Begin() { return mData.begin(); }
+  auto End() { return mData.end(); }
+  auto Begin() const { return mData.begin(); }
+  auto End() const { return mData.end(); }
+
   auto&& operator[](this auto&& Self, const K& Key) { return Self.mData[Key]; }
 
   void Add(const K& Key, const V& Value) { mData.insert({Key, Value}); }
   bool TryAdd(const K& Key, const V& Value) { return mData.try_emplace({Key, Value}); }
   bool Remove(const K& Key) { return mData.erase(Key) != 0; }
+  [[nodiscard]] bool Contains(const K& Key) const { return mData.contains(Key); }
+
+  auto Find(const K& Key) const { return mData.find(Key); }
 
   [[nodiscard]] String ToString() const
     requires(Traits::IStringable<K> && Traits::IStringable<V>)
@@ -64,4 +73,3 @@ public:
 private:
   map_type mData;
 };
-
