@@ -26,14 +26,10 @@ public:
 
   INLINE_NODISCARD std::string_view GetStdStringView() const { return mStr; }
 
+  [[nodiscard]] SizeType GetHashCode() const noexcept { return std::hash<std::string_view>{}(mStr); }
+
 private:
   std::string_view mStr;
 };
 
-inline bool operator==(const StringView& Lhs, const StringView& Rhs) {
-  return Lhs.GetStdStringView() == Rhs.GetStdStringView();
-}
-
-template <> struct std::hash<String> {
-  SizeType operator()(const String& Value) const noexcept { return std::hash<std::string_view>{}(Value.GetStdStringView()); }
-};
+inline bool operator==(const StringView& Lhs, const StringView& Rhs) { return Lhs.GetStdStringView() == Rhs.GetStdStringView(); }

@@ -11,6 +11,7 @@
 
 template <typename T, EMemoryLabel Label = EMemoryLabel::Default> class Array {
 public:
+
   Array() = default;
   explicit Array(SizeType InSize) : mData(InSize) {}
   Array(std::initializer_list<T> InList) : mData(InList) {}
@@ -87,6 +88,28 @@ public:
       Add(Value);
     }
   }
+
+  /// @brief 向当前容器末尾插入 Container 中的所有元素
+  template <typename Cont>
+  void AddRange(Cont&& Container) {
+    mData.insert_range(end(), Container);
+  }
+
+  /// @brief 向当前容器的指定位置插入 Container 中的所有元素
+  template <typename Iter, typename Cont>
+  void AddRange(Iter&& Where, Cont&& Container) {
+    mData.insert_range(Where, Container);
+  }
+
+  /// @brief 向当前容器的指定位置插入迭代器范围的元素
+  template <typename Iter1, typename Iter2>
+  void AddRange(Iter1&& Where, Iter2&& Begin, Iter2&& End) {
+    mData.insert_range(Where, Begin, End);
+  }
+
+  /// @brief 检查容器是否为空
+  /// @return true 为空 false 不为空
+  [[nodiscard]] bool Empty() const { return mData.empty(); }
 
 private:
   std::vector<T, STLAllocator<T, Label>> mData;

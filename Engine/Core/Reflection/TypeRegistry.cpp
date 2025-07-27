@@ -42,7 +42,7 @@ TypeRegistry::~TypeRegistry() {
 void TypeRegistry::RegisterType(const Type* Type) { mRegisteredTypes.AddUnique(Type); }
 
 const Type* TypeRegistry::GetType(const StringView& TypeName) const {
-  const SizeType Index = mRegisteredTypes.IndexOf([TypeName](const Type* Type) { return Type->Name == TypeName; });
+  const SizeType Index = mRegisteredTypes.IndexOf([TypeName](const Type* Type) { return Type->mName == TypeName; });
   if (Index == INVALID_INDEX)
     return nullptr;
   return mRegisteredTypes[Index];

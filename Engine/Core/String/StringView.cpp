@@ -6,4 +6,4 @@
 
 #include "String.h"
 
-StringView::StringView(const String& Str) : mStr(Str.GetStdStringView()) {}
+StringView::StringView(const String& Str) : mStr(Str.GetStdString()) {}

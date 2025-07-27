@@ -12,3 +12,8 @@ String operator+(const String& Str1, const StringView& Str2) {
   String Str3(Str1);
   return Str3 += String(Str2);
 }
+
+String operator+(const String& Str1, const char* Str2) {
+  String Str3(Str1);
+  return Str3 += Str2;
+}

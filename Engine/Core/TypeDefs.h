@@ -27,3 +27,31 @@ struct NonMovable {
   NonMovable(NonMovable&&) = delete;
   NonMovable& operator=(NonMovable&&) = delete;
 };
+
+template <typename T>
+concept IGetHashCode = requires(T Value) {
+  { Value.GetHashCode() } -> std::same_as<SizeType>;
+};
+
+template <typename T>
+concept IStdHash = requires(T Value) {
+  { std::hash<T>{}(Value) } -> std::same_as<SizeType>;
+};
+
+template <typename T>
+concept IHashable = IGetHashCode<T> || IStdHash<T>;
+
+template <IHashable T> SizeType GetHashCode(const T& Value) {
+  if constexpr (IGetHashCode<T>) {
+    return Value.GetHashCode();
+  } else {
+    return std::hash<T>{}(Value);
+  }
+}
+
+template <IGetHashCode T>
+struct std::hash<T> {
+  SizeType operator()(const T& Value) const noexcept {
+    return Value.GetHashCode();
+  }
+};
