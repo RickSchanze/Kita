@@ -6,11 +6,11 @@
 #include "Core/String/StringView.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "Core/Trace.h" // for Error and Fatal log stack trace
+
+#ifndef KITA_PROCESSING_METADATA_MARK
 #include "spdlog/fmt/ostr.h"
 #include "spdlog/spdlog.h"
-
-#include <fmt/ostream.h>
-
+#include "fmt/ostream.h"
 class Logger {
 public:
   Logger();
@@ -81,3 +81,14 @@ template <Traits::IToString T> std::ostream& operator<<(std::ostream& OS, const 
 template <Traits::IToString T> struct fmt::formatter<T> : ostream_formatter {};
 
 template <typename... Args> String Format(fmt::format_string<Args...> FormatString, Args&&... InArgs) { return String(fmt::format(FormatString, std::forward<Args>(InArgs)...)); }
+#else
+#define LOG_INFO(...)
+#define LOG_INFO_TAG(Tag, ...)
+#define LOG_WARN(...)
+#define LOG_WARN_TAG(Tag, ...)
+#define LOG_ERROR(...)
+#define LOG_ERROR_TAG(Tag, ...)
+#define LOG_CRITICAL(...)
+#define LOG_CRITICAL_TAG(Tag, ...)
+#endif
+

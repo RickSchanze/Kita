@@ -28,7 +28,9 @@ add_library(KitaCore
         Reflection/TypeRegistry.cpp
         Assert.h
         Trace.cpp
-        Trace.h)
+        Trace.h
+        A.h
+)
 
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(KitaCore PUBLIC spdlog::spdlog)

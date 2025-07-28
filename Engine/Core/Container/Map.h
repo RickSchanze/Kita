@@ -1,19 +1,23 @@
 #pragma once
-
+#include <unordered_map>
 #include "Core/Memory/Malloc.h"
 #include "Core/Ranges.h"
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
+
+#if KITA_DEBUG || defined(KITA_PROCESSING_METADATA_MARK)
+#else
 #include "absl/container/flat_hash_map.h"
 #include "absl/hash/hash.h"
+#endif
 
 template <typename K, typename V, EMemoryLabel Label = EMemoryLabel::Default>
 class Map {
 public:
   using key_type = K;
   using value_type = V;
-#if KITA_DEBUG
+#if KITA_DEBUG || defined(KITA_PROCESSING_METADATA_MARK)
   using map_type = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>, STLAllocator<std::pair<const K, V>, Label>>;
 #else
   using map_type = absl::flat_hash_map<K, V, std::hash<K>, absl::DefaultHashContainerEq<K>, STLAllocator<std::pair<const K, V>, Label>>;
