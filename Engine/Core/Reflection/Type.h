@@ -74,7 +74,7 @@ private:
 };
 
 template <typename T> SizeType GetTypeStaticHashCode() {
-  static SizeType HashCodeHolder{};
+  static Int8 HashCodeHolder{};
   return reinterpret_cast<SizeType>(&HashCodeHolder);
 }
 
