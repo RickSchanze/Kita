@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Container/Result.h"
 #include "Core/Memory/SharedPtr.h"
 #include "Core/Memory/UniquePtr.h"
 #include "TypeRegistry.h"
@@ -85,8 +86,14 @@ public:
   template <typename T> explicit AnyRef(const T& InData) : mDataHolder(MakeShared<DataHolder_T<Traits::Pure<T>>>(&InData)) {}
 
   void* GetDataPtr() { return mDataHolder->GetDataPtr(); }
-};
 
-template <typename T> T& AnyRefCast(AnyRef& InAnyRef) {
-  return *static_cast<T*>(InAnyRef.GetDataPtr());
-}
+  template <typename T> Result<T*, EReflectionError> Cast() {
+    if (mDataHolder->GetType() != TypeOf<T>()) {
+      return EReflectionError::TypeMismatch;
+    }
+    if (mDataHolder->GetDataPtr() == nullptr) {
+      return EReflectionError::NullPointer;
+    }
+    return static_cast<T*>(mDataHolder->GetDataPtr());
+  }
+};
