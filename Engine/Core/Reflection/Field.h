@@ -1,6 +1,8 @@
 #pragma once
+#include "ArrayProxy.h"
 #include "Core/Container/Map.h"
 #include "Core/Container/Optional.h"
+#include "Core/Memory/UniquePtr.h"
 #include "Core/String/StringView.h"
 
 ///
@@ -12,6 +14,8 @@
 struct Field {
   Field(const StringView Name, const Int32 Offset, const Int32 Size, const struct Type* DeclaringType, const struct Type* OwnerType)
       : mDeclaringType(DeclaringType), mOwnerType(OwnerType), mName(Name), mOffset(Offset), mSize(Size) {}
+
+  ~Field();
 
   [[nodiscard]] const struct Type* GetDeclaringType() const { return mDeclaringType; }
   [[nodiscard]] const struct Type* GetOwnerType() const { return mOwnerType; }
@@ -41,6 +45,8 @@ struct Field {
   /// 这个字段是不是一个枚举类型的字段
   [[nodiscard]] bool IsEnumField() const;
 
+  void SetArrayProxy(UniquePtr<ArrayProxy> ArrayProxy) { mArrayProxy = std::move(ArrayProxy); }
+
 private:
   /// 声明此字段的类型, 如果mOwnerType为枚举, 则mDeclaringType为空
   const struct Type* mDeclaringType{nullptr};
@@ -54,4 +60,6 @@ private:
   Int32 mSize{0};
   /// 字段的属性
   Map<StringView, StringView> mAttributes;
+  /// 字段的ArrayProxy 不为空表示此字段是类型为mDeclaringType的关联容器
+  UniquePtr<ArrayProxy> mArrayProxy;
 };

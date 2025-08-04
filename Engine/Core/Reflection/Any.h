@@ -8,6 +8,7 @@ struct Type;
 enum class EReflectionError {
   TypeMismatch,
   NullPointer,
+  OutOfRange,
 };
 
 class Any {
@@ -87,7 +88,8 @@ public:
 
   void* GetDataPtr() { return mDataHolder->GetDataPtr(); }
 
-  template <typename T> Result<T*, EReflectionError> Cast() {
+  template <typename T>
+  Result<T*, EReflectionError> Cast() {
     if (mDataHolder->GetType() != TypeOf<T>()) {
       return EReflectionError::TypeMismatch;
     }

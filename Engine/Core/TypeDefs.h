@@ -55,3 +55,4 @@ struct std::hash<T> {
     return Value.GetHashCode();
   }
 };
+
