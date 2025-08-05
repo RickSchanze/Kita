@@ -43,6 +43,8 @@ struct TypeBuilder {
     const Type* OwnerType = OperatingType;
     auto* NewField = New<Field>(Name, FieldOffset, FieldSize, DeclaringType, OwnerType);
     NewField->SetArrayProxy(CreateArrayProxy<FieldType>());
+    NewField->SetMapProxy(CreateMapProxy<FieldType>());
+    NewField->CorrectSelf();
     LastOperatingField = NewField;
     OperatingType->RegisterField(NewField);
     return *this;

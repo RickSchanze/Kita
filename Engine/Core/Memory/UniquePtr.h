@@ -25,6 +25,7 @@ template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct UniqueP
   const T* operator->() const { return mPtr.get(); }
   T& GetRef() { return *mPtr; }
   const T& GetRef() const { return *mPtr; }
+  operator bool() const { return mPtr.get() != nullptr; }
 
 private:
   std::unique_ptr<T, UniquePtrDeleter<T, Label>> mPtr;

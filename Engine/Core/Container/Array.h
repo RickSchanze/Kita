@@ -109,10 +109,16 @@ namespace Traits {
 namespace Pri {
 template <typename T> struct IsArray : std::false_type {};
 
-template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct IsArray<Array<T, Label>> : std::true_type {};
+template <typename T, EMemoryLabel Label> struct IsArray<Array<T, Label>> : std::true_type {};
 } // namespace Pri
 
 template <typename T>
 concept IsArray = Pri::IsArray<T>::value;
+
+template <typename T> struct ArrayTraits {};
+template <typename T, EMemoryLabel Label> struct ArrayTraits<Array<T, Label>> {
+  using ElementType = T;
+  constexpr static EMemoryLabel MemoryLabel = Label;
+};
 
 } // namespace Traits

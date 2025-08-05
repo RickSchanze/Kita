@@ -26,6 +26,10 @@ add_library(KitaCore
         Reflection/Field.cpp
         Reflection/TypeRegistry.h
         Reflection/TypeRegistry.cpp
+        Reflection/ArrayProxy.h
+        Reflection/MapProxy.h
+        Reflection/Any.h
+        Reflection/Any.cpp
         Assert.h
         Trace.cpp
         Trace.h

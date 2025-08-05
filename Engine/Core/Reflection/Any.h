@@ -1,22 +1,30 @@
 #pragma once
 #include "Core/Container/Result.h"
 #include "Core/Memory/SharedPtr.h"
-#include "Core/Memory/UniquePtr.h"
-#include "TypeRegistry.h"
+#include "Type.h"
 
 struct Type;
 enum class EReflectionError {
   TypeMismatch,
   NullPointer,
   OutOfRange,
+  KeyNotFound,
+  NotArray,
+  NotMap,
+  IsArray,
+  IsMap,
 };
+
+namespace Pri {
+const Type* GetTypeByHashCode(SizeType HashCode);
+}
 
 class Any {
 public:
   class DataHolder {
   public:
     virtual ~DataHolder() = default;
-    const Type* GetType() const { return mType; }
+    [[nodiscard]] const Type* GetType() const { return mType; }
 
     explicit DataHolder(const Type* InType) : mType(InType) {}
 
@@ -32,7 +40,7 @@ public:
     T mData;
 
   public:
-    explicit DataHolder_T(const T& InData) : DataHolder(TypeOf<T>()), mData(InData) {}
+    explicit DataHolder_T(const T& InData) : DataHolder(Pri::GetTypeByHashCode(GetTypeStaticHashCode<T>())), mData(InData) {}
     // 复制构造
     DataHolder_T(const DataHolder_T& Other) : DataHolder(Other.mType), mData(Other.mData) {}
 
@@ -43,7 +51,7 @@ private:
   SharedPtr<DataHolder> mDataHolder;
 
 public:
-  const Type* GetType() const { return mDataHolder->GetType(); }
+  [[nodiscard]] const Type* GetType() const { return mDataHolder->GetType(); }
 
   template <typename T> explicit Any(const T& InData) : mDataHolder(MakeShared<DataHolder_T<Traits::Pure<T>>>(InData)) {}
 
@@ -55,11 +63,11 @@ public:
   class DataHolder {
   public:
     virtual ~DataHolder() = default;
-    const Type* GetType() const { return mType; }
+    [[nodiscard]] const Type* GetType() const { return mType; }
 
     explicit DataHolder(const Type* InType) : mType(InType) {}
 
-    virtual void* GetDataPtr() = 0;
+    [[nodiscard]] virtual void* GetDataPtr() const = 0;
 
   protected:
     const Type* mType = nullptr;
@@ -71,26 +79,25 @@ public:
     T* mData;
 
   public:
-    explicit DataHolder_T(T* InData) : DataHolder(TypeOf<T>()), mData(InData) {}
+    explicit DataHolder_T(T* InData) : DataHolder(Pri::GetTypeByHashCode(GetTypeStaticHashCode<T>())), mData(InData) {}
     // 复制构造
     DataHolder_T(const DataHolder_T& Other) : DataHolder(Other.mType), mData(Other.mData) {}
 
-    virtual void* GetDataPtr() override { return mData.Get(); }
+    [[nodiscard]] virtual void* GetDataPtr() const override { return mData.Get(); }
   };
 
 private:
   SharedPtr<DataHolder> mDataHolder;
 
 public:
-  const Type* GetType() const { return mDataHolder->GetType(); }
+  [[nodiscard]] const Type* GetType() const { return mDataHolder->GetType(); }
 
   template <typename T> explicit AnyRef(const T& InData) : mDataHolder(MakeShared<DataHolder_T<Traits::Pure<T>>>(&InData)) {}
 
   void* GetDataPtr() { return mDataHolder->GetDataPtr(); }
 
-  template <typename T>
-  Result<T*, EReflectionError> Cast() {
-    if (mDataHolder->GetType() != TypeOf<T>()) {
+  template <typename T> Result<T*, EReflectionError> Cast() const {
+    if (mDataHolder->GetType() != Pri::GetTypeByHashCode(GetTypeStaticHashCode<T>())) {
       return EReflectionError::TypeMismatch;
     }
     if (mDataHolder->GetDataPtr() == nullptr) {

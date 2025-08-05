@@ -1,10 +1,10 @@
 #pragma once
-#include <unordered_map>
 #include "Core/Memory/Malloc.h"
 #include "Core/Ranges.h"
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
+#include <unordered_map>
 
 #if KITA_DEBUG || defined(KITA_PROCESSING_METADATA_MARK)
 #else
@@ -12,8 +12,7 @@
 #include "absl/hash/hash.h"
 #endif
 
-template <typename K, typename V, EMemoryLabel Label = EMemoryLabel::Default>
-class Map {
+template <typename K, typename V, EMemoryLabel Label = EMemoryLabel::Default> class Map {
 public:
   using key_type = K;
   using value_type = V;
@@ -79,3 +78,25 @@ public:
 private:
   map_type mData;
 };
+
+namespace Traits {
+
+namespace Pri {
+
+template <typename T> struct IsMap : std::false_type {};
+
+template <typename K, typename V, EMemoryLabel Label> struct IsMap<Map<K, V, Label>> : std::true_type {};
+
+} // namespace Pri
+
+template <typename T>
+concept IsMap = Pri::IsMap<T>::value;
+
+template <typename T> struct MapTraits {};
+template <typename K, typename V, EMemoryLabel Label> struct MapTraits<Map<K, V, Label>> {
+  using KeyType = K;
+  using ValueType = V;
+  constexpr static EMemoryLabel MemoryLabel = Label;
+};
+
+} // namespace Traits

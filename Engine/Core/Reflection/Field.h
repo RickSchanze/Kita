@@ -4,6 +4,7 @@
 #include "Core/Container/Optional.h"
 #include "Core/Memory/UniquePtr.h"
 #include "Core/String/StringView.h"
+#include "MapProxy.h"
 
 ///
 /// class A{
@@ -17,8 +18,16 @@ struct Field {
 
   ~Field();
 
-  [[nodiscard]] const struct Type* GetDeclaringType() const { return mDeclaringType; }
-  [[nodiscard]] const struct Type* GetOwnerType() const { return mOwnerType; }
+  [[nodiscard]] Result<const Type*, EReflectionError> GetDeclaringType() const {
+    if (mMapProxy)
+      return EReflectionError::IsMap;
+    if (mArrayProxy)
+      return EReflectionError::IsArray;
+    return mDeclaringType;
+  }
+
+  [[nodiscard]] const Type* GetOwnerType() const { return mOwnerType; }
+
   [[nodiscard]] StringView GetName() const { return mName; }
   [[nodiscard]] Int32 GetOffset() const { return mOffset; }
   [[nodiscard]] Int32 GetSize() const { return mSize; }
@@ -46,9 +55,38 @@ struct Field {
   [[nodiscard]] bool IsEnumField() const;
 
   void SetArrayProxy(UniquePtr<ArrayProxy> ArrayProxy) { mArrayProxy = std::move(ArrayProxy); }
+  void SetMapProxy(UniquePtr<MapProxy> MapProxy) { mMapProxy = std::move(MapProxy); }
+
+  void CorrectSelf() {
+    if (mArrayProxy || mMapProxy) {
+      mDeclaringType = nullptr;
+    }
+  }
+
+  [[nodiscard]] Result<const Type*, EReflectionError> GetArrayElementType() const {
+    if (mArrayProxy) {
+      return mArrayProxy->GetElementType();
+    }
+    return EReflectionError::NotArray;
+  }
+
+  [[nodiscard]] Result<const Type*, EReflectionError> GetMapKeyType() const {
+    if (mMapProxy) {
+      return mMapProxy->GetKeyType();
+    }
+    return EReflectionError::NotMap;
+  }
+
+  [[nodiscard]] Result<const Type*, EReflectionError> GetMapValueType() const {
+    if (mMapProxy) {
+      return mMapProxy->GetValueType();
+    }
+    return EReflectionError::NotMap;
+  }
 
 private:
   /// 声明此字段的类型, 如果mOwnerType为枚举, 则mDeclaringType为空
+  /// 当ArrayProxy或者MapProxy不为空时, mDeclaringType为空
   const struct Type* mDeclaringType{nullptr};
   /// 是在哪个类里声明这个字段的?
   const struct Type* mOwnerType{nullptr};
@@ -60,6 +98,8 @@ private:
   Int32 mSize{0};
   /// 字段的属性
   Map<StringView, StringView> mAttributes;
-  /// 字段的ArrayProxy 不为空表示此字段是类型为mDeclaringType的关联容器
+  /// 不为空表示此字段是一个Array容器
   UniquePtr<ArrayProxy> mArrayProxy;
+  /// 不为空表示此字段是一个Map容器
+  UniquePtr<MapProxy> mMapProxy;
 };
