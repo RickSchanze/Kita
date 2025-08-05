@@ -30,6 +30,18 @@ add_library(KitaCore
         Reflection/MapProxy.h
         Reflection/Any.h
         Reflection/Any.cpp
+        Serialization/Writer.h
+        Serialization/Writer.cpp
+        Serialization/Reader.h
+        Serialization/Reader.cpp
+        Serialization/YAML/YAMLReader.h
+        Serialization/YAML/YAMLReader.cpp
+        Serialization/YAML/YAMLWriter.cpp
+        Serialization/YAML/YAMLWriter.h
+        Serialization/INI/INIReader.cpp
+        Serialization/INI/INIReader.h
+        Serialization/INI/INIWriter.cpp
+        Serialization/INI/INIWriter.h
         Assert.h
         Trace.cpp
         Trace.h
@@ -47,6 +59,9 @@ target_link_libraries(KitaCore PRIVATE cpptrace::cpptrace)
 
 find_package(mimalloc CONFIG REQUIRED)
 target_link_libraries(KitaCore PRIVATE $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
+
+find_package(yaml-cpp CONFIG REQUIRED)
+target_link_libraries(KitaCore PRIVATE yaml-cpp::yaml-cpp)
 
 find_package(absl CONFIG REQUIRED)
 # note: 189 additional targets are not displayed.
