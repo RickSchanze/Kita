@@ -1,11 +1,11 @@
 #pragma once
 #include "Core/String/StringView.h"
 
-class Writer {
+class OutputArchive {
 public:
-  virtual ~Writer() = default;
+  virtual ~OutputArchive() = default;
 
-  virtual void BeginObject() = 0;
+  virtual void BeginObject(StringView ObjectName) = 0;
   virtual void EndObject() = 0;
   virtual void BeginArray() = 0;
   virtual void EndArray() = 0;

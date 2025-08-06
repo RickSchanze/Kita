@@ -30,22 +30,26 @@ add_library(KitaCore
         Reflection/MapProxy.h
         Reflection/Any.h
         Reflection/Any.cpp
-        Serialization/Writer.h
-        Serialization/Writer.cpp
-        Serialization/Reader.h
-        Serialization/Reader.cpp
+        Serialization/OutputArchive.h
+        Serialization/OutputArchive.cpp
+        Serialization/InputArchive.h
+        Serialization/InputArchive.cpp
         Serialization/YAML/YAMLReader.h
         Serialization/YAML/YAMLReader.cpp
         Serialization/YAML/YAMLWriter.cpp
         Serialization/YAML/YAMLWriter.h
-        Serialization/INI/INIReader.cpp
-        Serialization/INI/INIReader.h
-        Serialization/INI/INIWriter.cpp
-        Serialization/INI/INIWriter.h
+        Serialization/INI/INIInputArchive.cpp
+        Serialization/INI/INIInputArchive.h
+        Serialization/INI/INIOutputArchive.cpp
+        Serialization/INI/INIOutputArchive.h
         Assert.h
         Trace.cpp
         Trace.h
         A.h
+        Serialization/INI/inicpp.h
+        FileSystem/FileSystemError.h
+        FileSystem/Path.cpp
+        FileSystem/Path.h
 )
 
 find_package(spdlog CONFIG REQUIRED)

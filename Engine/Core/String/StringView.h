@@ -28,6 +28,8 @@ public:
 
   [[nodiscard]] SizeType GetHashCode() const noexcept { return std::hash<std::string_view>{}(mStr); }
 
+  const char* Data() const { return mStr.data(); }
+
 private:
   std::string_view mStr;
 };

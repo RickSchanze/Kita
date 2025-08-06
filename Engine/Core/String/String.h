@@ -23,6 +23,7 @@ public:
   }
 
   [[nodiscard]] SizeType GetHashCode() const noexcept { return std::hash<std::string>{}(mStr); }
+  [[nodiscard]] bool Empty() const noexcept { return mStr.empty(); }
 
 private:
   std::string mStr;

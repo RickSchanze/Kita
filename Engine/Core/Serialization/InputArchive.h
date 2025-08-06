@@ -1,9 +1,10 @@
 #pragma once
-#include "Core/String/String.h"
+#include "Core/Traits.h"
+#include "SerializationError.h"
 
-class Reader {
+class InputArchive {
 public:
-  virtual ~Reader() = default;
+  virtual ~InputArchive() = default;
 
   virtual void BeginObject() = 0;
   virtual void EndObject() = 0;
@@ -23,3 +24,24 @@ public:
   virtual void Read(StringView Key, bool& Value) = 0;
   virtual void Read(StringView Key, String& Value) = 0;
 };
+
+namespace Traits {
+
+namespace Pri {
+
+template <typename T>
+concept HasGlobalInputArchiveFunc = requires(T& Value, InputArchive& Ar) {
+  { ReadArchive(Ar, Value) } -> SameAs<ESerializationError>;
+};
+
+template <typename T>
+concept HasMemberInputArchiveFunc = requires(T& Value, InputArchive& Ar) {
+  { Value.ReadArchive(Ar) } -> SameAs<ESerializationError>;
+};
+
+} // namespace Pri
+
+template <typename T>
+concept HasInputArchiveFunc = Pri::HasGlobalInputArchiveFunc<T> || Pri::HasMemberInputArchiveFunc;
+
+} // namespace Traits
