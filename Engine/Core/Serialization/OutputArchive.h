@@ -7,7 +7,7 @@ public:
 
   virtual void BeginObject(StringView ObjectName) = 0;
   virtual void EndObject() = 0;
-  virtual void BeginArray() = 0;
+  virtual void BeginArray(StringView Key) = 0;
   virtual void EndArray() = 0;
   virtual void Write(StringView Key, StringView Value) = 0;
   virtual void Write(StringView Key, Int8 Value) = 0;

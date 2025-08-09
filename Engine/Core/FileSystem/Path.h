@@ -6,8 +6,8 @@ struct Path {
 public:
   /// 构造一个路径
   /// @param Path 输入的路径
-  /// @param Normalize 是否正则化路径
-  Path(StringView Path, bool Normalize = true);
+  /// @param NeedNormalize 是否正则化路径
+  Path(StringView Path, bool NeedNormalize = true);
 
   /// 正则化一个路径 例如: C:/a/../b 会变成 C:/b
   /// @note 修改是Inplace的
@@ -23,6 +23,12 @@ public:
   [[nodiscard]] String ToString() const { return mPath; }
 
   static inline char Separator = '/';
+
+  static bool IsExists(StringView Path);
+  bool IsExists() const;
+
+  static bool IsDirectory(StringView Path);
+  bool IsDirectory() const;
 
 private:
   String mPath;

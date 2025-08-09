@@ -34,22 +34,25 @@ add_library(KitaCore
         Serialization/OutputArchive.cpp
         Serialization/InputArchive.h
         Serialization/InputArchive.cpp
-        Serialization/YAML/YAMLReader.h
-        Serialization/YAML/YAMLReader.cpp
-        Serialization/YAML/YAMLWriter.cpp
-        Serialization/YAML/YAMLWriter.h
-        Serialization/INI/INIInputArchive.cpp
-        Serialization/INI/INIInputArchive.h
-        Serialization/INI/INIOutputArchive.cpp
-        Serialization/INI/INIOutputArchive.h
+        Serialization/YAML/YAMLInputArchive.h
+        Serialization/YAML/YAMLInputArchive.cpp
+        Serialization/YAML/YAMLOutputArchive.cpp
+        Serialization/YAML/YAMLOutputArchive.h
         Assert.h
         Trace.cpp
         Trace.h
         A.h
-        Serialization/INI/inicpp.h
         FileSystem/FileSystemError.h
         FileSystem/Path.cpp
         FileSystem/Path.h
+        Serialization/TOML/TOMLOutputArchive.cpp
+        Serialization/TOML/TOMLOutputArchive.h
+        Serialization/TOML/TOMLInputArchive.cpp
+        Serialization/TOML/TOMLInputArchive.h
+        Container/Stack.h
+        FileSystem/File.cpp
+        FileSystem/File.h
+
 )
 
 find_package(spdlog CONFIG REQUIRED)
@@ -63,9 +66,6 @@ target_link_libraries(KitaCore PRIVATE cpptrace::cpptrace)
 
 find_package(mimalloc CONFIG REQUIRED)
 target_link_libraries(KitaCore PRIVATE $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
-
-find_package(yaml-cpp CONFIG REQUIRED)
-target_link_libraries(KitaCore PRIVATE yaml-cpp::yaml-cpp)
 
 find_package(absl CONFIG REQUIRED)
 # note: 189 additional targets are not displayed.

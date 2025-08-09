@@ -6,9 +6,9 @@ class InputArchive {
 public:
   virtual ~InputArchive() = default;
 
-  virtual void BeginObject() = 0;
+  virtual void BeginObject(StringView ScopeName) = 0;
   virtual void EndObject() = 0;
-  virtual void BeginArray() = 0;
+  virtual void BeginArray(StringView ScopeName) = 0;
   virtual void EndArray() = 0;
 
   virtual void Read(StringView Key, Int8& Value) = 0;
@@ -42,6 +42,6 @@ concept HasMemberInputArchiveFunc = requires(T& Value, InputArchive& Ar) {
 } // namespace Pri
 
 template <typename T>
-concept HasInputArchiveFunc = Pri::HasGlobalInputArchiveFunc<T> || Pri::HasMemberInputArchiveFunc;
+concept HasInputArchiveFunc = Pri::HasGlobalInputArchiveFunc<T> || Pri::HasMemberInputArchiveFunc<T>;
 
 } // namespace Traits

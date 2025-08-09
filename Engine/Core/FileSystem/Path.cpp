@@ -8,10 +8,10 @@
 
 using namespace std::filesystem;
 
-Path::Path(const StringView Path, bool Normalize) : mPath(Path) {
-    if (Normalize) {
-      Normalize();
-    }
+Path::Path(const StringView Path, const bool NeedNormalize) : mPath(Path) {
+  if (NeedNormalize) {
+    Normalize();
+  }
 }
 
 void Path::Normalize() {
@@ -26,3 +26,8 @@ Path Path::Normalized() const {
   const auto TempStr = Temp.lexically_normal().string();
   return {StringView(TempStr.data(), TempStr.size())};
 }
+
+bool Path::IsExists(const StringView Path) { return exists(Path.Data()); }
+bool Path::IsExists() const { return IsExists(mPath); }
+bool Path::IsDirectory(const StringView Path) { return is_directory(Path.Data()); }
+bool Path::IsDirectory() const { return IsDirectory(mPath); }
