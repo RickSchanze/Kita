@@ -11,7 +11,7 @@
 #include <fstream>
 
 Result<String, EFileSystemError> File::ReadAllText(StringView Path) {
-  if (Path::IsExists(Path)) {
+  if (!Path::IsExists(Path)) {
     return EFileSystemError::FileNotFound;
   }
   if (Path::IsDirectory(Path)) {
@@ -26,4 +26,15 @@ Result<String, EFileSystemError> File::ReadAllText(StringView Path) {
   FS.read(Content.data(), Content.size());
   FS.close();
   return String(Content);
+}
+
+EFileSystemError File::WriteAllText(StringView Path, const StringView Text) {
+  if (Path::IsDirectory(Path)) {
+    return EFileSystemError::DirectoryNotFound;
+  }
+  std::ofstream FS(Path.Data());
+  ASSERT_MSG(FS.is_open(), "Failed to open file {}.", Path);
+  FS << Text;
+  FS.close();
+  return EFileSystemError::Ok;
 }

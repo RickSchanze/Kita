@@ -2,6 +2,7 @@
 #include "Core/Container/Stack.h"
 #include "Core/Memory/UniquePtr.h"
 #include "Core/Serialization/OutputArchive.h"
+#include "Core/Serialization/SerializationError.h"
 
 class TOMLOutputArchive : public OutputArchive {
 public:
@@ -29,6 +30,8 @@ public:
   virtual void Write(StringView Key, Float64 Value) override;
   virtual void Write(StringView Key, bool Value) override;
   struct Impl;
+
+  ESerializationError WriteFile(StringView Path);
 
 private:
   UniquePtr<Impl> mImpl;

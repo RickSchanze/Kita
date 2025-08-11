@@ -6,23 +6,23 @@ class InputArchive {
 public:
   virtual ~InputArchive() = default;
 
-  virtual void BeginObject(StringView ScopeName) = 0;
-  virtual void EndObject() = 0;
-  virtual void BeginArray(StringView ScopeName) = 0;
-  virtual void EndArray() = 0;
+  virtual ESerializationError BeginObject(StringView ScopeName) = 0;
+  virtual ESerializationError EndObject() = 0;
+  virtual ESerializationError BeginArray(StringView ScopeName) = 0;
+  virtual ESerializationError EndArray() = 0;
 
-  virtual void Read(StringView Key, Int8& Value) = 0;
-  virtual void Read(StringView Key, Int16& Value) = 0;
-  virtual void Read(StringView Key, Int32& Value) = 0;
-  virtual void Read(StringView Key, Int64& Value) = 0;
-  virtual void Read(StringView Key, UInt8& Value) = 0;
-  virtual void Read(StringView Key, UInt16& Value) = 0;
-  virtual void Read(StringView Key, UInt32& Value) = 0;
-  virtual void Read(StringView Key, UInt64& Value) = 0;
-  virtual void Read(StringView Key, Float32& Value) = 0;
-  virtual void Read(StringView Key, Float64& Value) = 0;
-  virtual void Read(StringView Key, bool& Value) = 0;
-  virtual void Read(StringView Key, String& Value) = 0;
+  virtual ESerializationError Read(StringView Key, Int8& Value) = 0;
+  virtual ESerializationError Read(StringView Key, Int16& Value) = 0;
+  virtual ESerializationError Read(StringView Key, Int32& Value) = 0;
+  virtual ESerializationError Read(StringView Key, Int64& Value) = 0;
+  virtual ESerializationError Read(StringView Key, UInt8& Value) = 0;
+  virtual ESerializationError Read(StringView Key, UInt16& Value) = 0;
+  virtual ESerializationError Read(StringView Key, UInt32& Value) = 0;
+  virtual ESerializationError Read(StringView Key, UInt64& Value) = 0;
+  virtual ESerializationError Read(StringView Key, Float32& Value) = 0;
+  virtual ESerializationError Read(StringView Key, Float64& Value) = 0;
+  virtual ESerializationError Read(StringView Key, bool& Value) = 0;
+  virtual ESerializationError Read(StringView Key, String& Value) = 0;
 };
 
 namespace Traits {

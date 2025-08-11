@@ -5,6 +5,8 @@
 #include "TOMLOutputArchive.h"
 
 #include "Core/Assert.h"
+#include "Core/FileSystem/File.h"
+#include "Core/FileSystem/Path.h"
 #include "Core/Logging/Logger.hpp"
 #include "toml++/toml.hpp"
 
@@ -80,3 +82,20 @@ void TOMLOutputArchive::Write(const StringView Key, const UInt64 Value) { SetVal
 void TOMLOutputArchive::Write(const StringView Key, Float32 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
 void TOMLOutputArchive::Write(const StringView Key, Float64 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
 void TOMLOutputArchive::Write(const StringView Key, bool Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
+
+ESerializationError TOMLOutputArchive::WriteFile(const StringView Path) {
+  if (!Path.EndsWith(".toml")) {
+    LOG_ERROR_TAG("Serialization", "Path must end with .toml.");
+    return ESerializationError::TargetInvalid;
+  }
+  if (Path::IsDirectory(Path)) {
+    LOG_ERROR_TAG("Serialization", "Path must not be a directory.");
+    return ESerializationError::TargetInvalid;
+  }
+  std::fstream FS(Path.Data(), std::ios::out);
+  std::stringstream Stream;
+  Stream << toml::toml_formatter(mImpl->Root);
+  const std::string Content = Stream.str();
+  File::WriteAllText(Path, Content);
+  return ESerializationError::Ok;
+}
