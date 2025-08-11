@@ -27,8 +27,6 @@ public:
 
 namespace Traits {
 
-namespace Pri {
-
 template <typename T>
 concept HasGlobalInputArchiveFunc = requires(T& Value, InputArchive& Ar) {
   { ReadArchive(Ar, Value) } -> SameAs<ESerializationError>;
@@ -39,9 +37,7 @@ concept HasMemberInputArchiveFunc = requires(T& Value, InputArchive& Ar) {
   { Value.ReadArchive(Ar) } -> SameAs<ESerializationError>;
 };
 
-} // namespace Pri
-
 template <typename T>
-concept HasInputArchiveFunc = Pri::HasGlobalInputArchiveFunc<T> || Pri::HasMemberInputArchiveFunc<T>;
+concept HasInputArchiveFunc = HasGlobalInputArchiveFunc<T> || HasMemberInputArchiveFunc<T>;
 
 } // namespace Traits

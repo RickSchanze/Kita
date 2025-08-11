@@ -34,6 +34,8 @@ public:
 
   [[nodiscard]] bool EndsWith(const StringView Suffix) const { return mStr.ends_with(Suffix.GetStdStringView()); }
 
+  [[nodiscard]] bool Empty() const { return mStr.empty(); }
+
 private:
   std::string_view mStr;
 };

@@ -11,6 +11,7 @@ class StringView;
 
 class String {
 public:
+  String() = default;
   FORCE_INLINE explicit String(const StringView& Str);
   String(const char* Str) : mStr(Str) {}
   explicit String(const char* Str, const SizeType InSize) : mStr(Str, InSize) {}

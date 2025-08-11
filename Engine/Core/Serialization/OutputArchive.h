@@ -22,3 +22,20 @@ public:
   virtual void Write(StringView Key, Float64 Value) = 0;
   virtual void Write(StringView Key, bool Value) = 0;
 };
+
+namespace Traits {
+
+template <typename T>
+concept HasGlobalOutputArchiveFunc = requires(T& Value, OutputArchive& Ar) {
+  { WriteArchive(Ar, Value) };
+};
+
+template <typename T>
+concept HasMemberOutputArchiveFunc = requires(T& Value, OutputArchive& Ar) {
+  { Value.WriteArchive(Ar) };
+};
+
+template <typename T>
+concept HasOutputArchiveFunc = HasGlobalOutputArchiveFunc<T> || HasMemberOutputArchiveFunc<T>;
+
+} // namespace Traits

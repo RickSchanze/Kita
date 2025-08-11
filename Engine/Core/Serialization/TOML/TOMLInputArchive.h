@@ -6,7 +6,7 @@ class TOMLInputArchive final : public InputArchive
 {
 public:
   TOMLInputArchive();
-  ~TOMLInputArchive() override;
+  virtual ~TOMLInputArchive() override;
 
   enum State {
     ReadingObject,
