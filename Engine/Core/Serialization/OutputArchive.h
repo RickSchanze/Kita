@@ -1,5 +1,8 @@
 #pragma once
+#include "Core/Container/Array.h"
+#include "Core/Container/Map.h"
 #include "Core/String/StringView.h"
+#include "Core/Traits.h"
 
 class OutputArchive {
 public:
@@ -21,7 +24,10 @@ public:
   virtual void Write(StringView Key, Float32 Value) = 0;
   virtual void Write(StringView Key, Float64 Value) = 0;
   virtual void Write(StringView Key, bool Value) = 0;
+
+  template <typename T> void WriteType(StringView Key, const T& Value);
 };
+
 
 namespace Traits {
 
@@ -37,5 +43,30 @@ concept HasMemberOutputArchiveFunc = requires(T& Value, OutputArchive& Ar) {
 
 template <typename T>
 concept HasOutputArchiveFunc = HasGlobalOutputArchiveFunc<T> || HasMemberOutputArchiveFunc<T>;
-
 } // namespace Traits
+
+template <typename T> void OutputArchive::WriteType(StringView Key, const T& Value) {
+  if constexpr (Traits::AnyOf<Traits::Pure<T>, StringView, String, Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Float32, Float64, bool>) {
+    Write(Key, Value);
+  } else if constexpr (Traits::IsArray<T>) {
+    BeginArray(Key);
+    for (const auto& Item : Value) {
+      Write("", Item);
+    }
+    EndArray();
+  } else if constexpr (Traits::IsMap<T>) {
+    static_assert(false, "TOMLOutputArchive does not support map. Use struct instead.");
+  } else {
+    if constexpr (Traits::HasGlobalOutputArchiveFunc<T>) {
+      BeginObject(Key);
+      WriteArchive(*this, Value);
+      EndObject();
+    } else if constexpr (Traits::HasMemberOutputArchiveFunc<T>) {
+      BeginObject(Key);
+      Value.WriteArchive(*this);
+      EndObject();
+    } else {
+      static_assert(false, "TOMLOutputArchive does not support this type. Implement WriteArchive(OutputArchive& Archive) for this type.");
+    }
+  }
+}

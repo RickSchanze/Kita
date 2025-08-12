@@ -13,6 +13,7 @@
 struct TOMLInputArchive::Impl {
   toml::table Root;
   Stack<toml::node*> NodeStack;
+  Stack<SizeType> ArrayIndexStack; // 新增：记录数组位置
 
   Impl() = default;
   ESerializationError ParseFile(const StringView Path) {
@@ -39,21 +40,41 @@ struct TOMLInputArchive::Impl {
 
   toml::node* CurrentNode() { return NodeStack.Top(); }
 
-  static toml::node* GetKeyNode(toml::node* parent, const StringView key) {
-    if (!parent)
+  static toml::node* GetKeyNode(toml::node* Parent, const StringView Key) {
+    if (!Parent)
       return nullptr;
-    if (parent->is_table()) {
-      auto* tbl = parent->as_table();
-      const auto it = tbl->find(key.GetStdStringView());
-      if (it != tbl->end()) {
-        return &it->second;
+    if (Parent->is_table()) {
+      auto* Table = Parent->as_table();
+      const auto It = Table->find(Key.GetStdStringView());
+      if (It != Table->end()) {
+        return &It->second;
       }
     }
     return nullptr;
   }
+
+  toml::node* GetCurrentArrayElement() {
+    if (NodeStack.Count() == 0 || ArrayIndexStack.Count() == 0)
+      return nullptr;
+    auto* arr = NodeStack.Top()->as_array();
+    if (!arr)
+      return nullptr;
+
+    size_t index = ArrayIndexStack.Top();
+    if (index >= arr->size())
+      return nullptr;
+
+    return arr->get(index);
+  }
 };
 
-ESerializationError TOMLInputArchive::ParseFile(const StringView Path) { return mImpl->ParseFile(Path); }
+ESerializationError TOMLInputArchive::ParseFile(const StringView Path) {
+  const ESerializationError Error = mImpl->ParseFile(Path);
+  if (Error == ESerializationError::Ok) {
+    mStateStack.Push(ReadingObject);
+  }
+  return Error;
+}
 
 TOMLInputArchive::TOMLInputArchive() { mImpl = MakeUnique<Impl>(); }
 TOMLInputArchive::~TOMLInputArchive() = default;
@@ -63,23 +84,28 @@ ESerializationError TOMLInputArchive::BeginObject(const StringView ScopeName) {
 
   toml::node* Current = mImpl->CurrentNode();
   toml::node* Child = TOMLInputArchive::Impl::GetKeyNode(Current, ScopeName);
-  if (!Child)
+  if (!Child) {
+    LOG_ERROR_TAG("Serialization", "BeginObject: KeyNotFound. Key=\"{}\"", ScopeName);
     return ESerializationError::KeyNotFound;
-  if (!Child->is_table())
+  }
+  if (!Child->is_table()) {
+    LOG_ERROR_TAG("Serialization", "BeginObject: TypeMismatch. Key \"{}\" is not a table.", ScopeName);
     return ESerializationError::TypeMismatch;
+  }
 
   mImpl->NodeStack.Push(Child);
-  mState = ReadingObject;
+  mStateStack.Push(ReadingObject);
   return ESerializationError::Ok;
 }
 
 ESerializationError TOMLInputArchive::EndObject() {
-  if (!mImpl->IsTargetValid() || mState != ReadingObject) {
+  if (!mImpl->IsTargetValid() || mStateStack.Top() != ReadingObject) {
     LOG_ERROR_TAG("Serialization", "非法的EndObject");
     return ESerializationError::TargetInvalid;
   }
 
   mImpl->NodeStack.Pop();
+  mStateStack.Pop();
   return ESerializationError::Ok;
 }
 
@@ -90,41 +116,52 @@ ESerializationError TOMLInputArchive::BeginArray(StringView ScopeName) {
   toml::node* current = mImpl->CurrentNode();
   toml::node* child = TOMLInputArchive::Impl::GetKeyNode(current, ScopeName);
   if (!child) {
-    LOG_ERROR_TAG("Serialization", "BeginArray: KeyNotFound. Key={}", ScopeName);
+    LOG_ERROR_TAG("Serialization", "BeginArray: KeyNotFound. Key=\"{}\"", ScopeName);
     return ESerializationError::KeyNotFound;
   }
-  if (!child->is_table()) {
-    LOG_ERROR_TAG("Serialization", "BeginArray: TypeMismatch. Key={}, not a table.", ScopeName);
+  if (!child->is_array()) {
+    LOG_ERROR_TAG("Serialization", "BeginArray: TypeMismatch. Key=\"{}\", not a array.", ScopeName);
     return ESerializationError::TypeMismatch;
   }
 
   mImpl->NodeStack.Push(child);
-  mState = ReadingArray;
+  mStateStack.Push(ReadingArray);
+  mImpl->ArrayIndexStack.Push(0);
   return ESerializationError::Ok;
 }
 
 ESerializationError TOMLInputArchive::EndArray() {
-  if (!mImpl->IsTargetValid() || mState != ReadingArray) {
+  if (!mImpl->IsTargetValid() || mStateStack.Top() != ReadingArray) {
     LOG_ERROR_TAG("Serialization", "非法的EndArray");
     return ESerializationError::TargetInvalid;
   }
 
   mImpl->NodeStack.Pop();
+  mImpl->ArrayIndexStack.Pop();
+  mStateStack.Pop();
   return ESerializationError::Ok;
 }
 
-template <typename T> static ESerializationError ReadValueImpl(TOMLInputArchive::Impl* impl, StringView Key, T& Value) {
+template <typename T> static ESerializationError ReadValueImpl(TOMLInputArchive::Impl* impl, StringView Key, T& Value, bool IsReadingArray) {
   if (!impl->IsTargetValid())
     return ESerializationError::TargetInvalid;
+  toml::node* Child = nullptr;
+  if (IsReadingArray) {
+    if (!Key.Empty()) {
+      LOG_ERROR_TAG("Serialization", "读取数组时Key必须为空");
+      return ESerializationError::KeyInvalid;
+    }
+    Child = impl->GetCurrentArrayElement();
+  } else {
+    Child = TOMLInputArchive::Impl::GetKeyNode(impl->CurrentNode(), Key);
+  }
 
-  toml::node* Current = impl->CurrentNode();
-  const toml::node* Child = TOMLInputArchive::Impl::GetKeyNode(Current, Key);
   if (!Child) {
-    LOG_ERROR_TAG("Serialization", "Read: KeyNotFound. Key={}", Key);
+    LOG_ERROR_TAG("Serialization", "Read: KeyNotFound. Key=[{}]", Key);
     return ESerializationError::TypeMismatch;
   }
   if (!Child->is_value()) {
-    LOG_ERROR_TAG("Serialization", "Read: TypeMismatch. Key={}, not a value.", Key);
+    LOG_ERROR_TAG("Serialization", "Read: TypeMismatch. Key=[{}], not a value.", Key);
     return ESerializationError::TypeMismatch;
   }
 
@@ -133,69 +170,93 @@ template <typename T> static ESerializationError ReadValueImpl(TOMLInputArchive:
     return ESerializationError::TypeMismatch;
 
   Value = *val;
+
+  if (IsReadingArray) {
+    const SizeType Idx = impl->ArrayIndexStack.Top();
+    impl->ArrayIndexStack.Pop();
+    impl->ArrayIndexStack.Push(Idx + 1);
+  }
   return ESerializationError::Ok;
 }
 
 // 实例化各类 Read
 ESerializationError TOMLInputArchive::Read(StringView Key, Int8& Value) {
   int64_t tmp;
-  auto err = ReadValueImpl(mImpl.Get(), Key, tmp);
+  auto err = ReadValueImpl(mImpl.Get(), Key, tmp, mStateStack.Top() == ReadingArray);
   if (err == ESerializationError::Ok)
     Value = static_cast<Int8>(tmp);
   return err;
 }
+
 ESerializationError TOMLInputArchive::Read(StringView Key, Int16& Value) {
   int64_t tmp;
-  auto err = ReadValueImpl(mImpl.Get(), Key, tmp);
+  auto err = ReadValueImpl(mImpl.Get(), Key, tmp, mStateStack.Top() == ReadingArray);
   if (err == ESerializationError::Ok)
     Value = static_cast<Int16>(tmp);
   return err;
 }
+
 ESerializationError TOMLInputArchive::Read(StringView Key, Int32& Value) {
   int64_t tmp;
-  auto err = ReadValueImpl(mImpl.Get(), Key, tmp);
+  auto err = ReadValueImpl(mImpl.Get(), Key, tmp, mStateStack.Top() == ReadingArray);
   if (err == ESerializationError::Ok)
     Value = static_cast<Int32>(tmp);
   return err;
 }
-ESerializationError TOMLInputArchive::Read(StringView Key, Int64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value); }
+
+ESerializationError TOMLInputArchive::Read(StringView Key, Int64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+
 ESerializationError TOMLInputArchive::Read(StringView Key, UInt8& Value) {
   int64_t tmp;
-  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp);
+  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp, mStateStack.Top() == ReadingArray);
   if (Err == ESerializationError::Ok)
     Value = static_cast<UInt8>(tmp);
   return Err;
 }
+
 ESerializationError TOMLInputArchive::Read(StringView Key, UInt16& Value) {
   int64_t tmp;
-  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp);
+  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp, mStateStack.Top() == ReadingArray);
   if (Err == ESerializationError::Ok)
     Value = static_cast<UInt16>(tmp);
   return Err;
 }
+
 ESerializationError TOMLInputArchive::Read(StringView Key, UInt32& Value) {
   int64_t tmp;
-  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp);
+  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp, mStateStack.Top() == ReadingArray);
   if (Err == ESerializationError::Ok)
     Value = static_cast<UInt32>(tmp);
   return Err;
 }
-ESerializationError TOMLInputArchive::Read(StringView Key, UInt64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value); }
+
+ESerializationError TOMLInputArchive::Read(StringView Key, UInt64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+
 ESerializationError TOMLInputArchive::Read(StringView Key, Float32& Value) {
   double tmp;
-  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp);
+  auto Err = ReadValueImpl(mImpl.Get(), Key, tmp, mStateStack.Top() == ReadingArray);
   if (Err == ESerializationError::Ok)
     Value = static_cast<Float32>(tmp);
   return Err;
 }
-ESerializationError TOMLInputArchive::Read(StringView Key, Float64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value); }
-ESerializationError TOMLInputArchive::Read(StringView Key, bool& Value) { return ReadValueImpl(mImpl.Get(), Key, Value); }
+
+ESerializationError TOMLInputArchive::Read(StringView Key, Float64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+
+ESerializationError TOMLInputArchive::Read(StringView Key, bool& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+
 ESerializationError TOMLInputArchive::Read(StringView Key, String& Value) {
   if (!mImpl->IsTargetValid())
     return ESerializationError::TargetInvalid;
-
-  toml::node* Current = mImpl->CurrentNode();
-  const toml::node* Child = TOMLInputArchive::Impl::GetKeyNode(Current, Key);
+  toml::node* Child = nullptr;
+  if (mStateStack.Top() == ReadingArray) {
+    if (!Key.Empty()) {
+      LOG_ERROR_TAG("Serialization", "读取数组时Key必须为空");
+      return ESerializationError::KeyInvalid;
+    }
+    Child = mImpl->GetCurrentArrayElement();
+  } else {
+    Child = TOMLInputArchive::Impl::GetKeyNode(mImpl->CurrentNode(), Key);
+  }
   if (!Child)
     return ESerializationError::KeyNotFound;
   if (!Child->is_value())
@@ -206,5 +267,19 @@ ESerializationError TOMLInputArchive::Read(StringView Key, String& Value) {
     return ESerializationError::TypeMismatch;
 
   Value = String(*Val);
+
+  if (mStateStack.Top() == ReadingArray) {
+    const SizeType Idx = mImpl->ArrayIndexStack.Top();
+    mImpl->ArrayIndexStack.Pop();
+    mImpl->ArrayIndexStack.Push(Idx + 1);
+  }
   return ESerializationError::Ok;
+}
+
+SizeType TOMLInputArchive::GetCurrentArraySize() {
+  auto* Array = mImpl->CurrentNode()->as_array();
+  if (Array == nullptr) {
+    return INVALID_SIZE;
+  }
+  return Array->size();
 }

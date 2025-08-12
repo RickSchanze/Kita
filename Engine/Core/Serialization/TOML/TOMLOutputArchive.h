@@ -36,32 +36,6 @@ public:
 
   ESerializationError WriteFile(StringView Path);
 
-  template <typename T> void WriteType(StringView Key, const T& Value) {
-    if constexpr (Traits::AnyOf<Traits::Pure<T>, StringView, String, Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Float32, Float64, bool>) {
-      Write(Key, Value);
-    } else if constexpr (Traits::IsArray<T>) {
-      BeginArray(Key);
-      for (const auto& Item : Value) {
-        Write(Item);
-      }
-      EndArray();
-    } else if constexpr (Traits::IsMap<T>) {
-      static_assert(false, "TOMLOutputArchive does not support map. Use struct instead.");
-    } else {
-      if constexpr (Traits::HasGlobalOutputArchiveFunc<T>) {
-        BeginObject(Key);
-        WriteArchive(*this, Value);
-        EndObject();
-      } else if constexpr (Traits::HasMemberOutputArchiveFunc<T>) {
-        BeginObject(Key);
-        Value.WriteArchive(*this);
-        EndObject();
-      } else {
-        static_assert(false, "TOMLOutputArchive does not support this type. Implement WriteArchive(OutputArchive& Archive) for this type.");
-      }
-    }
-  }
-
 private:
   UniquePtr<Impl> mImpl;
   ArchiveState mState = ObjectWriting;

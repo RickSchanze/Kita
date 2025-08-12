@@ -9,10 +9,18 @@
 struct A {
   int b = 13;
   String C = "你好";
+  Array<int> D = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
   void WriteArchive(OutputArchive& Archive) const {
-    Archive.Write("b", b);
-    Archive.Write("C", C);
+    Archive.WriteType("b", b);
+    Archive.WriteType("C", C);
+    Archive.WriteType("D", D);
+  }
+
+  void ReadArchive(InputArchive& Archive) {
+    Archive.ReadType("b", b);
+    Archive.ReadType("C", C);
+    Archive.ReadType("D", D);
   }
 };
 
@@ -24,4 +32,13 @@ int main() {
   TOMLOutputArchive Archive;
   Archive.WriteType("Type", MyA);
   Archive.WriteFile("Test.toml");
+
+  TOMLInputArchive Archive2;
+  Archive2.ParseFile("Test.toml");
+  A MyA2;
+  MyA2.b = 0;
+  MyA2.C = "Test";
+  MyA2.D = {};
+  Archive2.ReadType("Type", MyA2);
+  LOG_INFO("{}", MyA2.C);
 }

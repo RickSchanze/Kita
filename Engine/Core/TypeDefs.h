@@ -15,6 +15,7 @@ using Float64 = double;
 using SizeType = std::size_t;
 
 constexpr SizeType INVALID_INDEX = static_cast<SizeType>(-1);
+constexpr SizeType INVALID_SIZE = static_cast<SizeType>(-1);
 
 struct NonCopyable {
   NonCopyable() = default;
@@ -49,10 +50,6 @@ template <IHashable T> SizeType GetHashCode(const T& Value) {
   }
 }
 
-template <IGetHashCode T>
-struct std::hash<T> {
-  SizeType operator()(const T& Value) const noexcept {
-    return Value.GetHashCode();
-  }
+template <IGetHashCode T> struct std::hash<T> {
+  SizeType operator()(const T& Value) const noexcept { return Value.GetHashCode(); }
 };
-

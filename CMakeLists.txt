@@ -20,6 +20,10 @@ endif ()
 
 add_subdirectory(Engine)
 
+if (MSVC)
+    add_compile_options("/utf-8")
+endif()
+
 add_executable(Kita Engine/main.cpp)
 
 target_compile_definitions(Kita

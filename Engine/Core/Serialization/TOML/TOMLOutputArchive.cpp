@@ -34,6 +34,7 @@ void TOMLOutputArchive::BeginObject(const StringView ObjectName) {
   } else {
     ASSERT_MSG(false, "Parent is not a table or array.");
   }
+  mState = ObjectWriting;
 }
 
 void TOMLOutputArchive::EndObject() {
@@ -54,6 +55,7 @@ void TOMLOutputArchive::BeginArray(const StringView Key) {
   } else {
     ASSERT_MSG(false, "Parent is not a table or array.");
   }
+  mState = ArrayWriting;
 }
 
 void TOMLOutputArchive::EndArray() {

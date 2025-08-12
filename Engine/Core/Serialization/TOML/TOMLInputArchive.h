@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Container/Stack.h"
 #include "Core/Memory/UniquePtr.h"
 #include "Core/Serialization/InputArchive.h"
 
@@ -30,10 +31,12 @@ public:
   virtual ESerializationError Read(StringView Key, bool& Value) override;
   virtual ESerializationError Read(StringView Key, String& Value) override;
 
+  virtual SizeType GetCurrentArraySize() override;
+
   ESerializationError ParseFile(StringView Path);
   struct Impl;
 private:
 
   UniquePtr<Impl> mImpl;
-  State mState = ReadingObject;
+  Stack<State> mStateStack;
 };
