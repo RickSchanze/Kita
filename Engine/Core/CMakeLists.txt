@@ -61,6 +61,9 @@ target_link_libraries(KitaCore PUBLIC spdlog::spdlog)
 find_package(eventpp CONFIG REQUIRED)
 target_link_libraries(KitaCore PUBLIC eventpp::eventpp)
 
+find_package(yaml-cpp CONFIG REQUIRED)
+target_link_libraries(KitaCore PRIVATE yaml-cpp::yaml-cpp)
+
 find_package(cpptrace CONFIG REQUIRED)
 target_link_libraries(KitaCore PRIVATE cpptrace::cpptrace)
 

@@ -30,7 +30,7 @@ Result<String, EFileSystemError> File::ReadAllText(StringView Path) {
 
 EFileSystemError File::WriteAllText(StringView Path, const StringView Text) {
   if (Path::IsDirectory(Path)) {
-    return EFileSystemError::DirectoryNotFound;
+    return EFileSystemError::ReadDirectory;
   }
   std::ofstream FS(Path.Data());
   ASSERT_MSG(FS.is_open(), "Failed to open file {}.", Path);

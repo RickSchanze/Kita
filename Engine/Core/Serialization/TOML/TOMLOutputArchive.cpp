@@ -19,7 +19,10 @@ struct TOMLOutputArchive::Impl {
   Impl() { NodeStack.Push(&Root); }
 };
 
-TOMLOutputArchive::TOMLOutputArchive() { mImpl = MakeUnique<Impl>(); }
+TOMLOutputArchive::TOMLOutputArchive() {
+  mImpl = MakeUnique<Impl>();
+  mStateStack.Push(WritingObject);
+}
 
 void TOMLOutputArchive::BeginObject(const StringView ObjectName) {
   auto* Parent = mImpl->CurrentNode();
@@ -34,12 +37,13 @@ void TOMLOutputArchive::BeginObject(const StringView ObjectName) {
   } else {
     ASSERT_MSG(false, "Parent is not a table or array.");
   }
-  mState = ObjectWriting;
+  mStateStack.Push(WritingObject);
 }
 
 void TOMLOutputArchive::EndObject() {
   ASSERT_MSG(mImpl->NodeStack.Count() > 1, "No object to end.");
   mImpl->NodeStack.Pop();
+  mStateStack.Pop();
 }
 
 void TOMLOutputArchive::BeginArray(const StringView Key) {
@@ -55,35 +59,36 @@ void TOMLOutputArchive::BeginArray(const StringView Key) {
   } else {
     ASSERT_MSG(false, "Parent is not a table or array.");
   }
-  mState = ArrayWriting;
+  mStateStack.Push(WritingArray);
 }
 
 void TOMLOutputArchive::EndArray() {
   ASSERT_MSG(mImpl->NodeStack.Count() > 1, "No array to end.");
   mImpl->NodeStack.Pop();
+  mStateStack.Pop();
 }
 
 template <typename T> void SetValue(toml::node* CurrentNode, const StringView Key, T&& Value, const TOMLOutputArchive::ArchiveState State) {
-  if (State == TOMLOutputArchive::ArrayWriting) {
+  if (State == TOMLOutputArchive::WritingArray) {
     CurrentNode->as_array()->emplace_back(std::forward<T>(Value));
-  } else if (State == TOMLOutputArchive::ObjectWriting) {
+  } else if (State == TOMLOutputArchive::WritingObject) {
     CurrentNode->as_table()->insert_or_assign(Key.Data(), std::forward<T>(Value));
   }
 }
 
-void TOMLOutputArchive::Write(const StringView Key, const StringView Value) { SetValue(mImpl->CurrentNode(), Key, Value.Data(), mState); }
-void TOMLOutputArchive::Write(const StringView Key, Int8 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, Int16 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, Int32 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, Int64 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, UInt8 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, UInt16 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, UInt32 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
+void TOMLOutputArchive::Write(const StringView Key, const StringView Value) { SetValue(mImpl->CurrentNode(), Key, Value.Data(), mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, Int8 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, Int16 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, Int32 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, Int64 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, UInt8 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, UInt16 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, UInt32 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
 // TOML++: 整数值必须被无损转换到int64_t
-void TOMLOutputArchive::Write(const StringView Key, const UInt64 Value) { SetValue(mImpl->CurrentNode(), Key, static_cast<Int64>(Value), mState); }
-void TOMLOutputArchive::Write(const StringView Key, Float32 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, Float64 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
-void TOMLOutputArchive::Write(const StringView Key, bool Value) { SetValue(mImpl->CurrentNode(), Key, Value, mState); }
+void TOMLOutputArchive::Write(const StringView Key, const UInt64 Value) { SetValue(mImpl->CurrentNode(), Key, static_cast<Int64>(Value), mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, Float32 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, Float64 Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
+void TOMLOutputArchive::Write(const StringView Key, bool Value) { SetValue(mImpl->CurrentNode(), Key, Value, mStateStack.Top()); }
 
 ESerializationError TOMLOutputArchive::WriteFile(const StringView Path) {
   if (!Path.EndsWith(".toml")) {
@@ -95,9 +100,6 @@ ESerializationError TOMLOutputArchive::WriteFile(const StringView Path) {
     return ESerializationError::TargetInvalid;
   }
   std::fstream FS(Path.Data(), std::ios::out);
-  std::stringstream Stream;
-  Stream << toml::toml_formatter(mImpl->Root);
-  const std::string Content = Stream.str();
-  File::WriteAllText(Path, Content);
+  FS << toml::toml_formatter(mImpl->Root);
   return ESerializationError::Ok;
 }

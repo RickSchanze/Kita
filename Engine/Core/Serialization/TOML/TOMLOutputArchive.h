@@ -10,8 +10,8 @@
 class TOMLOutputArchive : public OutputArchive {
 public:
   enum ArchiveState {
-    ArrayWriting,
-    ObjectWriting,
+    WritingArray,
+    WritingObject,
   };
   TOMLOutputArchive();
   virtual void BeginObject(StringView ObjectName) override;
@@ -38,5 +38,5 @@ public:
 
 private:
   UniquePtr<Impl> mImpl;
-  ArchiveState mState = ObjectWriting;
+  Stack<ArchiveState> mStateStack;
 };
