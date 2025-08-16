@@ -37,7 +37,8 @@ class ClassInfo:
 
 # ---------------- 解析器 ----------------
 class HeaderParser:
-    def _remove_comments(self, code: str) -> str:
+    @staticmethod
+    def _remove_comments(code: str) -> str:
         result = []
         i = 0
         in_block_comment = False
@@ -70,7 +71,8 @@ class HeaderParser:
 
         return "".join(result)
 
-    def _tokenize(self, code: str) -> List[str]:
+    @staticmethod
+    def _tokenize(code: str) -> List[str]:
         tokens = []
         i = 0
         while i < len(code):
@@ -110,7 +112,8 @@ class HeaderParser:
 
         return tokens
 
-    def _parse_attributes(self, tokens: List[str], idx: int) -> (Dict[str, str], int):
+    @staticmethod
+    def _parse_attributes(tokens: List[str], idx: int) -> (Dict[str, str], int):
         attrs: Dict[str, str] = {}
         assert tokens[idx] == "("
         idx += 1
@@ -140,7 +143,8 @@ class HeaderParser:
             attrs[key] = "true"
         return attrs, idx + 1
 
-    def _parse_default_value(self, tokens: List[str], idx: int) -> (Optional[str], int):
+    @staticmethod
+    def _parse_default_value(tokens: List[str], idx: int) -> (Optional[str], int):
         if tokens[idx] == "=":
             idx += 1
             val_tokens = []
@@ -163,7 +167,8 @@ class HeaderParser:
 
         return None, idx
 
-    def _parse_function_args(self, tokens: List[str], idx: int) -> (List[ArgumentInfo], int):
+    @staticmethod
+    def _parse_function_args(tokens: List[str], idx: int) -> (List[ArgumentInfo], int):
         args: List[ArgumentInfo] = []
         while tokens[idx] != ")":
             type_parts = []
@@ -201,7 +206,7 @@ class HeaderParser:
         while idx < len(tokens):
             tok = tokens[idx]
 
-            if tok in ("KCLASS", "CLASS"):
+            if tok == "KCLASS":
                 attrs, idx = self._parse_attributes(tokens, idx + 1)
                 assert tokens[idx] == "class"
                 class_name = tokens[idx + 1]
@@ -216,7 +221,7 @@ class HeaderParser:
                 )
 
                 while idx < len(tokens) and tokens[idx] != "}":
-                    if tokens[idx] in ("KPROPERTY", "PROPERTY"):
+                    if tokens[idx] == "KPROPERTY":
                         prop_attrs, idx = self._parse_attributes(tokens, idx + 1)
 
                         type_parts = []
@@ -242,7 +247,7 @@ class HeaderParser:
                             default=default_val
                         ))
 
-                    elif tokens[idx] in ("KFUNCTION", "FUNCTION"):
+                    elif tokens[idx] == "KFUNCTION":
                         func_attrs, idx = self._parse_attributes(tokens, idx + 1)
 
                         ret_type_parts = []
