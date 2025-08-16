@@ -46,18 +46,18 @@ int main() {
   LOG_INFO("{}", MyA2.C);
 }
 
-CLASS(Attr1 = "Value1", Attr2 = Value2) // 这里有没有双引号都可以
+KCLASS(Attr1 = "Value1", Attr2 = Value2) // 这里有没有双引号都可以
 class MyClass {
 
-  PROPERTY(Attr1 = "Value1", Attr2 = Value2)
+  KPROPERTY(Attr1 = "Value1", Attr2 = Value2)
   int MyInt = 0;
 
-  PROPERTY()
+  KPROPERTY()
   String MyInt1;
 
-  PROPERTY(Transient) // Transient没有值 默认为"true"
+  KPROPERTY(Transient) // Transient没有值 默认为"true"
   String MyInt2;
 
-  FUNCTION() // 和Field一样, 需要提取参数信息
+  KFUNCTION() // 和Field一样, 需要提取参数信息
   void Test(int a, int b);
 };

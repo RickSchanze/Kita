@@ -1,5 +1,5 @@
 #pragma once
 
-#define CLASS(...)
-#define PROPERTY(...)
-#define FUNCTION(...)
+#define KCLASS(...)
+#define KPROPERTY(...)
+#define KFUNCTION(...)
