@@ -52,6 +52,7 @@ add_library(KitaCore
         Container/Stack.h
         FileSystem/File.cpp
         FileSystem/File.h
+        Reflection/MetaMark.h
 
 )
 
