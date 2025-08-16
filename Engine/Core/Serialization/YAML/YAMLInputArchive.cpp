@@ -7,13 +7,27 @@
 #include "Core/Container/Result.h"
 #include "Core/FileSystem/Path.h"
 
-#include <yaml-cpp/node/node.h>
-#include <yaml-cpp/node/parse.h>
+#include "yaml-cpp/yaml.h"
 
 struct YAMLInputArchive::Impl {
-  Stack<YAML::Node> mNodeStack;
+  Stack<YAML::Node> NodeStack;
+  SizeType CurrentArrayIndex = INVALID_INDEX;
 
-  bool IsTargetValid() { return !mNodeStack.Empty(); }
+  bool IsTargetValid() { return !NodeStack.Empty(); }
+
+  YAML::Node GetCurrentArrayElement() {
+    if (NodeStack.Count() == 0 || CurrentArrayIndex == INVALID_INDEX)
+      return {};
+    auto& Array = NodeStack.Top();
+    if (!Array.IsDefined() || !Array.IsSequence())
+      return {};
+
+    const size_t Index = CurrentArrayIndex;
+    if (Index >= Array.size())
+      return {};
+
+    return Array[Index];
+  }
 };
 
 YAMLInputArchive::YAMLInputArchive() { mImpl = MakeUnique<Impl>(); }
@@ -21,10 +35,10 @@ YAMLInputArchive::YAMLInputArchive() { mImpl = MakeUnique<Impl>(); }
 YAMLInputArchive::~YAMLInputArchive() = default;
 
 ESerializationError YAMLInputArchive::BeginObject(StringView ScopeName) {
-  if (mImpl->mNodeStack.Empty()) {
+  if (mImpl->NodeStack.Empty()) {
     return ESerializationError::TargetInvalid;
   }
-  YAML::Node& Current = mImpl->mNodeStack.Top();
+  YAML::Node& Current = mImpl->NodeStack.Top();
   if (!Current.IsMap()) {
     LOG_ERROR_TAG("Serialization", "试图从Array读取一个键. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
@@ -38,29 +52,29 @@ ESerializationError YAMLInputArchive::BeginObject(StringView ScopeName) {
     LOG_ERROR_TAG("Serialization", "键对应的值不是一个Object. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
   }
-  mImpl->mNodeStack.Push(Child);
+  mImpl->NodeStack.Push(Child);
   mStateStack.Push(ReadingObject);
   return ESerializationError::Ok;
 }
 
 ESerializationError YAMLInputArchive::EndObject() {
-  if (mImpl->mNodeStack.Empty()) {
+  if (mImpl->NodeStack.Empty()) {
     return ESerializationError::TargetInvalid;
   }
   if (mStateStack.Top() != ReadingObject) {
     LOG_ERROR_TAG("Serialization", "试图以EndObject结束一个Array.");
     return ESerializationError::TypeMismatch;
   }
-  mImpl->mNodeStack.Pop();
+  mImpl->NodeStack.Pop();
   mStateStack.Pop();
   return ESerializationError::Ok;
 }
 
 ESerializationError YAMLInputArchive::BeginArray(StringView ScopeName) {
-  if (mImpl->mNodeStack.Empty()) {
+  if (mImpl->NodeStack.Empty()) {
     return ESerializationError::TargetInvalid;
   }
-  YAML::Node& Current = mImpl->mNodeStack.Top();
+  YAML::Node& Current = mImpl->NodeStack.Top();
   if (!Current.IsMap()) {
     LOG_ERROR_TAG("Serialization", "试图从Array读取一个键. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
@@ -74,29 +88,31 @@ ESerializationError YAMLInputArchive::BeginArray(StringView ScopeName) {
     LOG_ERROR_TAG("Serialization", "键对应的值不是一个Array. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
   }
-  mImpl->mNodeStack.Push(Child);
+  mImpl->NodeStack.Push(Child);
   mStateStack.Push(ReadingArray);
+  mImpl->CurrentArrayIndex = 0;
   return ESerializationError::Ok;
 }
 
 ESerializationError YAMLInputArchive::EndArray() {
-  if (mImpl->mNodeStack.Empty()) {
+  if (mImpl->NodeStack.Empty()) {
     return ESerializationError::TargetInvalid;
   }
   if (mStateStack.Top() != ReadingArray) {
     LOG_ERROR_TAG("Serialization", "试图以EndArray结束一个Object.");
     return ESerializationError::TypeMismatch;
   }
-  mImpl->mNodeStack.Pop();
+  mImpl->NodeStack.Pop();
   mStateStack.Pop();
+  mImpl->CurrentArrayIndex = INVALID_INDEX;
   return ESerializationError::Ok;
 }
 
 SizeType YAMLInputArchive::GetCurrentArraySize() {
-  if (mImpl->mNodeStack.Empty()) {
+  if (mImpl->NodeStack.Empty()) {
     return INVALID_SIZE;
   }
-  const YAML::Node& Current = mImpl->mNodeStack.Top();
+  const YAML::Node& Current = mImpl->NodeStack.Top();
   if (!Current.IsSequence()) {
     return INVALID_SIZE;
   }
@@ -111,12 +127,43 @@ template <typename T> static ESerializationError ReadValueImpl(YAMLInputArchive:
       LOG_WARN_TAG("Serialization", "读取数组时Key必须为空.");
       return ESerializationError::KeyInvalid;
     }
-
+    const YAML::Node Current = impl->GetCurrentArrayElement();
+    if (!Current.IsDefined()) {
+      LOG_ERROR_TAG("Serialization", "读取数组元素失败.");
+      return ESerializationError::Unknown;
+    }
+    Value = Current.as<T>();
+    impl->CurrentArrayIndex++;
+  } else {
+    const auto Node = impl->NodeStack.Top()[Key.Data()];
+    if (!Node.IsDefined()) {
+      LOG_ERROR_TAG("Serialization", "找不到键. Key=\"{}\"", Key);
+      return ESerializationError::KeyInvalid;
+    }
+    Value = Node.as<T>();
   }
   return ESerializationError::Ok;
 }
 
-ESerializationError YAMLInputArchive::Read(StringView Key, Int8& Value) {}
+ESerializationError YAMLInputArchive::Read(StringView Key, Int8& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, Int16& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, Int32& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, Int64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, UInt8& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, UInt16& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, UInt32& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, UInt64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, Float32& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, Float64& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, bool& Value) { return ReadValueImpl(mImpl.Get(), Key, Value, mStateStack.Top() == ReadingArray); }
+ESerializationError YAMLInputArchive::Read(StringView Key, String& Value) {
+  std::string StrValue;
+  const ESerializationError Error = ReadValueImpl(mImpl.Get(), Key, StrValue, mStateStack.Top() == ReadingArray);
+  if (Error == ESerializationError::Ok) {
+    Value = StrValue;
+  }
+  return Error;
+}
 
 static Result<YAML::Node, ESerializationError> ParseYAMLFile(StringView Filename) {
   try {
@@ -145,7 +192,7 @@ ESerializationError YAMLInputArchive::ParseFile(StringView Filename) {
   if (Result.HasError()) {
     return Result.Error();
   }
-  mImpl->mNodeStack.Push(Result.Value());
+  mImpl->NodeStack.Push(Result.Value());
   mStateStack.Push(ReadingObject);
   return ESerializationError::Ok;
 }

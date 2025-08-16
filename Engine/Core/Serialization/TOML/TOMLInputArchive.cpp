@@ -13,7 +13,7 @@
 struct TOMLInputArchive::Impl {
   toml::table Root;
   Stack<toml::node*> NodeStack;
-  Stack<SizeType> ArrayIndexStack; // 新增：记录数组位置
+  SizeType CurrentArrayIndex = INVALID_INDEX;
 
   Impl() = default;
   ESerializationError ParseFile(const StringView Path) {
@@ -54,17 +54,17 @@ struct TOMLInputArchive::Impl {
   }
 
   toml::node* GetCurrentArrayElement() {
-    if (NodeStack.Count() == 0 || ArrayIndexStack.Count() == 0)
+    if (NodeStack.Count() == 0 || CurrentArrayIndex == INVALID_INDEX)
       return nullptr;
-    auto* arr = NodeStack.Top()->as_array();
-    if (!arr)
-      return nullptr;
-
-    size_t index = ArrayIndexStack.Top();
-    if (index >= arr->size())
+    auto* Array = NodeStack.Top()->as_array();
+    if (!Array)
       return nullptr;
 
-    return arr->get(index);
+    const size_t Index = CurrentArrayIndex;
+    if (Index >= Array->size())
+      return nullptr;
+
+    return Array->get(Index);
   }
 };
 
@@ -130,7 +130,7 @@ ESerializationError TOMLInputArchive::BeginArray(StringView ScopeName) {
 
   mImpl->NodeStack.Push(child);
   mStateStack.Push(ReadingArray);
-  mImpl->ArrayIndexStack.Push(0);
+  mImpl->CurrentArrayIndex++;
   return ESerializationError::Ok;
 }
 
@@ -141,7 +141,7 @@ ESerializationError TOMLInputArchive::EndArray() {
   }
 
   mImpl->NodeStack.Pop();
-  mImpl->ArrayIndexStack.Pop();
+  mImpl->CurrentArrayIndex = INVALID_INDEX;
   mStateStack.Pop();
   return ESerializationError::Ok;
 }
@@ -176,9 +176,7 @@ template <typename T> static ESerializationError ReadValueImpl(TOMLInputArchive:
   Value = *val;
 
   if (IsReadingArray) {
-    const SizeType Idx = impl->ArrayIndexStack.Top();
-    impl->ArrayIndexStack.Pop();
-    impl->ArrayIndexStack.Push(Idx + 1);
+    impl->CurrentArrayIndex++;
   }
   return ESerializationError::Ok;
 }
@@ -273,9 +271,7 @@ ESerializationError TOMLInputArchive::Read(StringView Key, String& Value) {
   Value = String(*Val);
 
   if (mStateStack.Top() == ReadingArray) {
-    const SizeType Idx = mImpl->ArrayIndexStack.Top();
-    mImpl->ArrayIndexStack.Pop();
-    mImpl->ArrayIndexStack.Push(Idx + 1);
+    mImpl->CurrentArrayIndex++;
   }
   return ESerializationError::Ok;
 }

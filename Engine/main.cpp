@@ -4,6 +4,7 @@
 #include "Core/Reflection/TypeRegistry.h"
 #include "Core/Serialization/TOML/TOMLInputArchive.h"
 #include "Core/Serialization/TOML/TOMLOutputArchive.h"
+#include "Core/Serialization/YAML/YAMLInputArchive.h"
 #include "Core/Serialization/YAML/YAMLOutputArchive.h"
 #include "Windows.h"
 
@@ -30,9 +31,9 @@ enum class D { L, M, C, P };
 int main() {
   SetConsoleOutputCP(CP_UTF8);
   A MyA{};
-  YAMLOutputArchive Archive;
+  TOMLOutputArchive Archive;
   Archive.WriteType("Type", MyA);
-  Archive.WriteFile("Test.yaml");
+  Archive.WriteFile("Test.toml");
 
   TOMLInputArchive Archive2;
   Archive2.ParseFile("Test.toml");
