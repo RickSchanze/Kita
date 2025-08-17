@@ -1,13 +1,14 @@
 import os
 import re
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, TextIO
 
 # ======== 配置 ========
 EXCLUDED_HEADERS = [
     "Core/Reflection/MetaMark.h"
 ]
 PROJECT_ROOT_PATH = "C:/Users/kita/Documents/Projects/Kita/Engine"
+
 
 # ---------------- 数据模型 ----------------
 @dataclass
@@ -51,6 +52,7 @@ class ClassInfo:
     type: str  # "class" or "struct"
     name: str
     attributes: Dict[str, str]
+    bases: List[str] = field(default_factory=list)  # 新增：父类完整名字
     properties: List[PropertyInfo] = field(default_factory=list)
     functions: List[FunctionInfo] = field(default_factory=list)
 
@@ -209,13 +211,34 @@ class HeaderParser:
         assert tokens[idx] == kind
         class_name = tokens[idx + 1]
         idx += 2
+
+        # ===== 解析继承 =====
+        bases = []
+        if idx < len(tokens) and tokens[idx] == ":":
+            idx += 1
+            while idx < len(tokens) and tokens[idx] != "{":
+                if tokens[idx] in ("public", "protected", "private"):
+                    idx += 1
+                    continue
+                base_parts = []
+                while idx < len(tokens) and tokens[idx] not in [",", "{"]:
+                    base_parts.append(tokens[idx])
+                    idx += 1
+                if base_parts:
+                    bases.append("".join(base_parts))  # 直接拼接保留命名空间::形式
+                if idx < len(tokens) and tokens[idx] == ",":
+                    idx += 1
+
         assert tokens[idx] == "{"
         idx += 1
+
         class_info = ClassInfo(
             type=kind,
             name=class_name,
-            attributes=attrs
+            attributes=attrs,
+            bases=bases
         )
+
         while idx < len(tokens) and tokens[idx] != "}":
             if tokens[idx] == "KPROPERTY":
                 prop_attrs, idx = self._parse_attributes(tokens, idx + 1)
@@ -277,18 +300,12 @@ class HeaderParser:
 
         while idx < len(tokens):
             tok = tokens[idx]
-
-            # ========= 解析类 =========
             if tok == "KCLASS":
                 class_info, idx = self._parse_class_or_struct(tokens, idx, "class")
                 result.append(class_info)
-
-            # ========= 解析结构体 =========
             elif tok == "KSTRUCT":
                 struct_info, idx = self._parse_class_or_struct(tokens, idx, "struct")
                 result.append(struct_info)
-
-            # ========= 解析枚举 =========
             elif tok == "KENUM":
                 enum_attrs, idx = self._parse_attributes(tokens, idx + 1)
                 assert tokens[idx] == "enum"
@@ -305,8 +322,7 @@ class HeaderParser:
                     attributes=enum_attrs
                 )
 
-                current_value = -1  # C++ 默认从 0 开始
-
+                current_value = -1
                 while idx < len(tokens) and tokens[idx] != "}":
                     member_attrs = {}
                     if tokens[idx] == "KVALUE":
@@ -340,9 +356,8 @@ class HeaderParser:
                     if tokens[idx] == ",":
                         idx += 1
 
-                idx += 1  # 跳过 "}"
+                idx += 1
                 result.append(enum_info)
-
             else:
                 idx += 1
         return result
@@ -356,7 +371,7 @@ class CMakeScanner:
         self.root_path = os.path.abspath(root_path).replace("\\", "/")
         self.parser = parser
         self.excluded_headers = set(excluded_headers or [])
-        self._file_cache: Dict[str, float] = {}  # abs_path -> last modified time
+        self._file_cache: Dict[str, float] = {}
 
     def scan_projects(self) -> List[CMakeProjectInfo]:
         cmake_projects: List[CMakeProjectInfo] = []
@@ -388,15 +403,16 @@ class CMakeScanner:
                 continue
 
             if os.path.isfile(abs_path):
-                rel_path = os.path.relpath(abs_path, project_dir).replace("\\", "/")
+                # 这里改成相对于 PROJECT_ROOT_PATH 的相对路径
+                rel_path = os.path.relpath(abs_path, self.root_path).replace("\\", "/")
                 files_map[abs_path] = rel_path
 
                 mtime = os.path.getmtime(abs_path)
                 if abs_path not in self._file_cache or self._file_cache[abs_path] < mtime:
                     parsed_map[abs_path] = self.parser.parse(abs_path)
                     self._file_cache[abs_path] = mtime
-                else:
-                    parsed_map[abs_path] = parsed_map.get(abs_path, [])
+            else:
+                parsed_map[abs_path] = parsed_map.get(abs_path, [])
 
         project_name = os.path.basename(project_dir)
         return CMakeProjectInfo(
@@ -415,11 +431,119 @@ class CMakeScanner:
         return headers
 
 
+class CodeGenerator:
+    def __init__(self, generated_directory: str):
+        self.generated_directory = os.path.abspath(generated_directory).replace("\\", "/")
+
+    def generate_projects(self, projs: List[CMakeProjectInfo]):
+        for proj in projs:
+            self.generate_project(proj)
+
+    def generate_project(self, proj: CMakeProjectInfo):
+        has_class_or_enum = any(
+            any(item.__class__.__name__ in ("ClassInfo", "EnumInfo") for item in parsed_items)
+            for parsed_items in proj.parsed_files.values()
+        )
+        if not has_class_or_enum:
+            return
+
+        output_dir = os.path.join(self.generated_directory, proj.project_name)
+        os.makedirs(output_dir, exist_ok=True)
+
+        for abs_header_path, parsed_items in proj.parsed_files.items():
+            if not parsed_items:
+                continue
+            has_code = any(item.__class__.__name__ in ("ClassInfo", "EnumInfo") for item in parsed_items)
+            if not has_code:
+                continue
+
+            base_name = os.path.splitext(os.path.basename(abs_header_path))[0]
+            gen_h_path = os.path.join(output_dir, f"{base_name}.generated.h")
+            gen_cpp_path = os.path.join(output_dir, f"{base_name}.generated.cpp")
+
+            self._write_generated_header(gen_h_path, base_name, parsed_items)
+            self._write_generated_cpp(gen_cpp_path, base_name, parsed_items, proj.files[abs_header_path])
+
+    def _get_true_name(self, obj: ClassInfo | EnumInfo | FunctionInfo | PropertyInfo):
+        if "Name" in obj.attributes:
+            return obj.attributes["Name"]
+        return obj.name
+
+    def _write_generated_source_class(self, f: TextIO, class_info: ClassInfo):
+        f.write(f"const Type* {class_info.name}::GetStaticType() {{ return TypeOf<{class_info.name}>(); }}\n")
+        f.write(f"const Type* {class_info.name}::GetType() {{ return TypeOf<{class_info.name}>(); }}\n")
+        f.write(f"void {class_info.name}::WriteArchive(OutputArchive& Archive) const {{ \n")
+        for my_property in class_info.properties:
+            f.write(f"Archive.WriteType(\"{self._get_true_name(my_property)}\", {my_property.name}); \\\n")
+        f.write(f"}} \n")
+        f.write(f"void {class_info.name}::ReadArchive(InputArchive& Archive) {{ \n")
+        for my_property in class_info.properties:
+            f.write(f"Archive.ReadType(\"{self._get_true_name(my_property)}\", {my_property.name}); \\\n")
+        f.write(f"}} \n")
+
+    def _write_generated_header_class(self, f: TextIO, class_info: ClassInfo):
+        f.write(f"#define GENERATED_HEADER_{class_info.name} \\\n")
+        if class_info.type == "class":
+            f.write(f"public: \\\n")
+        f.write(f"static FORCE_INLINE const Type* GetStaticType(); \\\n")
+        f.write(f"static FORCE_INLINE constexpr bool IsReflected() {{ return true; }} \\\n")
+        if class_info.type == "class":
+            f.write(f"virtual const Type* GetType(); \\\n")
+        else:
+            # struct里不能有虚函数
+            f.write(f"const Type* GetType(); \\\n")
+        if not "CustomSerialization" in class_info.attributes:
+            if class_info.type == "class":
+                f.write(f"virtual void WriteArchive(OutputArchive& Archive) const;\\\n")
+                f.write(f"virtual void ReadArchive(InputArchive& Archive);\\\n")
+            else:
+                f.write(f"void WriteArchive(OutputArchive& Archive) const;\\\n")
+                f.write(f"void ReadArchive(InputArchive& Archive);\\\n")
+        f.write(f"struct Z_TypeRegister_{class_info.name} {{ \\\n")
+        f.write(f"Z_TypeRegister_{class_info.name}() {{ \\\n")
+        f.write("TypeBuilder Builder{}; \\\n")
+        f.write(f"Builder.CreateType<{class_info.name}>(\"{self._get_true_name(class_info)}\"); \\\n")
+        for my_property in class_info.properties:
+            f.write(f"Builder.AddField(\"{self._get_true_name(my_property)}\", &{class_info.name}::{my_property.name})")
+            for attr_name, attr_value in my_property.attributes:
+                if not attr_name in "Name":
+                    f.write(f".SetAttribute(\"{attr_name}\", \"{attr_value}\")")
+            f.write("; \\\n")
+        f.write(f"}} \\\n")
+        f.write(f"}}; \\\n")
+        f.write("static inline Z_TypeRegister_{class_info.name} __Z_TypeRegister_{class_info.name}_Instance; \\\n")
+        if class_info.type == "class":
+            f.write("private: \\\n")
+        f.write("\n")
+
+    def _write_generated_header(self, path: str, base_name: str, parsed_items: List[object]):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("// Auto-generated header file\n")
+            f.write("#pragma once\n\n")
+            f.write(f"#include \"Core/Reflection/MetaMark.h\"\n")
+            f.write(f"#include \"Core/Reflection/TypeRegistry.h\"\n")
+            f.write(f"#include \"Core/Serialization/InputArchive.h\"\n")
+            f.write(f"#include \"Core/Serialization/OutputArchive.h\"\n")
+            for item in parsed_items:
+                if isinstance(item, ClassInfo):
+                    self._write_generated_header_class(f, item)
+
+    def _write_generated_cpp(self, path: str, base_name: str, parsed_items: List[object], relative_path: str):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("// Auto-generated source file\n")
+            f.write(f'#include "{relative_path}"\n\n')
+            for item in parsed_items:
+                if isinstance(item, ClassInfo):
+                    self._write_generated_source_class(f, item)
+
+
 # ---------------- 运行示例 ----------------
 if __name__ == "__main__":
     root = PROJECT_ROOT_PATH
     parser = HeaderParser()
     scanner = CMakeScanner(PROJECT_ROOT_PATH, parser, EXCLUDED_HEADERS)
     projects = scanner.scan_projects()
-    for proj in projects:
-        print(proj.project_name, proj.parsed_files)
+    generator = CodeGenerator(os.path.join(root, "Generated"))
+    generator.generate_projects(projects)

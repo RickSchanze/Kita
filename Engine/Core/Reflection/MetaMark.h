@@ -6,3 +6,5 @@
 #define KENUM(...)
 #define KVALUE(...)
 #define KSTRUCT(...)
+
+#define GENERATED_BODY(ClassName) GENERATED_HEADER_##ClassName

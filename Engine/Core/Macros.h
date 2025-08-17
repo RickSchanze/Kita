@@ -10,7 +10,7 @@
 #define FORCE_INLINE inline
 #define DEBUG_BREAK() __debugbreak()
 #else
-#define KITA_FORCE_INLINE __forceinline
+#define FORCE_INLINE __forceinline
 #define DEBUG_BREAK()
 #endif
 

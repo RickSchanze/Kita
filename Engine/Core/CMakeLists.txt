@@ -41,7 +41,6 @@ add_library(KitaCore
         Assert.h
         Trace.cpp
         Trace.h
-        A.h
         FileSystem/FileSystemError.h
         FileSystem/Path.cpp
         FileSystem/Path.h
