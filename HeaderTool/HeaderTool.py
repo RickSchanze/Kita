@@ -473,18 +473,34 @@ class CodeGenerator:
         f.write(f"const Type* {class_info.name}::GetStaticType() {{ return TypeOf<{class_info.name}>(); }}\n")
         f.write(f"const Type* {class_info.name}::GetType() {{ return TypeOf<{class_info.name}>(); }}\n")
         f.write(f"void {class_info.name}::WriteArchive(OutputArchive& Archive) const {{ \n")
+        if len(class_info.bases) != 0:
+            f.write(f"Super::WriteArchive(Archive); \n")
         for my_property in class_info.properties:
-            f.write(f"Archive.WriteType(\"{self._get_true_name(my_property)}\", {my_property.name}); \\\n")
+            f.write(f"Archive.WriteType(\"{self._get_true_name(my_property)}\", {my_property.name}); \n")
         f.write(f"}} \n")
         f.write(f"void {class_info.name}::ReadArchive(InputArchive& Archive) {{ \n")
+        if len(class_info.bases) != 0:
+            f.write(f"Super::ReadArchive(Archive); \n")
         for my_property in class_info.properties:
-            f.write(f"Archive.ReadType(\"{self._get_true_name(my_property)}\", {my_property.name}); \\\n")
+            f.write(f"Archive.ReadType(\"{self._get_true_name(my_property)}\", {my_property.name}); \n")
         f.write(f"}} \n")
 
     def _write_generated_header_class(self, f: TextIO, class_info: ClassInfo):
         f.write(f"#define GENERATED_HEADER_{class_info.name} \\\n")
         if class_info.type == "class":
             f.write(f"public: \\\n")
+        if len(class_info.bases) == 0:
+            if class_info.type == "class":
+                f.write(f"typedef {class_info.name} ThisClass; \\\n")
+            else:
+                f.write(f"typedef {class_info.name} ThisStruct; \\\n")
+        else:
+            if class_info.type == "class":
+                f.write(f"typedef ThisClass Super; \\\n")
+                f.write(f"typedef {class_info.name} ThisClass; \\\n")
+            else:
+                f.write(f"typedef ThisStruct Super; \\\n")
+                f.write(f"typedef {class_info.name} ThisStruct; \\\n")
         f.write(f"static FORCE_INLINE const Type* GetStaticType(); \\\n")
         f.write(f"static FORCE_INLINE constexpr bool IsReflected() {{ return true; }} \\\n")
         if class_info.type == "class":
@@ -503,6 +519,8 @@ class CodeGenerator:
         f.write(f"Z_TypeRegister_{class_info.name}() {{ \\\n")
         f.write("TypeBuilder Builder{}; \\\n")
         f.write(f"Builder.CreateType<{class_info.name}>(\"{self._get_true_name(class_info)}\"); \\\n")
+        for base in class_info.bases:
+            f.write(f"Builder.AddParent<{base}>(); \\\n")
         for my_property in class_info.properties:
             f.write(f"Builder.AddField(\"{self._get_true_name(my_property)}\", &{class_info.name}::{my_property.name})")
             for attr_name, attr_value in my_property.attributes:
@@ -511,7 +529,7 @@ class CodeGenerator:
             f.write("; \\\n")
         f.write(f"}} \\\n")
         f.write(f"}}; \\\n")
-        f.write("static inline Z_TypeRegister_{class_info.name} __Z_TypeRegister_{class_info.name}_Instance; \\\n")
+        f.write(f"static inline Z_TypeRegister_{class_info.name} __Z_TypeRegister_{class_info.name}_Instance; \\\n")
         if class_info.type == "class":
             f.write("private: \\\n")
         f.write("\n")

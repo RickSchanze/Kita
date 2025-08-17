@@ -7,6 +7,7 @@
       <w>kproperty</w>
       <w>kstruct</w>
       <w>kvalue</w>
+      <w>memcpy</w>
     </words>
   </dictionary>
 </component>

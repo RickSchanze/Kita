@@ -45,3 +45,5 @@ void Type::SetAttribute(const StringView Key, const StringView Value) {
   DEBUG_ASSERT_MSG(!mAttributes.Contains(Key), Format("TypeAttribute {} already registered", Key));
   mAttributes[Key] = Value;
 }
+
+void Type::AddParent(const Type* Parent) { mBases.AddUnique(Parent); }

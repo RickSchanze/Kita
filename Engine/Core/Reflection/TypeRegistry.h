@@ -23,6 +23,16 @@ inline TypeRegistry gTypeRegistry;
 
 inline TypeRegistry& GetTypeRegistry() { return gTypeRegistry; }
 
+namespace Traits {
+template <typename T>
+concept HasFuncIsReflected = requires {
+  { T::IsReflected() } -> std::convertible_to<bool>;
+};
+
+template <typename T>
+concept IsReflected = HasFuncIsReflected<T> && T::IsReflected();
+} // namespace Traits
+
 template <typename T> const Type* TypeOf() {
   SizeType HashCode = GetTypeStaticHashCode<T>();
   return GetTypeRegistry().GetType(HashCode);
@@ -79,6 +89,13 @@ struct TypeBuilder {
   }
 
   void Register() const { GetTypeRegistry().RegisterType(OperatingType); }
+
+  template <typename T> void AddParent() const {
+    if constexpr (Traits::IsReflected<T>) {
+      const Type* Base = TypeOf<T>();
+      OperatingType->AddParent(Base);
+    }
+  }
 
   /// 当前正在构建的类型
   Type* OperatingType;

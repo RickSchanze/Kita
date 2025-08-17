@@ -62,6 +62,8 @@ struct Type {
   /// 设置此类型的属性, Key不应该重复
   void SetAttribute(StringView Key, StringView Value);
 
+  void AddParent(const Type* Parent);
+
 private:
   StringView mName;
   /// 这个类的大小, 当其Size = -1时, 此类型表示枚举

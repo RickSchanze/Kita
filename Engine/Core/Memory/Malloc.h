@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Macros.h"
 #include "Core/TypeDefs.h"
 
 enum class EMemoryLabel {
@@ -6,8 +7,9 @@ enum class EMemoryLabel {
   Count,
 };
 
-void* Malloc(SizeType InSize, EMemoryLabel Label);
-void Free(void* Ptr, EMemoryLabel Label);
+void* Malloc(SizeType InSize, EMemoryLabel Label = EMemoryLabel::Default);
+void Free(void* Ptr, EMemoryLabel Label = EMemoryLabel::Default);
+FORCE_INLINE void* Memcpy(void* Dest, const void* Source, const SizeType Size) { return memcpy(Dest, Source, Size); }
 
 template <typename T, typename... Args> T* New(Args&&... InArgs) {
   T* Ptr = static_cast<T*>(Malloc(sizeof(T), EMemoryLabel::Default));

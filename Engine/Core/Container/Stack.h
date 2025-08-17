@@ -4,7 +4,6 @@
 #include <stack>
 
 template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct Stack {
-public:
   Stack() = default;
   ~Stack() = default;
 

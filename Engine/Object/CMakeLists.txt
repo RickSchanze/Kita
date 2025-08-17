@@ -4,6 +4,8 @@ add_library(KitaObject
         Object.h
         Object.cpp
         ${Object_GENERATED_FILES}
+        PersistentObject.cpp
+        PersistentObject.h
 )
 
 target_link_libraries(KitaObject PRIVATE KitaCore)

@@ -52,6 +52,16 @@ add_library(KitaCore
         FileSystem/File.cpp
         FileSystem/File.h
         Reflection/MetaMark.h
+        TaskGraph/TaskHandle.cpp
+        TaskGraph/TaskHandle.h
+        TaskGraph/TaskNode.cpp
+        TaskGraph/TaskNode.h
+        TaskGraph/NamedThreads.h
+        TaskGraph/TaskGraph.cpp
+        TaskGraph/TaskGraph.h
+        TaskGraph/TaskGraphBoard.cpp
+        TaskGraph/TaskGraphBoard.h
+        Singleton/Singleton.h
 
 )
 
