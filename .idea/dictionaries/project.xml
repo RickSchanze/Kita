@@ -2,8 +2,11 @@
   <dictionary name="project">
     <words>
       <w>kclass</w>
+      <w>kenum</w>
       <w>kfunction</w>
       <w>kproperty</w>
+      <w>kstruct</w>
+      <w>kvalue</w>
     </words>
   </dictionary>
 </component>

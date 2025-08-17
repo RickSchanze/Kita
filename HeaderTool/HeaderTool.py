@@ -33,8 +33,22 @@ class FunctionInfo:
 
 
 @dataclass
+class EnumMemberInfo:
+    name: str
+    value: Optional[str] = None
+    attributes: Dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
+class EnumInfo:
+    name: str
+    attributes: Dict[str, str]
+    members: List[EnumMemberInfo] = field(default_factory=list)
+
+
+@dataclass
 class ClassInfo:
-    type: str
+    type: str  # "class" or "struct"
     name: str
     attributes: Dict[str, str]
     properties: List[PropertyInfo] = field(default_factory=list)
@@ -46,7 +60,7 @@ class CMakeProjectInfo:
     project_path: str
     project_name: str
     files: Dict[str, str] = field(default_factory=dict)  # abs_path -> relative_path
-    parsed_files: Dict[str, List[ClassInfo]] = field(default_factory=dict)  # abs_path -> classes
+    parsed_files: Dict[str, List[object]] = field(default_factory=dict)  # abs_path -> parsed structures
 
 
 # ---------------- HeaderParser ----------------
@@ -189,7 +203,66 @@ class HeaderParser:
         idx += 1
         return args, idx
 
-    def parse(self, file_path: str) -> List[ClassInfo]:
+    def _parse_class_or_struct(self, tokens: List[str], idx: int, kind: str) -> (ClassInfo, int):
+        """解析 KCLASS / KSTRUCT"""
+        attrs, idx = self._parse_attributes(tokens, idx + 1)
+        assert tokens[idx] == kind
+        class_name = tokens[idx + 1]
+        idx += 2
+        assert tokens[idx] == "{"
+        idx += 1
+        class_info = ClassInfo(
+            type=kind,
+            name=class_name,
+            attributes=attrs
+        )
+        while idx < len(tokens) and tokens[idx] != "}":
+            if tokens[idx] == "KPROPERTY":
+                prop_attrs, idx = self._parse_attributes(tokens, idx + 1)
+                type_parts = []
+                while idx < len(tokens) and tokens[idx + 1] not in ["=", ";", "{", "("]:
+                    type_parts.append(tokens[idx])
+                    idx += 1
+                prop_type = " ".join(type_parts)
+                prop_name = tokens[idx]
+                idx += 1
+                default_val = None
+                if tokens[idx] in ("=", "{"):
+                    default_val, idx = self._parse_default_value(tokens, idx)
+                assert tokens[idx] == ";"
+                idx += 1
+                class_info.properties.append(PropertyInfo(
+                    name=prop_name,
+                    type=prop_type,
+                    attributes=prop_attrs,
+                    default=default_val
+                ))
+            elif tokens[idx] == "KFUNCTION":
+                func_attrs, idx = self._parse_attributes(tokens, idx + 1)
+                ret_type_parts = []
+                while idx < len(tokens) and tokens[idx + 1] != "(":
+                    ret_type_parts.append(tokens[idx])
+                    idx += 1
+                ret_type = " ".join(ret_type_parts)
+                func_name = tokens[idx]
+                idx += 1
+                assert tokens[idx] == "("
+                idx += 1
+                args, idx = self._parse_function_args(tokens, idx)
+                assert tokens[idx] == ";"
+                idx += 1
+                class_info.functions.append(FunctionInfo(
+                    name=func_name,
+                    return_type=ret_type,
+                    attributes=func_attrs,
+                    args=args
+                ))
+            else:
+                idx += 1
+        idx += 1
+        return class_info, idx
+
+    def parse(self, file_path: str) -> List[object]:
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 code = f.read()
@@ -200,67 +273,76 @@ class HeaderParser:
         code = self._remove_comments(code)
         tokens = self._tokenize(code)
         idx = 0
-        result: List[ClassInfo] = []
+        result: List[object] = []
 
         while idx < len(tokens):
             tok = tokens[idx]
+
+            # ========= 解析类 =========
             if tok == "KCLASS":
-                attrs, idx = self._parse_attributes(tokens, idx + 1)
-                assert tokens[idx] == "class"
-                class_name = tokens[idx + 1]
-                idx += 2
+                class_info, idx = self._parse_class_or_struct(tokens, idx, "class")
+                result.append(class_info)
+
+            # ========= 解析结构体 =========
+            elif tok == "KSTRUCT":
+                struct_info, idx = self._parse_class_or_struct(tokens, idx, "struct")
+                result.append(struct_info)
+
+            # ========= 解析枚举 =========
+            elif tok == "KENUM":
+                enum_attrs, idx = self._parse_attributes(tokens, idx + 1)
+                assert tokens[idx] == "enum"
+                idx += 1
+                if tokens[idx] in ("class", "struct"):
+                    idx += 1
+                enum_name = tokens[idx]
+                idx += 1
                 assert tokens[idx] == "{"
                 idx += 1
-                class_info = ClassInfo(
-                    type="class",
-                    name=class_name,
-                    attributes=attrs
+
+                enum_info = EnumInfo(
+                    name=enum_name,
+                    attributes=enum_attrs
                 )
+
+                current_value = -1  # C++ 默认从 0 开始
+
                 while idx < len(tokens) and tokens[idx] != "}":
-                    if tokens[idx] == "KPROPERTY":
-                        prop_attrs, idx = self._parse_attributes(tokens, idx + 1)
-                        type_parts = []
-                        while idx < len(tokens) and tokens[idx + 1] not in ["=", ";", "{", "("]:
-                            type_parts.append(tokens[idx])
+                    member_attrs = {}
+                    if tokens[idx] == "KVALUE":
+                        member_attrs, idx = self._parse_attributes(tokens, idx + 1)
+
+                    member_name = tokens[idx]
+                    idx += 1
+
+                    member_value = None
+                    if tokens[idx] == "=":
+                        idx += 1
+                        val_tokens = []
+                        while idx < len(tokens) and tokens[idx] not in [",", "}"]:
+                            val_tokens.append(tokens[idx])
                             idx += 1
-                        prop_type = " ".join(type_parts)
-                        prop_name = tokens[idx]
-                        idx += 1
-                        default_val = None
-                        if tokens[idx] in ("=", "{"):
-                            default_val, idx = self._parse_default_value(tokens, idx)
-                        assert tokens[idx] == ";"
-                        idx += 1
-                        class_info.properties.append(PropertyInfo(
-                            name=prop_name,
-                            type=prop_type,
-                            attributes=prop_attrs,
-                            default=default_val
-                        ))
-                    elif tokens[idx] == "KFUNCTION":
-                        func_attrs, idx = self._parse_attributes(tokens, idx + 1)
-                        ret_type_parts = []
-                        while idx < len(tokens) and tokens[idx + 1] != "(":
-                            ret_type_parts.append(tokens[idx])
-                            idx += 1
-                        ret_type = " ".join(ret_type_parts)
-                        func_name = tokens[idx]
-                        idx += 1
-                        assert tokens[idx] == "("
-                        idx += 1
-                        args, idx = self._parse_function_args(tokens, idx)
-                        assert tokens[idx] == ";"
-                        idx += 1
-                        class_info.functions.append(FunctionInfo(
-                            name=func_name,
-                            return_type=ret_type,
-                            attributes=func_attrs,
-                            args=args
-                        ))
+                        member_value = " ".join(val_tokens)
+                        try:
+                            current_value = int(member_value, 0)
+                        except ValueError:
+                            pass
                     else:
+                        current_value += 1
+                        member_value = str(current_value)
+
+                    enum_info.members.append(EnumMemberInfo(
+                        name=member_name,
+                        value=member_value,
+                        attributes=member_attrs
+                    ))
+
+                    if tokens[idx] == ",":
                         idx += 1
-                result.append(class_info)
-                idx += 1
+
+                idx += 1  # 跳过 "}"
+                result.append(enum_info)
+
             else:
                 idx += 1
         return result
@@ -296,13 +378,12 @@ class CMakeScanner:
 
         header_files = self._extract_header_files(cmake_content)
         files_map: Dict[str, str] = {}
-        parsed_map: Dict[str, List[ClassInfo]] = {}
+        parsed_map: Dict[str, List[object]] = {}
 
         for header in header_files:
             abs_path = os.path.join(project_dir, header).replace("\\", "/")
             rel_global = os.path.relpath(abs_path, self.root_path).replace("\\", "/")
 
-            # 跳过排除列表文件
             if rel_global in self.excluded_headers:
                 continue
 
@@ -310,7 +391,6 @@ class CMakeScanner:
                 rel_path = os.path.relpath(abs_path, project_dir).replace("\\", "/")
                 files_map[abs_path] = rel_path
 
-                # 增量扫描：仅当文件新增或修改时解析
                 mtime = os.path.getmtime(abs_path)
                 if abs_path not in self._file_cache or self._file_cache[abs_path] < mtime:
                     parsed_map[abs_path] = self.parser.parse(abs_path)
@@ -326,7 +406,8 @@ class CMakeScanner:
             parsed_files=parsed_map
         )
 
-    def _extract_header_files(self, cmake_content: str) -> List[str]:
+    @staticmethod
+    def _extract_header_files(cmake_content: str) -> List[str]:
         headers = []
         pattern = re.compile(r"[^\s'\"]+\.(?:h|hpp|hh|hxx)", re.IGNORECASE)
         for match in pattern.findall(cmake_content):
@@ -336,7 +417,9 @@ class CMakeScanner:
 
 # ---------------- 运行示例 ----------------
 if __name__ == "__main__":
-    root = r"C:\Users\kita\Documents\Projects\Kita\Engine"
+    root = PROJECT_ROOT_PATH
     parser = HeaderParser()
     scanner = CMakeScanner(PROJECT_ROOT_PATH, parser, EXCLUDED_HEADERS)
     projects = scanner.scan_projects()
+    for proj in projects:
+        print(proj.project_name, proj.parsed_files)
