@@ -3,5 +3,14 @@
 //
 
 #include "TaskHandle.h"
+
+#include "TaskGraph.h"
+
 void TaskHandle::Start() {}
-ETaskState TaskHandle::GetState() const { return ETaskState::Lazy; }
+
+ETaskState TaskHandle::GetState() const {
+  if (mInstance == nullptr) {
+    return ETaskState::Count;
+  }
+  return mInstance->GetState();
+}

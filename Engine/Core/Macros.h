@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef DEBUG
+#ifdef DEBUG_MODE
 #define KITA_DEBUG 1
 #else
 #define KITA_DEBUG 0

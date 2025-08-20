@@ -62,7 +62,13 @@ add_library(KitaCore
         TaskGraph/TaskGraphBoard.cpp
         TaskGraph/TaskGraphBoard.h
         Singleton/Singleton.h
-
+        Concurrency/ConcurrentQueue.h
+        Container/Set.h
+        Concurrency/ConcurrentSet.h
+        TaskGraph/QueuedThread.cpp
+        TaskGraph/QueuedThread.h
+        TaskGraph/QueuedThreadPool.cpp
+        TaskGraph/QueuedThreadPool.h
 )
 
 find_package(spdlog CONFIG REQUIRED)
@@ -85,3 +91,8 @@ find_package(absl CONFIG REQUIRED)
 target_link_libraries(KitaCore PUBLIC absl::any absl::log absl::base absl::bits)
 
 target_include_directories(KitaCore PUBLIC ../)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG_MODE)
+    message("CMAKE_BUILD_TYPE is Debug")
+endif()

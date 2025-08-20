@@ -6,7 +6,7 @@
 #include "Core/String/ToString.h"
 #include <unordered_map>
 
-#if KITA_DEBUG || defined(KITA_PROCESSING_METADATA_MARK)
+#if KITA_DEBUG
 #else
 #include "absl/container/flat_hash_map.h"
 #include "absl/hash/hash.h"
@@ -16,7 +16,7 @@ template <typename K, typename V, EMemoryLabel Label = EMemoryLabel::Default> cl
 public:
   using key_type = K;
   using value_type = V;
-#if KITA_DEBUG || defined(KITA_PROCESSING_METADATA_MARK)
+#if KITA_DEBUG
   using map_type = std::unordered_map<K, V, std::hash<K>, std::equal_to<K>, STLAllocator<std::pair<const K, V>, Label>>;
 #else
   using map_type = absl::flat_hash_map<K, V, std::hash<K>, absl::DefaultHashContainerEq<K>, STLAllocator<std::pair<const K, V>, Label>>;

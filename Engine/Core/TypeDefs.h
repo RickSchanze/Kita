@@ -29,6 +29,8 @@ struct NonMovable {
   NonMovable& operator=(NonMovable&&) = delete;
 };
 
+struct NonCopyMovable : NonCopyable, NonMovable {};
+
 template <typename T>
 concept IGetHashCode = requires(T Value) {
   { Value.GetHashCode() } -> std::same_as<SizeType>;

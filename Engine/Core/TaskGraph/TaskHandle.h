@@ -3,19 +3,16 @@
 #include "Core/String/String.h"
 #include "Core/TypeDefs.h"
 
-enum ETaskState {
+enum class ETaskState {
   Lazy,       // 等待被启动
   Pending,    // 等待依赖完成
   Scheduling, // 等待被调度
   Running,    // 正在运行
   Finished,   // 运行完成
+  Count,      // 错误
 };
 
-struct TaskHandleId {
-  Int32 Handle;
-
-  [[nodiscard]] SizeType GetHashCode() const { return std::hash<Int32>()(Handle); }
-};
+struct TaskInstance;
 
 struct TaskHandle {
   /**
@@ -29,12 +26,13 @@ struct TaskHandle {
    */
   [[nodiscard]] ETaskState GetState() const;
 
-  [[nodiscard]] bool IsRunning() const { return GetState() == Running; }
-  [[nodiscard]] bool IsFinished() const { return GetState() == Finished; }
-  [[nodiscard]] bool IsScheduled() const { return GetState() == Scheduling; }
-  [[nodiscard]] bool IsLazy() const { return GetState() == Lazy; }
+  [[nodiscard]] bool IsRunning() const { return GetState() == ETaskState::Running; }
+  [[nodiscard]] bool IsFinished() const { return GetState() == ETaskState::Finished; }
+  [[nodiscard]] bool IsScheduled() const { return GetState() == ETaskState::Scheduling; }
+  [[nodiscard]] bool IsLazy() const { return GetState() == ETaskState::Lazy; }
 
   void WaitSync();
 
-  TaskHandleId Handle;
+private:
+  TaskInstance* mInstance = nullptr;
 };

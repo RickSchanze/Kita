@@ -22,11 +22,9 @@ endif()
 
 add_executable(Kita Engine/main.cpp)
 
-target_compile_definitions(Kita
-        PRIVATE
-        # If the debug configuration pass the DEBUG define to the compiler
-        $<$<CONFIG:Debug>:DEBUG>
-)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG_MODE)
+endif()
 
 target_link_libraries(Kita PRIVATE KitaCore)
 

@@ -26,6 +26,11 @@ public:
   [[nodiscard]] SizeType GetHashCode() const noexcept { return std::hash<std::string>{}(mStr); }
   [[nodiscard]] bool Empty() const noexcept { return mStr.empty(); }
 
+  [[nodiscard]] auto begin() const { return mStr.begin(); }
+  [[nodiscard]] auto end() const { return mStr.end(); }
+  auto begin() { return mStr.begin(); }
+  auto end() { return mStr.end(); }
+
 private:
   std::string mStr;
 };

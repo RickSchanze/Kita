@@ -36,6 +36,11 @@ public:
 
   [[nodiscard]] bool Empty() const { return mStr.empty(); }
 
+  auto begin() { return mStr.begin(); }
+  auto end() { return mStr.end(); }
+  [[nodiscard]] auto begin() const { return mStr.begin(); }
+  [[nodiscard]] auto end() const { return mStr.end(); }
+
 private:
   std::string_view mStr;
 };
