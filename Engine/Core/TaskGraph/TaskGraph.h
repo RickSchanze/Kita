@@ -71,7 +71,7 @@ public:
   /// @return 任务句柄
   template <typename T, typename... Args>
     requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
-  TaskHandle CreateLazyTask(const StringView DebugName, const std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+  TaskHandle CreateLazyTaskM(const StringView DebugName, const std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
     TaskHandleListAutoLock Lock(InDeps);
     Int32 RemainingDependencies = 0;
     for (const auto& Dep : InDeps) {
@@ -92,6 +92,12 @@ public:
     return TaskHandle{NewInstance};
   }
 
+  template <typename T, typename... Args>
+    requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
+  static TaskHandle CreateLazyTask(const StringView DebugName, const std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+    return GetRef().CreateLazyTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
+  }
+
   /// 创建一个立即启动的任务
   /// @tparam T 任务类型
   /// @tparam Args 任务构造参数类型
@@ -101,10 +107,16 @@ public:
   /// @return 任务句柄
   template <typename T, typename... Args>
     requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
-  TaskHandle CreateTask(const StringView DebugName, std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
-    const TaskHandle Handle = CreateLazyTask<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
+  TaskHandle CreateTaskM(const StringView DebugName, std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+    const TaskHandle Handle = CreateLazyTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
     Handle.StartLazy();
     return Handle;
+  }
+
+  template <typename T, typename... Args>
+    requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
+  static TaskHandle CreateTask(const StringView DebugName, std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+    return GetRef().CreateTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
   }
 
   /// 当一个任务完成时调用此函数, 用于通知依赖

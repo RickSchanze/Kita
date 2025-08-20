@@ -67,7 +67,7 @@ void TaskGraph::StartLazyTask(TaskInstance* InInstance) {
   if (InInstance == nullptr) {
     return;
   }
-  if (!IsTaskExists(InInstance)) {
+  if UNLIKELY (!IsTaskExists(InInstance)) {
     LOG_ERROR_TAG("TaskGraph", "任务\"{}\"({})不存在", InInstance->DebugName, Ptr(InInstance));
     return;
   }

@@ -19,9 +19,7 @@ struct Wait5sTask : TaskNode {
     return ETaskNodeResult::Success;
   }
 
-  virtual ENamedThread GetDesiredThread() const override {
-    return ENamedThread::Render;
-  }
+  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::Render; }
 };
 
 struct Wait6sTask : TaskNode {
@@ -32,9 +30,7 @@ struct Wait6sTask : TaskNode {
     return ETaskNodeResult::Success;
   }
 
-  virtual ENamedThread GetDesiredThread() const override {
-    return ENamedThread::IO;
-  }
+  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }
 };
 
 struct Wait7sTask : TaskNode {
@@ -45,18 +41,16 @@ struct Wait7sTask : TaskNode {
     return ETaskNodeResult::Success;
   }
 
-  virtual ENamedThread GetDesiredThread() const override {
-    return ENamedThread::Render;
-  }
+  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::Render; }
 };
 
 int main() {
   SetConsoleOutputCP(CP_UTF8);
   TaskGraph::StartUp();
 
-  auto T1 = TaskGraph::GetRef().CreateTask<Wait5sTask>("Wait5s", {});
-  auto T2 = TaskGraph::GetRef().CreateTask<Wait6sTask>("Wait6s", {});
-  auto T3 = TaskGraph::GetRef().CreateTask<Wait7sTask>("Wait7s", {T1, T2});
+  auto T1 = TaskGraph::CreateTask<Wait5sTask>("Wait5s", {});
+  auto T2 = TaskGraph::CreateTask<Wait6sTask>("Wait6s", {});
+  auto T3 = TaskGraph::CreateTask<Wait7sTask>("Wait7s", {T1, T2});
   T3.WaitSync();
   TaskGraph::ShutDown();
 }
