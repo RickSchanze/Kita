@@ -22,7 +22,7 @@ class TaskGraphBoard : public Singleton<TaskGraphBoard> {
 public:
   template <typename T>
     requires Traits::IsTrivial<T>
-  bool Put(const TaskGraphBoardDataId DataId, const T& Data) {
+  bool PutM(const TaskGraphBoardDataId DataId, const T& Data) {
     if (mData.Contains(DataId)) {
       LOG_ERROR_TAG("TaskGraph", "重复ID的数据设置.");
       return false;
@@ -33,8 +33,14 @@ public:
     return true;
   }
 
+  template <typename T>
+    requires Traits::IsTrivial<T>
+  static bool Put(const TaskGraphBoardDataId DataId, const T& Data) {
+    return GetRef().Put(DataId, Data);
+  }
+
   /// 只允许Get消费一次, 一旦此Id被Get, 就会从Board中移除
-  template <typename T> Optional<T> Get(const TaskGraphBoardDataId Id) {
+  template <typename T> Optional<T> GetM(const TaskGraphBoardDataId Id) {
     if (mData.Contains(Id)) {
       T Data = *static_cast<T*>(mData[Id]);
       Free(mData[Id]);
@@ -44,8 +50,10 @@ public:
     return NullOpt;
   }
 
+  template <typename T> static Optional<T> Get(const TaskGraphBoardDataId Id) { return GetRef().GetM<T>(Id); }
+
   /// 只允许Get消费一次, 一旦此Id被Get, 就会从Board中移除
-  template <typename T> bool TryGet(const TaskGraphBoardDataId Id, T& OutData) {
+  template <typename T> bool TryGetM(const TaskGraphBoardDataId Id, T& OutData) {
     if (mData.Contains(Id)) {
       OutData = *static_cast<T*>(mData[Id]);
       Free(mData[Id]);
@@ -54,6 +62,8 @@ public:
     }
     return false;
   }
+
+  template <typename T> static bool TryGet(const TaskGraphBoardDataId Id, T& OutData) { return GetRef().TryGetM(Id, OutData); }
 
   void ReleaseAll();
 
