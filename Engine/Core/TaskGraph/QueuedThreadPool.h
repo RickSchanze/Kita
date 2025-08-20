@@ -8,11 +8,13 @@ public:
   explicit QueuedThreadPool() : mStop(false) {}
   ~QueuedThreadPool() = default;
 
-  void StartUp(const String& Name, SizeType ThreadCount = 4);
+  void StartUp(const String& Name, SizeType ThreadCount);
   void ShutDown();
 
   // 添加任务
-  void Enqueue(TaskInstance* task) { mQueue.Enqueue(task); }
+  void Enqueue(TaskInstance* task) {
+    mQueue.Enqueue(task);
+  }
 
   void Stop();
 

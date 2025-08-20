@@ -8,6 +8,5 @@ void TaskGraphBoard::ReleaseAll()  {
   for (const auto& DataPtr : mData | Ranges::Views::Values) {
     Free(DataPtr);
   }
-  mTaskDataRecorder = {};
   mData = {};
 }

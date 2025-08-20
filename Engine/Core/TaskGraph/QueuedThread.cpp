@@ -15,6 +15,19 @@ void QueuedThread::StartUp(const StringView Name) {
 
 void QueuedThread::ShutDown() { Stop(); }
 
+void QueuedThread::Stop()  {
+  if (!mStop.exchange(true)) {
+    mStop = true;
+
+    // 推入一个空任务，确保 WaitDequeued 被唤醒
+    mQueue.Enqueue(nullptr);
+
+    if (mThread.joinable()) {
+      mThread.join();
+    }
+  }
+}
+
 UInt64 QueuedThread::GetThreadId() { return reinterpret_cast<UInt64>(mThread.native_handle()); }
 
 void QueuedThread::SetThreadName(StringView Name) {
@@ -35,17 +48,19 @@ void QueuedThread::SetThreadName(StringView Name) {
 
 void QueuedThread::ThreadLoop() {
   while (!mStop) {
-    if (TaskInstance* Task = nullptr; mQueue.WaitDequeued(Task)) { // 会阻塞直到有任务
-      if (!Task) {
-        // nullptr 用于唤醒并退出
-        continue;
-      }
-      if (TaskNode* Node = Task->Node; Node != nullptr) {
-        if (const ETaskNodeResult Result = Node->Run(); Result == ETaskNodeResult::Success) {
-          TaskGraph::GetRef().NotifyTaskCompleted(Task);
-        } else if (Result == ETaskNodeResult::RescheduleRequired) {
-          mQueue.Enqueue(Task);
-        }
+    TaskInstance* Task = nullptr;
+    mQueue.WaitDequeued(Task); // 会阻塞直到有任务
+    if (!Task) {
+      // nullptr 用于唤醒并退出
+      continue;
+    }
+    if (TaskNode* Node = Task->Node; Node != nullptr) {
+      if (const ETaskNodeResult Result = Node->Run(); Result == ETaskNodeResult::Success) {
+        TaskGraph::GetRef().NotifyTaskCompleted(Task);
+      } else if (Result == ETaskNodeResult::RescheduleRequired) {
+        mQueue.Enqueue(Task);
+      } else if (Result == ETaskNodeResult::Failed) {
+        TaskGraph::GetRef().NotifyTaskFailed(Task);
       }
     }
   }

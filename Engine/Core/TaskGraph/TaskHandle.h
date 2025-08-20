@@ -15,23 +15,28 @@ enum class ETaskState {
 struct TaskInstance;
 
 struct TaskHandle {
+  explicit TaskHandle(TaskInstance* Instance) : mInstance(Instance) {}
+
   /**
    * 启动一个Lazy任务
    */
-  void Start();
+  void StartLazy() const;
 
   /**
    * 获取任务状态
    * @return
    */
-  [[nodiscard]] ETaskState GetState() const;
+  [[nodiscard]] ETaskState GetState(bool Lock = true) const;
 
   [[nodiscard]] bool IsRunning() const { return GetState() == ETaskState::Running; }
   [[nodiscard]] bool IsFinished() const { return GetState() == ETaskState::Finished; }
   [[nodiscard]] bool IsScheduled() const { return GetState() == ETaskState::Scheduling; }
   [[nodiscard]] bool IsLazy() const { return GetState() == ETaskState::Lazy; }
+  [[nodiscard]] bool IsValid() const;
 
-  void WaitSync();
+  void WaitSync() const;
+
+  [[nodiscard]] TaskInstance* GetInstance() const { return mInstance; }
 
 private:
   TaskInstance* mInstance = nullptr;

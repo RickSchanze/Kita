@@ -6,11 +6,22 @@
 
 #include "TaskGraph.h"
 
-void TaskHandle::Start() {}
+void TaskHandle::StartLazy() const {
+  TaskGraph::GetRef().StartLazyTask(mInstance);
+}
 
-ETaskState TaskHandle::GetState() const {
+ETaskState TaskHandle::GetState(bool Lock) const {
   if (mInstance == nullptr) {
     return ETaskState::Count;
   }
-  return mInstance->GetState();
+  if (!TaskGraph::GetRef().IsTaskExists(mInstance)) {
+    return ETaskState::Finished;
+  }
+  return mInstance->GetState(Lock);
+}
+
+bool TaskHandle::IsValid() const { return mInstance != nullptr; }
+
+void TaskHandle::WaitSync() const {
+  TaskGraph::GetRef().WaitTaskSync(mInstance);
 }

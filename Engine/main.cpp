@@ -7,43 +7,58 @@
 #include "Core/Serialization/TOML/TOMLOutputArchive.h"
 #include "Core/Serialization/YAML/YAMLInputArchive.h"
 #include "Core/Serialization/YAML/YAMLOutputArchive.h"
+#include "Core/TaskGraph/TaskGraph.h"
+#include "Core/TaskGraph/ThreadUtils.h"
 #include "Windows.h"
 
-struct A {
-  int b = 13;
-  String C = "你好";
-  Array<int> D = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-
-  void WriteArchive(OutputArchive& Archive) const {
-    Archive.WriteType("b", b);
-    Archive.WriteType("C", C);
-    Archive.WriteType("D", D);
+struct Wait5sTask : TaskNode {
+  virtual ETaskNodeResult Run() override {
+    LOG_INFO_TAG("Test", "Wait5s Start");
+    ThreadUtils::WaitFor(std::chrono::seconds(5));
+    LOG_INFO_TAG("Test", "Wait5s End");
+    return ETaskNodeResult::Success;
   }
 
-  void ReadArchive(InputArchive& Archive) {
-    Archive.ReadType("b", b);
-    Archive.ReadType("C", C);
-    Archive.ReadType("D", D);
+  virtual ENamedThread GetDesiredThread() const override {
+    return ENamedThread::Render;
   }
 };
 
-enum class D { L, M, C, P };
+struct Wait6sTask : TaskNode {
+  virtual ETaskNodeResult Run() override {
+    LOG_INFO_TAG("Test", "Wait6s Start");
+    ThreadUtils::WaitFor(std::chrono::seconds(6));
+    LOG_INFO_TAG("Test", "Wait6s End");
+    return ETaskNodeResult::Success;
+  }
+
+  virtual ENamedThread GetDesiredThread() const override {
+    return ENamedThread::IO;
+  }
+};
+
+struct Wait7sTask : TaskNode {
+  virtual ETaskNodeResult Run() override {
+    LOG_INFO_TAG("Test", "Wait7s Start");
+    ThreadUtils::WaitFor(std::chrono::seconds(7));
+    LOG_INFO_TAG("Test", "Wait7s End");
+    return ETaskNodeResult::Success;
+  }
+
+  virtual ENamedThread GetDesiredThread() const override {
+    return ENamedThread::Render;
+  }
+};
 
 int main() {
   SetConsoleOutputCP(CP_UTF8);
-  A MyA{};
-  TOMLOutputArchive Archive;
-  Archive.WriteType("Type", MyA);
-  Archive.WriteFile("Test.toml");
+  TaskGraph::StartUp();
 
-  TOMLInputArchive Archive2;
-  Archive2.ParseFile("Test.toml");
-  A MyA2;
-  MyA2.b = 0;
-  MyA2.C = "Test";
-  MyA2.D = {};
-  Archive2.ReadType("Type", MyA2);
-  LOG_INFO("{}", MyA2.C);
+  auto T1 = TaskGraph::GetRef().CreateTask<Wait5sTask>("Wait5s", {});
+  auto T2 = TaskGraph::GetRef().CreateTask<Wait6sTask>("Wait6s", {});
+  auto T3 = TaskGraph::GetRef().CreateTask<Wait7sTask>("Wait7s", {T1, T2});
+  T3.WaitSync();
+  TaskGraph::ShutDown();
 }
 
 KCLASS(Attr1 = "Value1", Attr2 = Value2) // 这里有没有双引号都可以

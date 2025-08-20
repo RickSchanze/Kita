@@ -10,6 +10,8 @@ struct TaskGraphBoardDataId {
   Int32 Handle;
 
   [[nodiscard]] SizeType GetHashCode() const { return std::hash<Int32>()(Handle); }
+
+  bool operator==(const TaskGraphBoardDataId& other) const { return Handle == other.Handle; }
 };
 
 /**
