@@ -12,18 +12,21 @@ public:
   virtual ~PersistentObject() override = default;
 
   [[nodiscard]] bool IsLoaded() const { return mLoaded; }
+  virtual void BeforeLoad() {}
+  virtual void Load() = 0;
+  virtual void AfterLoad() {}
 
-  virtual void Load() { mLoaded = true; }
-  virtual void Unload() { mLoaded = false; }
+  virtual void BeforeUnload() {}
+  virtual void Unload() = 0;
+  virtual void AfterUnload() {}
 
-  virtual void OnLoadComplete() {}
+  virtual void BeforeSave() {}
+  virtual void Save() = 0;
+  virtual void AfterSave() {}
 
 protected:
-  void SetLoaded(const bool Loaded) {
-    mLoaded = Loaded;
-    if (Loaded)
-      OnLoadComplete();
-  }
+  KPROPERTY()
+  String mPath;
 
   bool mLoaded = false;
 };

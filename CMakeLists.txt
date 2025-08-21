@@ -26,5 +26,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(DEBUG_MODE)
 endif()
 
+add_compile_definitions(KITA_EDITOR)
+
 target_link_libraries(Kita PRIVATE KitaCore)
 

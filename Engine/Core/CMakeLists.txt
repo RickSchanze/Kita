@@ -71,6 +71,7 @@ add_library(KitaCore
         TaskGraph/QueuedThreadPool.h
         TaskGraph/ThreadUtils.cpp
         TaskGraph/ThreadUtils.h
+        Reflection/TemplateAdapter.h
 )
 
 find_package(spdlog CONFIG REQUIRED)

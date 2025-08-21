@@ -18,6 +18,8 @@ Z_TypeRegister_Object() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<Object>("Object"); \
 Builder.AddField("mName", &Object::mName); \
+Builder.AddField("mHandle", &Object::mHandle); \
+Builder.Register(); \
 } \
 }; \
 static inline Z_TypeRegister_Object __Z_TypeRegister_Object_Instance; \

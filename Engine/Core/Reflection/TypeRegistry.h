@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Container/Array.h"
 #include "Field.h"
+#include "TemplateAdapter.h"
 #include "Type.h"
 
 struct Field;
@@ -49,7 +50,12 @@ struct TypeBuilder {
   template <typename ClassType, typename FieldType> TypeBuilder& AddField(const StringView Name, FieldType ClassType::* FieldPtr) {
     Int32 FieldOffset = static_cast<Int32>(reinterpret_cast<SizeType>(&(static_cast<ClassType*>(nullptr)->*FieldPtr)));
     Int32 FieldSize = sizeof(FieldType);
-    const Type* DeclaringType = TypeOf<FieldType>();
+    const Type* DeclaringType = nullptr;
+    if constexpr (Traits::IsBaseOf<TemplateAdapter, FieldType>) {
+      DeclaringType = TypeOf<typename FieldType::ReflectionType>();
+    } else {
+      DeclaringType = TypeOf<FieldType>();
+    }
     const Type* OwnerType = OperatingType;
     auto* NewField = New<Field>(Name, FieldOffset, FieldSize, DeclaringType, OwnerType);
     NewField->SetArrayProxy(CreateArrayProxy<FieldType>());

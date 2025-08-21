@@ -225,7 +225,7 @@ class HeaderParser:
                     base_parts.append(tokens[idx])
                     idx += 1
                 if base_parts:
-                    bases.append("".join(base_parts))  # 直接拼接保留命名空间::形式
+                    bases.append("".join(base_parts))
                 if idx < len(tokens) and tokens[idx] == ",":
                     idx += 1
 
@@ -239,28 +239,52 @@ class HeaderParser:
             bases=bases
         )
 
-        while idx < len(tokens) and tokens[idx] != "}":
-            if tokens[idx] == "KPROPERTY":
+        ### FIXED: 用 brace_level 控制
+        brace_level = 1
+        while idx < len(tokens) and brace_level > 0:
+            tok = tokens[idx]
+
+            if tok == "{":
+                brace_level += 1
+                idx += 1
+                continue
+            elif tok == "}":
+                brace_level -= 1
+                idx += 1
+                continue
+
+            if tok == "KPROPERTY":
                 prop_attrs, idx = self._parse_attributes(tokens, idx + 1)
+
+                # 类型和变量名解析
                 type_parts = []
-                while idx < len(tokens) and tokens[idx + 1] not in ["=", ";", "{", "("]:
+                prop_name = ""
+                while idx < len(tokens):
+                    if tokens[idx] in (";", "=", "{", "("):
+                        break
                     type_parts.append(tokens[idx])
                     idx += 1
-                prop_type = " ".join(type_parts)
-                prop_name = tokens[idx]
-                idx += 1
+                if type_parts:
+                    prop_name = type_parts[-1]
+                    prop_type = " ".join(type_parts[:-1])
+                else:
+                    prop_type = ""
+
                 default_val = None
-                if tokens[idx] in ("=", "{"):
+                if idx < len(tokens) and tokens[idx] in ("=", "{"):
                     default_val, idx = self._parse_default_value(tokens, idx)
+
                 assert tokens[idx] == ";"
                 idx += 1
+
                 class_info.properties.append(PropertyInfo(
                     name=prop_name,
                     type=prop_type,
                     attributes=prop_attrs,
                     default=default_val
                 ))
-            elif tokens[idx] == "KFUNCTION":
+
+            elif tok == "KFUNCTION":
                 func_attrs, idx = self._parse_attributes(tokens, idx + 1)
                 ret_type_parts = []
                 while idx < len(tokens) and tokens[idx + 1] != "(":
@@ -282,7 +306,7 @@ class HeaderParser:
                 ))
             else:
                 idx += 1
-        idx += 1
+
         return class_info, idx
 
     def parse(self, file_path: str) -> List[object]:
@@ -527,6 +551,7 @@ class CodeGenerator:
                 if not attr_name in "Name":
                     f.write(f".SetAttribute(\"{attr_name}\", \"{attr_value}\")")
             f.write("; \\\n")
+        f.write("Builder.Register(); \\\n")
         f.write(f"}} \\\n")
         f.write(f"}}; \\\n")
         f.write(f"static inline Z_TypeRegister_{class_info.name} __Z_TypeRegister_{class_info.name}_Instance; \\\n")

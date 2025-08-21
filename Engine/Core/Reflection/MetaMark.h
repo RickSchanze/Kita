@@ -8,3 +8,5 @@
 #define KSTRUCT(...)
 
 #define GENERATED_BODY(ClassName) GENERATED_HEADER_##ClassName
+
+inline const char* AvailableClassPropertyNames[] = {"Abstract", "Name", "Label"};

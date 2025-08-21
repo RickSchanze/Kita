@@ -8,6 +8,7 @@
 struct Type {
   Type() = default;
   Type(const StringView InName, const Int32 InSize, const SizeType InHashCode) : mName(InName), mSize(InSize), mHashCode(InHashCode) {}
+  ~Type();
 
   [[nodiscard]] StringView GetName() const { return mName; }
   [[nodiscard]] Int32 GetSize() const {

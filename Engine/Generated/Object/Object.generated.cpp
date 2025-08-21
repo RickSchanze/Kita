@@ -5,7 +5,9 @@ const Type* Object::GetStaticType() { return TypeOf<Object>(); }
 const Type* Object::GetType() { return TypeOf<Object>(); }
 void Object::WriteArchive(OutputArchive& Archive) const { 
 Archive.WriteType("mName", mName); 
+Archive.WriteType("mHandle", mHandle); 
 } 
 void Object::ReadArchive(InputArchive& Archive) { 
 Archive.ReadType("mName", mName); 
+Archive.ReadType("mHandle", mHandle); 
 } 

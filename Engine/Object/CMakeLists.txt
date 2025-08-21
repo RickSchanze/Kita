@@ -6,6 +6,14 @@ add_library(KitaObject
         ${Object_GENERATED_FILES}
         PersistentObject.cpp
         PersistentObject.h
+        ObjectTable.cpp
+        ObjectTable.h
+        Actor.cpp
+        Actor.h
+        Component.cpp
+        Component.h
+        ObjectPtr.cpp
+        ObjectPtr.h
 )
 
 target_link_libraries(KitaObject PRIVATE KitaCore)

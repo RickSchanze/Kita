@@ -5,24 +5,23 @@
 #include "Core/Reflection/TypeRegistry.h"
 #include "Core/Serialization/InputArchive.h"
 #include "Core/Serialization/OutputArchive.h"
-#define GENERATED_HEADER_PersistentObject \
+#define GENERATED_HEADER_Actor \
 public: \
 typedef ThisClass Super; \
-typedef PersistentObject ThisClass; \
+typedef Actor ThisClass; \
 static FORCE_INLINE const Type* GetStaticType(); \
 static FORCE_INLINE constexpr bool IsReflected() { return true; } \
 virtual const Type* GetType(); \
 virtual void WriteArchive(OutputArchive& Archive) const;\
 virtual void ReadArchive(InputArchive& Archive);\
-struct Z_TypeRegister_PersistentObject { \
-Z_TypeRegister_PersistentObject() { \
+struct Z_TypeRegister_Actor { \
+Z_TypeRegister_Actor() { \
 TypeBuilder Builder{}; \
-Builder.CreateType<PersistentObject>("PersistentObject"); \
+Builder.CreateType<Actor>("Actor"); \
 Builder.AddParent<Object>(); \
-Builder.AddField("mPath", &PersistentObject::mPath); \
 Builder.Register(); \
 } \
 }; \
-static inline Z_TypeRegister_PersistentObject __Z_TypeRegister_PersistentObject_Instance; \
+static inline Z_TypeRegister_Actor __Z_TypeRegister_Actor_Instance; \
 private: \
 

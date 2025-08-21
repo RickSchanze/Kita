@@ -17,3 +17,7 @@
 #define INLINE_NODISCARD [[nodiscard]] FORCE_INLINE
 #define LIKELY(x) (x) [[likely]]
 #define UNLIKELY(x) (x) [[unlikely]]
+
+#ifdef KITA_EDITOR
+#define KITA_EDITOR 1
+#endif

@@ -23,6 +23,12 @@ Array<const struct Field*> Type::GetFields() const {
   return Fields;
 }
 
+Type::~Type() {
+  for (const auto Field : mFields) {
+    Delete(Field);
+  }
+}
+
 bool Type::IsDerivedFrom(const Type* const InBase) const {
   if (InBase == this) {
     return true;
