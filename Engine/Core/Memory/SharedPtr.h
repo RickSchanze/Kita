@@ -38,6 +38,10 @@ template <typename T> struct SharedPtr {
     mPtr = Other.mPtr;
     return *this;
   }
+
+  template <typename R>
+  SharedPtr(const SharedPtr<R>& Other) : mPtr(Other.mPtr) {}
+
   T* Get() { return mPtr.get(); }
   const T* Get() const { return mPtr.get(); }
   T& operator*() { return *mPtr; }
@@ -47,7 +51,6 @@ template <typename T> struct SharedPtr {
   T& GetRef() { return *mPtr; }
   const T& GetRef() const { return *mPtr; }
 
-private:
   std::shared_ptr<T> mPtr;
 };
 

@@ -59,7 +59,7 @@ template <typename T> void InputArchive::ReadType(StringView Key, T& Value) {
     } else {
       Value.Resize(S);
       for (SizeType I = 0; I < S; ++I) {
-        Read("", Value[I]);
+        ReadType("", Value[I]);
       }
     }
     EndArray();

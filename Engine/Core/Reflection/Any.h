@@ -79,11 +79,11 @@ public:
     T* mData;
 
   public:
-    explicit DataHolder_T(T* InData) : DataHolder(Pri::GetTypeByHashCode(GetTypeStaticHashCode<T>())), mData(InData) {}
+    DataHolder_T(T* InData) : DataHolder(Pri::GetTypeByHashCode(GetTypeStaticHashCode<T>())), mData(InData) {}
     // 复制构造
     DataHolder_T(const DataHolder_T& Other) : DataHolder(Other.mType), mData(Other.mData) {}
 
-    [[nodiscard]] virtual void* GetDataPtr() const override { return mData.Get(); }
+    [[nodiscard]] virtual void* GetDataPtr() const override { return mData; }
   };
 
 private:
@@ -92,7 +92,7 @@ private:
 public:
   [[nodiscard]] const Type* GetType() const { return mDataHolder->GetType(); }
 
-  template <typename T> explicit AnyRef(const T& InData) : mDataHolder(MakeShared<DataHolder_T<Traits::Pure<T>>>(&InData)) {}
+  template <typename T> explicit AnyRef(T& InData) { mDataHolder = MakeShared<DataHolder_T<Traits::Pure<T>>>(&InData); }
 
   void* GetDataPtr() { return mDataHolder->GetDataPtr(); }
 

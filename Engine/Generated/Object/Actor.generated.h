@@ -19,9 +19,14 @@ Z_TypeRegister_Actor() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<Actor>("Actor"); \
 Builder.AddParent<Object>(); \
+Builder.AddField("mComponents", &Actor::mComponents); \
 Builder.Register(); \
 } \
 }; \
 static inline Z_TypeRegister_Actor __Z_TypeRegister_Actor_Instance; \
+void GetReferencingObject(Array<Int32>& OutArray) \
+{ \
+ExtractReferencingObjectHandle(mComponents, OutArray); \
+} \
 private: \
 

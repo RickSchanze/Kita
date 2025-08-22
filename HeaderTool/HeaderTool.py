@@ -555,6 +555,20 @@ class CodeGenerator:
         f.write(f"}} \\\n")
         f.write(f"}}; \\\n")
         f.write(f"static inline Z_TypeRegister_{class_info.name} __Z_TypeRegister_{class_info.name}_Instance; \\\n")
+        ############## ObjectReferencingGenerate ################
+        has_object_ptr = False
+        for my_property in class_info.properties:
+            if "ObjectPtr" in my_property.type:
+                has_object_ptr = True
+                break
+        if has_object_ptr:
+            f.write("void GetReferencingObject(Array<Int32>& OutArray) \\\n")
+            f.write("{ \\\n")
+            for my_property in class_info.properties:
+                if "ObjectPtr" in my_property.type:
+                    f.write(f"ExtractReferencingObjectHandle({my_property.name}, OutArray); \\\n")
+            f.write("} \\\n")
+
         if class_info.type == "class":
             f.write("private: \\\n")
         f.write("\n")

@@ -1,13 +1,14 @@
 #pragma once
 #include "Core/Reflection/MetaMark.h"
 #include "Object.h"
+#include "ObjectPtr.h"
 
 #include "Actor.generated.h"
 
-
 KCLASS()
-class Actor : public Object
-{
+class Actor : public Object {
   GENERATED_BODY(Actor)
 private:
+  KPROPERTY()
+  Array<ObjectPtr<class Component>> mComponents;
 };

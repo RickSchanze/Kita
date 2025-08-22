@@ -28,5 +28,5 @@ endif()
 
 add_compile_definitions(KITA_EDITOR)
 
-target_link_libraries(Kita PRIVATE KitaCore)
+target_link_libraries(Kita PRIVATE KitaCore KitaObject)
 

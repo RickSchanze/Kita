@@ -28,7 +28,6 @@ public:
   template <typename T> void WriteType(StringView Key, const T& Value);
 };
 
-
 namespace Traits {
 
 template <typename T>
@@ -51,7 +50,7 @@ template <typename T> void OutputArchive::WriteType(StringView Key, const T& Val
   } else if constexpr (Traits::IsArray<T>) {
     BeginArray(Key);
     for (const auto& Item : Value) {
-      Write("", Item);
+      WriteType("", Item);
     }
     EndArray();
   } else if constexpr (Traits::IsMap<T>) {

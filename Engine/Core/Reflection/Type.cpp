@@ -25,7 +25,7 @@ Array<const struct Field*> Type::GetFields() const {
 
 Type::~Type() {
   for (const auto Field : mFields) {
-    Delete(Field);
+    Delete(const_cast<struct Field*>(Field));
   }
 }
 

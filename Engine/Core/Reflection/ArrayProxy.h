@@ -20,16 +20,16 @@ public:
 
 template <typename T> class ArrayProxy_Array final : public ArrayProxy {
 public:
-  virtual void SetInstancePtr(void* Ptr) override { mInstancePtr = Ptr; }
+  virtual void SetInstancePtr(void* Ptr) override { mInstancePtr = static_cast<Array<T>*>(Ptr); }
   virtual Result<void, EReflectionError> Add(const AnyRef& InValue) override {
     if (!mInstancePtr) {
       return EReflectionError::NullPointer;
     }
-    auto Result = InValue.Cast<T>();
+    Result<T*, EReflectionError> Result = InValue.Cast<T>();
     if (!Result) {
       return Result.Error();
     }
-    mInstancePtr->Add(*Result);
+    mInstancePtr->Add(**Result);
     return {};
   }
 
@@ -47,7 +47,9 @@ public:
     if (Index >= mInstancePtr->Count()) {
       return EReflectionError::OutOfRange;
     }
-    AnyRef Ref = (*mInstancePtr)[Index];
+    // AnyRef Ref = AnyRef((*mInstancePtr)[Index]);
+    Int32 a;
+    AnyRef Ref = AnyRef{a};
     return Ref;
   }
 

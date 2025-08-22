@@ -4,13 +4,8 @@
 
 #include "ObjectPtr.generated.h"
 
-/// 对于
-/// KCLASS() class DObject {
-///   KPROPERTY()
-///   ObjectPtr<PObject> P;
-/// };
-/// DObject D;
-/// 而言 D.P的ObjectHandle即P自身 D.P的ObjectOwner即D
+/// 封装ObjectHandle
+/// 极致性能的场景下请自己使用Object* 但是此时无法使用反射系统
 KSTRUCT()
 struct ObjectPtrBase {
   GENERATED_BODY(ObjectPtrBase)
@@ -19,18 +14,31 @@ struct ObjectPtrBase {
 
   /// 设置此ObjectHandle
   void SetObjectHandle(Int32 NewHandle);
+  [[nodiscard]] Int32 GetObjectHandle() const { return mObjectHandle; }
 
-  /// 设置此Object的Owner, 此函数仅应由内部调用
-  void InternalSetOwner(Int32 NewOwner);
+  void GetReferencingObject(Array<Int32>& OutArray) { OutArray.Add(mObjectHandle); }
 
 private:
   KPROPERTY()
-  Int32 ObjectHandle = 0;
-
-  Int32 ObjectOwner = 0;
+  Int32 mObjectHandle = 0;
 };
 
-template <typename T> struct ObjectPtr : ObjectPtrBase {
+template <typename T> struct ObjectPtr : ObjectPtrBase, TemplateAdapter {
+  using ReflectionType = T;
   ObjectPtr() = default;
   ~ObjectPtr() = default;
 };
+
+template <typename T> void ExtractReferencingObjectHandle(const ObjectPtr<T>& Ptr, Array<Int32>& Out) {
+  if (Ptr.GetObjectHandle() != 0) {
+    Out.Add(Ptr.GetObjectHandle());
+  }
+}
+
+template <typename T> void ExtractReferencingObjectHandle(const Array<ObjectPtr<T>>& PtrArray, Array<Int32>& Out) {
+  for (auto& Ptr : PtrArray) {
+    if (Ptr.GetObjectHandle() != 0) {
+      Out.Add(Ptr.GetObjectHandle());
+    }
+  }
+}

@@ -3,5 +3,5 @@
 //
 
 #include "ObjectPtr.h"
-void ObjectPtrBase::SetObjectHandle(Int32 NewHandle) {}
-void ObjectPtrBase::InternalSetOwner(Int32 NewOwner) {}
+
+void ObjectPtrBase::SetObjectHandle(const Int32 NewHandle) { mObjectHandle = NewHandle; }

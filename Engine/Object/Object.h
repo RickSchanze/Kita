@@ -28,3 +28,10 @@ protected:
   KPROPERTY()
   Int32 mHandle = 0;
 };
+
+namespace Traits {
+template <typename T>
+concept HasReferencingObjectFunc = requires(T Value, Array<Int32>& Array) {
+  { Value.GetReferencingObject(Array) } -> std::convertible_to<void>;
+};
+} // namespace Traits

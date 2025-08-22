@@ -4,8 +4,8 @@
 const Type* ObjectPtrBase::GetStaticType() { return TypeOf<ObjectPtrBase>(); }
 const Type* ObjectPtrBase::GetType() { return TypeOf<ObjectPtrBase>(); }
 void ObjectPtrBase::WriteArchive(OutputArchive& Archive) const { 
-Archive.WriteType("ObjectHandle", ObjectHandle); 
+Archive.WriteType("mObjectHandle", mObjectHandle); 
 } 
 void ObjectPtrBase::ReadArchive(InputArchive& Archive) { 
-Archive.ReadType("ObjectHandle", ObjectHandle); 
+Archive.ReadType("mObjectHandle", mObjectHandle); 
 } 

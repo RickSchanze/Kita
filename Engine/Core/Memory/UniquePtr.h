@@ -1,5 +1,6 @@
 #pragma once
 #include "Malloc.h"
+#include "Core/Traits.h"
 
 #include <memory>
 
@@ -9,6 +10,17 @@ template <typename T, EMemoryLabel Label> struct UniquePtrDeleter {
 
 template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct UniquePtr {
   explicit UniquePtr(T* InPtr) : mPtr(InPtr, UniquePtrDeleter<T, Label>()) {}
+
+  template <typename R> UniquePtr(UniquePtr<R, Label>&& Other) noexcept {
+    if constexpr (Traits::IsBaseOf<T, R>) {
+      R* Ptr = Other.mPtr.release();
+      T* TPtr = static_cast<T*>(Ptr);
+      mPtr.reset(TPtr);
+    } else {
+      static_assert(false, "Cannot cast between unrelated types");
+    }
+  }
+
   UniquePtr() = default;
   UniquePtr(UniquePtr&) = delete;
   UniquePtr(UniquePtr&& Other) noexcept : mPtr(std::move(Other.mPtr)) {}
@@ -27,7 +39,7 @@ template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct UniqueP
   const T& GetRef() const { return *mPtr; }
   operator bool() const { return mPtr.get() != nullptr; }
 
-private:
+
   std::unique_ptr<T, UniquePtrDeleter<T, Label>> mPtr;
 };
 

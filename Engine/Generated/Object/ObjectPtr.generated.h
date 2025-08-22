@@ -16,7 +16,7 @@ struct Z_TypeRegister_ObjectPtrBase { \
 Z_TypeRegister_ObjectPtrBase() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<ObjectPtrBase>("ObjectPtrBase"); \
-Builder.AddField("ObjectHandle", &ObjectPtrBase::ObjectHandle); \
+Builder.AddField("mObjectHandle", &ObjectPtrBase::mObjectHandle); \
 Builder.Register(); \
 } \
 }; \
