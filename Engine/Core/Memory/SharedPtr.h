@@ -20,6 +20,8 @@ template <typename T> struct SharedPtr {
   using reference = T&;
   using const_reference = const T&;
 
+  template <typename R> friend struct SharedPtr;
+
   SharedPtr() = default;
   explicit SharedPtr(std::nullptr_t) {}
   explicit SharedPtr(const std::shared_ptr<T>& InPtr) : mPtr(InPtr) {}
@@ -39,8 +41,7 @@ template <typename T> struct SharedPtr {
     return *this;
   }
 
-  template <typename R>
-  SharedPtr(const SharedPtr<R>& Other) : mPtr(Other.mPtr) {}
+  template <typename R> SharedPtr(const SharedPtr<R>& Other) : mPtr(Other.mPtr) {}
 
   T* Get() { return mPtr.get(); }
   const T* Get() const { return mPtr.get(); }
@@ -51,6 +52,7 @@ template <typename T> struct SharedPtr {
   T& GetRef() { return *mPtr; }
   const T& GetRef() const { return *mPtr; }
 
+private:
   std::shared_ptr<T> mPtr;
 };
 
