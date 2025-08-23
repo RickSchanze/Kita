@@ -66,6 +66,11 @@ struct TypeBuilder {
     return *this;
   }
 
+  TypeBuilder& AddField(const Field* NewField) {
+    OperatingType->RegisterField(NewField);
+    return *this;
+  }
+
   /// 添加一个枚举字段
   /// @warning 不做任何验证, 请保证OperatingType不为空, 为枚举类型且不会重复添加
   template <Traits::IsEnum ClassType> TypeBuilder& AddField(const StringView Name, ClassType EnumValue) {

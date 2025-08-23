@@ -55,3 +55,7 @@ template <IHashable T> SizeType GetHashCode(const T& Value) {
 template <IGetHashCode T> struct std::hash<T> {
   SizeType operator()(const T& Value) const noexcept { return Value.GetHashCode(); }
 };
+
+template <typename ClassType, typename MemberType> constexpr SizeType OffsetOf(MemberType ClassType::* member) {
+  return reinterpret_cast<size_t>(&(reinterpret_cast<ClassType const volatile*>(0)->*member));
+}

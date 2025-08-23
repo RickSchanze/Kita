@@ -23,5 +23,8 @@
   }, {
     "name" : "yaml-cpp",
     "version>=" : "0.8.0#3"
+  }, {
+    "name" : "glm",
+    "version>=" : "1.0.1#3"
   } ]
 }

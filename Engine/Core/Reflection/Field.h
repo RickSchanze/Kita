@@ -94,7 +94,7 @@ private:
   StringView mName;
   /// 字段在类内的偏移, 如果是枚举字段, 则为-1
   Int32 mOffset{-1};
-  /// 这个字段在类内的偏移, mOwnerType为一个枚举, 那么这个字段代表枚举值
+  /// 这个字段在类内的大小, mOwnerType为一个枚举, 那么这个字段代表枚举值
   Int32 mSize{0};
   /// 字段的属性
   Map<StringView, StringView> mAttributes;

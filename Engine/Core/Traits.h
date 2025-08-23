@@ -24,6 +24,9 @@ template <typename T> using Pure = std::remove_cvref_t<T>;
 template <typename T>
 concept IsEnum = std::is_enum_v<T>;
 
+template <typename T>
+concept IsFloatNumber = std::is_floating_point_v<T>;
+
 template <typename Parent, typename Child>
 concept IsBaseOf = std::is_base_of_v<Parent, Child>;
 

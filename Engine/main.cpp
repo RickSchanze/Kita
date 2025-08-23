@@ -9,13 +9,13 @@
 #include "Core/Serialization/YAML/YAMLOutputArchive.h"
 #include "Core/TaskGraph/TaskGraph.h"
 #include "Core/TaskGraph/ThreadUtils.h"
+#include "Math/Vector.h"
 #include "Object/Actor.h"
 #include "Windows.h"
-
 int main() {
   SetConsoleOutputCP(CP_UTF8);
-  Actor A{};
-  const Type* t = TypeOf<Actor>();
-  const Type* t1 = TypeOf<Actor>();
-
+  Array<Vector4f> Test = {{1, 2, 3, 4}, {5, 6, 7, 8}};
+  LOG_INFO("Vector: {}", Test);
+  const Type* T1 = TypeOf<Vector4f>();
+  const Type* T2 = TypeOf<Vector3f>();
 }

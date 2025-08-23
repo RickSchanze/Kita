@@ -17,5 +17,6 @@ endfunction()
 
 kita_add_subdirectory(Core)
 kita_add_subdirectory(Object)
+kita_add_subdirectory(Math)
 
 include_directories(Generated)
