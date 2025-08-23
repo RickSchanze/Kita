@@ -457,7 +457,8 @@ class CMakeScanner:
 
 class CodeGenerator:
     def __init__(self, generated_directory: str):
-        self.generated_directory = os.path.abspath(generated_directory).replace("\\", "/")
+        self.__generated_directory = os.path.abspath(generated_directory).replace("\\", "/")
+        self.__class_hide_attr = ["Abstract", "Name", "CustomSerialization"]
 
     def generate_projects(self, projs: List[CMakeProjectInfo]):
         for proj in projs:
@@ -471,7 +472,7 @@ class CodeGenerator:
         if not has_class_or_enum:
             return
 
-        output_dir = os.path.join(self.generated_directory, proj.project_name)
+        output_dir = os.path.join(self.__generated_directory, proj.project_name)
         os.makedirs(output_dir, exist_ok=True)
 
         for abs_header_path, parsed_items in proj.parsed_files.items():
@@ -539,17 +540,26 @@ class CodeGenerator:
             else:
                 f.write(f"void WriteArchive(OutputArchive& Archive) const;\\\n")
                 f.write(f"void ReadArchive(InputArchive& Archive);\\\n")
+        if not "Abstract" in class_info.attributes:
+            f.write(f"static void ConstructSelf(void* Ptr) {{ new (Ptr) {class_info.name}(); }}")
+            f.write(f"static void DestructSelf(void* Ptr) {{ (({class_info.name}*)(Ptr))->~{class_info.name}(); }}")
+
         f.write(f"struct Z_TypeRegister_{class_info.name} {{ \\\n")
         f.write(f"Z_TypeRegister_{class_info.name}() {{ \\\n")
         f.write("TypeBuilder Builder{}; \\\n")
         f.write(f"Builder.CreateType<{class_info.name}>(\"{self._get_true_name(class_info)}\"); \\\n")
         for base in class_info.bases:
             f.write(f"Builder.AddParent<{base}>(); \\\n")
+        if not "Abstract" in class_info.attributes:
+            f.write(f"Builder.SetConstructor({class_info.name}::ConstructSelf).SetDestructor({class_info.name}::DestructSelf); \\\n")
+        for attr_name, attr_value in class_info.attributes.items():
+            if not attr_name in self.__class_hide_attr:
+                f.write(f"Builder.SetTypeAttribute(\"{attr_name}\", \"{attr_value}\"); \\\n")
         for my_property in class_info.properties:
             f.write(f"Builder.AddField(\"{self._get_true_name(my_property)}\", &{class_info.name}::{my_property.name})")
-            for attr_name, attr_value in my_property.attributes:
-                if not attr_name in "Name":
-                    f.write(f".SetAttribute(\"{attr_name}\", \"{attr_value}\")")
+            for attr_name, attr_value in my_property.attributes.items():
+                if not attr_name in self.__class_hide_attr:
+                    f.write(f".SetFieldAttribute(\"{attr_name}\", \"{attr_value}\")")
             f.write("; \\\n")
         f.write("Builder.Register(); \\\n")
         f.write(f"}} \\\n")
@@ -587,15 +597,15 @@ class CodeGenerator:
         f.write(f"void Z_Reflection_Register_Func_Enum_{enum_info.name}() {{")
         f.write("TypeBuilder Builder{};")
         f.write(f"Builder.CreateType<{enum_info.name}>(\"{self._get_true_name(enum_info)}\")")
-        for attr_name, attr_value in enum_info.attributes:
+        for attr_name, attr_value in enum_info.attributes.items():
             if attr_name not in ["Name"]:
                 f.write(f".SetTypeAttribute(\"{attr_name}\", \"{attr_value}\")")
         f.write(";\n")
         for enum_value in enum_info.members:
             f.write(f"Builder.AddField(\"{self._get_true_name(enum_value)}\", {enum_info.name}::{enum_value.name})")
-            for attr_name, attr_value in enum_value.attributes:
+            for attr_name, attr_value in enum_value.attributes.items():
                 if not attr_name in "Name":
-                    f.write(f".SetAttribute(\"{attr_name}\", \"{attr_value}\")")
+                    f.write(f".SetFieldAttribute(\"{attr_name}\", \"{attr_value}\")")
             f.write(";\n")
         f.write("Builder.Register();\n")
         f.write("}")

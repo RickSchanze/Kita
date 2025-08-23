@@ -4,7 +4,7 @@
 
 #include "PersistentObject.generated.h"
 
-KCLASS()
+KCLASS(Abstract)
 class PersistentObject : public Object {
   GENERATED_BODY(PersistentObject)
 public:

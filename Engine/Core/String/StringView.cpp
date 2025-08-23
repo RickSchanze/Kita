@@ -7,3 +7,5 @@
 #include "String.h"
 
 StringView::StringView(const String& Str) : mStr(Str.GetStdString()) {}
+
+String StringView::ToString() const { return std::string{mStr}; }

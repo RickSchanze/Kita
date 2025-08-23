@@ -43,3 +43,52 @@ const Type* TypeRegistry::GetType(SizeType& HashCode) const {
     return nullptr;
   return mRegisteredTypes[Index];
 }
+
+void TypeRegistry::RegisterCtorAndDtor(const Type* Type, Constructor Ctor, Destructor Dtor) {
+  if (Type) {
+    if (!mConstructors.Contains(Type) && !mDestructors.Contains(Type)) {
+      mConstructors.Add(Type, Ctor);
+      mDestructors.Add(Type, Dtor);
+    }
+  }
+}
+
+Constructor TypeRegistry::GetConstructor(const Type* Type) const {
+  if (Type) {
+    if (mConstructors.Contains(Type))
+      return mConstructors.At(Type);
+  }
+  return nullptr;
+}
+
+Destructor TypeRegistry::GetDestructor(const Type* Type) const {
+  if (Type) {
+    if (mDestructors.Contains(Type))
+      return mDestructors.At(Type);
+  }
+  return nullptr;
+}
+
+void* TypeRegistry::CreateTypeInstance(const Type* InType) const {
+  if (InType) {
+    if (!mConstructors.Contains(InType)) {
+      return nullptr;
+    }
+    Constructor Ctor = mConstructors.At(InType);
+    void* TypeInstance = Malloc(InType->GetSize());
+    Ctor(TypeInstance);
+    return TypeInstance;
+  }
+  return nullptr;
+}
+
+void TypeRegistry::DestroyTypeInstance(const Type* InType, void* Instance) const {
+  if (InType && Instance) {
+    if (!mDestructors.Contains(InType)) {
+      return;
+    }
+    const Destructor Dtor = mDestructors.At(InType);
+    Dtor(Instance);
+    Free(Instance);
+  }
+}

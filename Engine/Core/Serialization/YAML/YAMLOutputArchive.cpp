@@ -77,10 +77,6 @@ void YAMLOutputArchive::Write(StringView Key, Float64 Value) { ::Write(Key, Valu
 void YAMLOutputArchive::Write(StringView Key, bool Value) { ::Write(Key, Value, mStateStack.Top(), mImpl.Get()); }
 
 ESerializationError YAMLOutputArchive::WriteFile(StringView Path) {
-  if (!Path.EndsWith(".yaml")) {
-    LOG_ERROR_TAG("Serialization", "写入文件需有yaml后缀.");
-    return ESerializationError::TargetInvalid;
-  }
   if (Path::IsDirectory(Path)) {
     LOG_ERROR_TAG("Serialization", "写入文件路径不能是目录.");
     return ESerializationError::TargetInvalid;

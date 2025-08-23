@@ -65,6 +65,17 @@ struct Type {
 
   void AddParent(const Type* Parent);
 
+  /// 创建此类型的一个示例, 需要调用Delete或者Destroy
+  void* CreateInstance() const;
+  void DestroyInstance(void* Ptr) const;
+
+  template <typename T> T* CreateInstanceT() const {
+    if (IsDerivedFrom(this)) {
+      return static_cast<T*>(CreateInstance());
+    }
+    return nullptr;
+  }
+
 private:
   StringView mName;
   /// 这个类的大小, 当其Size = -1时, 此类型表示枚举

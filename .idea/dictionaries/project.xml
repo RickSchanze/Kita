@@ -1,6 +1,7 @@
 <component name="ProjectDictionaryState">
   <dictionary name="project">
     <words>
+      <w>irhi</w>
       <w>kclass</w>
       <w>kenum</w>
       <w>kfunction</w>
@@ -9,6 +10,7 @@
       <w>kvalue</w>
       <w>lerp</w>
       <w>memcpy</w>
+      <w>swapchain</w>
     </words>
   </dictionary>
 </component>

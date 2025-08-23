@@ -53,3 +53,7 @@ void Type::SetAttribute(const StringView Key, const StringView Value) {
 }
 
 void Type::AddParent(const Type* Parent) { mBases.AddUnique(Parent); }
+
+void Type::DestroyInstance(void* Ptr) const { GetTypeRegistry().DestroyTypeInstance(this, Ptr); }
+
+void* Type::CreateInstance() const { return GetTypeRegistry().CreateTypeInstance(this); }

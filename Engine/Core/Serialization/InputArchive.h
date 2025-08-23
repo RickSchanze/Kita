@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Container/Array.h"
 #include "Core/Container/Map.h"
+#include "Core/Reflection/EnumString.h"
 #include "Core/Traits.h"
 #include "OutputArchive.h"
 #include "SerializationError.h"
@@ -65,6 +66,10 @@ template <typename T> void InputArchive::ReadType(StringView Key, T& Value) {
     EndArray();
   } else if constexpr (Traits::IsMap<T>) {
     static_assert(false, "TOMLOutputArchive does not support map. Use struct instead.");
+  } else if constexpr (Traits::IsEnum<T>) {
+    String EnumString;
+    Read(Key, EnumString);
+    Value = StringToEnum<T>(EnumString);
   } else {
     if constexpr (Traits::HasGlobalOutputArchiveFunc<T>) {
       BeginObject(Key);

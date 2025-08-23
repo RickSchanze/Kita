@@ -14,6 +14,11 @@ if (NOT ${VARIABLE} EQUAL "0")
     message(FATAL_ERROR 代码生成失败)
 endif ()
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_definitions(DEBUG_MODE)
+endif()
+add_definitions(-DKITA_EDITOR)
+
 add_subdirectory(Engine)
 
 if (MSVC)
@@ -21,12 +26,5 @@ if (MSVC)
 endif()
 
 add_executable(Kita Engine/main.cpp)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_definitions(DEBUG_MODE)
-endif()
-
-add_compile_definitions(KITA_EDITOR)
-
 target_link_libraries(Kita PRIVATE KitaCore KitaObject KitaMath KitaRHI)
 

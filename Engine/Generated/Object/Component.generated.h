@@ -14,11 +14,12 @@ static FORCE_INLINE constexpr bool IsReflected() { return true; } \
 virtual const Type* GetType(); \
 virtual void WriteArchive(OutputArchive& Archive) const;\
 virtual void ReadArchive(InputArchive& Archive);\
-struct Z_TypeRegister_Component { \
+static void ConstructSelf(void* Ptr) { new (Ptr) Component(); }static void DestructSelf(void* Ptr) { ((Component*)(Ptr))->~Component(); }struct Z_TypeRegister_Component { \
 Z_TypeRegister_Component() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<Component>("Component"); \
 Builder.AddParent<Object>(); \
+Builder.SetConstructor(Component::ConstructSelf).SetDestructor(Component::DestructSelf); \
 Builder.Register(); \
 } \
 }; \

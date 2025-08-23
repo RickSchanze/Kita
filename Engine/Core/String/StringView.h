@@ -41,6 +41,8 @@ public:
   [[nodiscard]] auto begin() const { return mStr.begin(); }
   [[nodiscard]] auto end() const { return mStr.end(); }
 
+  [[nodiscard]] String ToString() const;
+
 private:
   std::string_view mStr;
 };

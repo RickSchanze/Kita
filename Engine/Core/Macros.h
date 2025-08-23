@@ -8,7 +8,14 @@
 
 #ifdef KITA_DEBUG
 #define FORCE_INLINE inline
-#define DEBUG_BREAK() __debugbreak()
+
+bool CheckDebuggerPresent();
+
+#ifdef _MSC_VER
+#define DEBUG_BREAK()         \
+  if (CheckDebuggerPresent()) \
+  __debugbreak()
+#endif
 #else
 #define FORCE_INLINE __forceinline
 #define DEBUG_BREAK()

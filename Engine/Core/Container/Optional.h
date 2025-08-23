@@ -22,6 +22,8 @@ public:
   T* operator->() { return mData.operator->(); }
   const T* operator->() const { return mData.operator->(); }
 
+  operator bool() const { return mData.has_value(); }
+
 private:
   std::optional<T> mData;
 };

@@ -3,6 +3,7 @@
 #include "Core/Container/Map.h"
 #include "Core/String/StringView.h"
 #include "Core/Traits.h"
+#include "Core/Reflection/EnumString.h"
 
 class OutputArchive {
 public:
@@ -55,6 +56,8 @@ template <typename T> void OutputArchive::WriteType(StringView Key, const T& Val
     EndArray();
   } else if constexpr (Traits::IsMap<T>) {
     static_assert(false, "TOMLOutputArchive does not support map. Use struct instead.");
+  } else if constexpr (Traits::IsEnum<T>) {
+    Write(Key, EnumToString(Value));
   } else {
     if constexpr (Traits::HasGlobalOutputArchiveFunc<T>) {
       BeginObject(Key);

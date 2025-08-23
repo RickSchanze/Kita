@@ -12,10 +12,11 @@ static FORCE_INLINE constexpr bool IsReflected() { return true; } \
 const Type* GetType(); \
 void WriteArchive(OutputArchive& Archive) const;\
 void ReadArchive(InputArchive& Archive);\
-struct Z_TypeRegister_ObjectPtrBase { \
+static void ConstructSelf(void* Ptr) { new (Ptr) ObjectPtrBase(); }static void DestructSelf(void* Ptr) { ((ObjectPtrBase*)(Ptr))->~ObjectPtrBase(); }struct Z_TypeRegister_ObjectPtrBase { \
 Z_TypeRegister_ObjectPtrBase() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<ObjectPtrBase>("ObjectPtrBase"); \
+Builder.SetConstructor(ObjectPtrBase::ConstructSelf).SetDestructor(ObjectPtrBase::DestructSelf); \
 Builder.AddField("mObjectHandle", &ObjectPtrBase::mObjectHandle); \
 Builder.Register(); \
 } \

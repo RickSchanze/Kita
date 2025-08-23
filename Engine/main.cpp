@@ -1,3 +1,4 @@
+#include "Core/Config/ConfigManager.h"
 #include "Core/Container/Array.h"
 #include "Core/Container/Map.h"
 #include "Core/Logging/Logger.hpp"
@@ -12,10 +13,23 @@
 #include "Core/TaskGraph/ThreadUtils.h"
 #include "Math/Vector.h"
 #include "Object/Actor.h"
+#include "RHI/RHIConfig.h"
 #include "RHI/RHIFormat.h"
 #include "Windows.h"
+
+void StartUpSystems() { TaskGraph::StartUp(); }
+
+void ShutDownSystems() {
+
+  ConfigManager::ShutDown();
+  TaskGraph::ShutDown();
+}
 int main() {
   SetConsoleOutputCP(CP_UTF8);
-  EFormat Format = StringToEnum<EFormat>("R8G8B8A8_UNorm");
-  LOG_INFO("{}", EnumToString(Format));
+  StartUpSystems();
+
+  RHIConfig* Cfg = ConfigManager::GetConfig<RHIConfig>();
+  RHIConfig* Cfg1 = ConfigManager::GetConfig<RHIConfig>();
+
+  ShutDownSystems();
 }

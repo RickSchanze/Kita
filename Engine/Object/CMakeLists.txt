@@ -19,3 +19,4 @@ add_library(KitaObject
 target_link_libraries(KitaObject PRIVATE KitaCore)
 
 target_include_directories(KitaObject PUBLIC ${Object_GENERATED_DIR})
+target_include_directories(KitaObject PUBLIC ../)

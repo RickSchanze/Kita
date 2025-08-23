@@ -176,10 +176,6 @@ static Result<YAML::Node, ESerializationError> ParseYAMLFile(StringView Filename
 }
 
 ESerializationError YAMLInputArchive::ParseFile(StringView Filename) {
-  if (!Filename.EndsWith(".yaml")) {
-    LOG_ERROR_TAG("Serialization", "文件后缀名必须为yaml");
-    return ESerializationError::TargetInvalid;
-  }
   if (!Path::IsExists(Filename)) {
     LOG_ERROR_TAG("Serialization", "YAML文件{}不存在", Filename);
     return ESerializationError::TargetInvalid;

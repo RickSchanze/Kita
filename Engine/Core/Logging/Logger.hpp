@@ -30,29 +30,31 @@ inline Logger gLogger = {};
 #define LOG_WARN_TAG(Tag, ...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::warn, "[" Tag "] " __VA_ARGS__)
 
 #ifdef KITA_DEBUG
-#define LOG_ERROR(...)                                                                                                                                                                                 \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                                                                                                       \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, __VA_ARGS__);                                                                                   \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_);                                                                                  \
+#define LOG_ERROR(...)                                                                                                \
+  String Trace_ = Trace::GenerateTraceString(0);                                                                      \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, __VA_ARGS__);  \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_); \
   DEBUG_BREAK()
 
-#define LOG_ERROR_TAG(Tag, ...)                                                                                                                                                                        \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                                                                                                       \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "[" Tag "] " __VA_ARGS__);                                                                      \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_);                                                                                  \
+#define LOG_ERROR_TAG(Tag, ...)                                                                                                   \
+  String Trace_ = Trace::GenerateTraceString(0);                                                                                  \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "[" Tag "] " __VA_ARGS__); \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_);             \
   DEBUG_BREAK()
 
-#define LOG_CRITICAL(...)                                                                                                                                                                              \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                                                                                                       \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, __VA_ARGS__);                                                                              \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "{}", Trace_);                                                                             \
-  DEBUG_BREAK()
+#define LOG_CRITICAL(...)                                                                                                  \
+  String Trace_ = Trace::GenerateTraceString(0);                                                                           \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, __VA_ARGS__);  \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "{}", Trace_); \
+  DEBUG_BREAK();                                                                                                           \
+  std::abort()
 
-#define LOG_CRITICAL_TAG(Tag, ...)                                                                                                                                                                     \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                                                                                                       \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "[" TAG "] " __VA_ARGS__);                                                                 \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "{}", Trace_);                                                                             \
-  DEBUG_BREAK()
+#define LOG_CRITICAL_TAG(Tag, ...)                                                                                                     \
+  String Trace_ = Trace::GenerateTraceString(0);                                                                                       \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "[" Tag "] " __VA_ARGS__); \
+  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "{}", Trace_);             \
+  DEBUG_BREAK();                                                                                                                       \
+  std::abort()
 
 #else
 #define LOG_ERROR(...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, __VA_ARGS__)

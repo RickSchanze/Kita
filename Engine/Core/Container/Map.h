@@ -75,6 +75,11 @@ public:
     return Result;
   }
 
+  void Clear() { mData.clear(); }
+
+  V& At(const K& Key) { return mData.at(Key); }
+  const V& At(const K& Key) const { return mData.at(Key); }
+
 private:
   map_type mData;
 };

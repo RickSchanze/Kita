@@ -10,7 +10,7 @@ add_library(KitaMath
 
 target_link_libraries(KitaMath PRIVATE KitaCore)
 
-#target_include_directories(KitaMath PUBLIC ${Object_GENERATED_DIR})
+target_include_directories(KitaMath PUBLIC ../)
 
 find_package(glm CONFIG REQUIRED)
 target_link_libraries(KitaMath PUBLIC glm::glm)

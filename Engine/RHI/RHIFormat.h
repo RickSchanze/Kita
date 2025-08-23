@@ -4,26 +4,25 @@
 
 #include "RHIFormat.generated.h"
 
-#define KITA_RHI_DEFINE_BUILDER_FIELD(Type, Name, DefaultValue)   \
-  Type Name = DefaultValue;                                       \
-  KITA_FORCE_INLINE Type Get##Name() const { return this->Name; } \
-  KITA_FORCE_INLINE auto& Set##Name(const Type& Value) {          \
-    this->Name = Value;                                           \
-    return *this;                                                 \
+#define RHI_DEFINE_BUILDER_FIELD(Type, Name, DefaultValue)   \
+  Type Name = DefaultValue;                                  \
+  FORCE_INLINE Type Get##Name() const { return this->Name; } \
+  FORCE_INLINE auto& Set##Name(const Type& Value) {          \
+    this->Name = Value;                                      \
+    return *this;                                            \
   }
 
-#define KITA_RHI_DEFINE_BUILDER_FIELD_PTR(Type, Name, DefaultValue)      \
+#define RHI_DEFINE_BUILDER_FIELD_PTR(Type, Name, DefaultValue)           \
   static_assert(std::is_pointer<Type>::value, "Type must be a pointer"); \
   Type Name = DefaultValue;                                              \
-  KITA_FORCE_INLINE Type Get##Name() const { return this->Name; }        \
-  KITA_FORCE_INLINE auto& Set##Name(Type Value) {                        \
+  FORCE_INLINE Type Get##Name() const { return this->Name; }             \
+  FORCE_INLINE auto& Set##Name(Type Value) {                             \
     this->Name = Value;                                                  \
     return *this;                                                        \
   }
 
-
 KENUM()
-enum class EFormat {
+enum class ERHIFormat {
   R32G32B32_Float,    // 每个元素由3个32位浮点数分量构成
   R32G32B32A32_Float, // 每个元素由4个32位浮点数分量构成
   R8G8B8_UNorm,
@@ -49,20 +48,21 @@ enum class EFormat {
   Count, // 超出范围(Undefined)
 };
 
-enum class EColorSpace {
+enum class ERHIColorSpace {
   sRGB,  // 非线性sRGB, 适用于大部分普通内容, 标准显示器
   HDR10, // HDR10
   Count, // 超出范围
 };
 
-enum class EPresentMode {
+KENUM()
+enum class ERHIPresentMode {
   VSync,        // 垂直同步
   Immediate,    // 立即刷新
   TripleBuffer, // 三重缓冲
   Count,        // 超出范围
 };
 
-enum class EQueueFamilyType {
+enum class ERHIQueueFamilyType {
   Graphics,
   Compute,
   Transfer,
@@ -72,7 +72,7 @@ enum class EQueueFamilyType {
 /**
  * MSAA采样次数
  */
-enum class ESampleCount {
+enum class ERHISampleCount {
   SC_1 = 0b0000001,  // 1次
   SC_2 = 0b0000010,  // 2次
   SC_4 = 0b0000100,  // 4次
@@ -84,16 +84,16 @@ enum class ESampleCount {
 };
 
 // 指示要访问图像的哪些"方面"
-enum EImageAspectBits {
+enum ERHIImageAspectBits {
   IA_Color = 0b1,     // 颜色
   IA_Depth = 0b10,    // 深度
   IA_Stencil = 0b100, // 模板
   IA_Max,
 };
 
-typedef UInt32 EImageAspect;
+typedef UInt32 ERHIImageAspect;
 
-enum EBufferUsageBits {
+enum ERHIBufferUsageBits {
   BUB_VertexBuffer = 1,
   BUB_IndexBuffer = 1 << 1,
   BUB_UniformBuffer = 1 << 2,
@@ -101,18 +101,18 @@ enum EBufferUsageBits {
   BUB_TransferDst = 1 << 4,
 };
 
-typedef UInt32 EBufferUsage;
+typedef UInt32 ERHIBufferUsage;
 
-enum EBufferMemoryPropertyBits {
+enum ERHIBufferMemoryPropertyBits {
   BMPB_DeviceLocal = 1,       // GPU Only CPU无法访问(纹理、IndexBuffer、VertexBuffer)
   BMPB_HostVisible = 1 << 1,  // CPU可以访问(UniformBuffer) 通常和 HostCoherent 一起使用
   BMPB_HostCoherent = 1 << 2, // CPU可以访问, 但GPU会自动刷新(UniformBuffer)而不用手动同步
   BMPB_Max = 0x7FFFFFFF,
 };
 
-typedef UInt32 EBufferMemoryProperty;
+typedef UInt32 ERHIBufferMemoryProperty;
 
-enum class EComponentMappingElement {
+enum class ERHIComponentMappingElement {
   Identity,
   Zero,
   One,
@@ -123,20 +123,20 @@ enum class EComponentMappingElement {
   Count,
 };
 
-enum class EAttachmentLoadOperation {
+enum class ERHIAttachmentLoadOperation {
   Load,
   Clear,
   DontCare,
   Count,
 };
 
-enum class EAttachmentStoreOperation {
+enum class ERHIAttachmentStoreOperation {
   Store,
   DontCare,
   Count,
 };
 
-enum class EImageLayout {
+enum class ERHIImageLayout {
   Undefined,
   General,
   ColorAttachment,
@@ -148,9 +148,9 @@ enum class EImageLayout {
   Count,
 };
 
-enum class EPolygonMode { Fill, Line, Point, Count };
+enum class ERHIPolygonMode { Fill, Line, Point, Count };
 
-enum class ECullMode {
+enum class ERHICullMode {
   None,
   Front,
   Back,
@@ -158,13 +158,13 @@ enum class ECullMode {
   Count,
 };
 
-enum class EFrontFace {
+enum class ERHIFrontFace {
   Clockwise,
   CounterClockwise,
   Count,
 };
 
-enum class ECompareOp {
+enum class ERHICompareOp {
   Less,
   LessOrEqual,
   Greater,
@@ -176,17 +176,17 @@ enum class ECompareOp {
   Count,
 };
 
-enum EShaderStageBits {
+enum ERHIShaderStageBits {
   SSB_Vertex = 1,
   SSB_Fragment = 1 << 1,
   SSB_Compute = 1 << 2,
   SSB_MAX = 0x7FFFFFFF,
 };
 
-typedef UInt32 EShaderStage;
-constexpr EShaderStage KITA_RHI_ALL_GRAPHICS_SHADER_STAGES = SSB_Vertex | SSB_Fragment;
+typedef UInt32 ERHIShaderStage;
+constexpr ERHIShaderStage KITA_RHI_ALL_GRAPHICS_SHADER_STAGES = SSB_Vertex | SSB_Fragment;
 
-enum class EDescriptorType {
+enum class ERHIDescriptorType {
   Sampler,
   UniformBuffer,
   SampledImage,
@@ -194,7 +194,7 @@ enum class EDescriptorType {
   Count,
 };
 
-enum EAccessFlagBits {
+enum ERHIAccessFlagBits {
   AFB_None = 0,
   AFB_ColorAttachmentRead = 1,
   AFB_ColorAttachmentWrite = 1 << 1,
@@ -209,7 +209,7 @@ enum EAccessFlagBits {
 
 using EAccessFlags = int32_t;
 
-enum EPipelineStageFlagBits {
+enum ERHIPipelineStageFlagBits {
   PSFB_None = 0,
   PSFB_TopOfPipe = 1,
   PSFB_ColorAttachmentOutput = 1 << 1,
@@ -221,15 +221,15 @@ enum EPipelineStageFlagBits {
   PSFB_Max = 0x7FFFFFFF,
 };
 
-using EPipelineStageFlags = int32_t;
+using ERHIPipelineStageFlags = int32_t;
 
-enum class EVertexInputRate {
+enum class ERHIVertexInputRate {
   Vertex,
   Instance,
   Count,
 };
 
-enum EImageUsageBits {
+enum ERHIImageUsageBits {
   IUB_TransferSrc = 0b0000001,  // VK_IMAGE_USAGE_TRANSFER_SRC_BIT
   IUB_TransferDst = 0b0000010,  // VK_IMAGE_USAGE_TRANSFER_DST_BIT
   IUB_RenderTarget = 0b0000100, // VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
@@ -241,9 +241,9 @@ enum EImageUsageBits {
   IUB_Max,                      // VK_IMAGE_USAGE_MAX_ENUM
 };
 
-using EImageUsage = UInt32;
+using ERHIImageUsage = UInt32;
 
-enum class EImageDimension {
+enum class ERHIImageDimension {
   D1, // 一维图像
   D2, // 二维图像
   D3, // 三维图像
@@ -254,20 +254,20 @@ enum class EImageDimension {
   Count,
 };
 
-enum class EFilterMode {
+enum class ERHIFilterMode {
   Linear,
   Nearest,
   Count,
 };
 
-enum class ESamplerAddressMode {
+enum class ERHISamplerAddressMode {
   Repeat,
   MirroredRepeat,
   ClampToEdge,
   Count,
 };
 
-enum class EBlendFactor {
+enum class ERHIBlendFactor {
   Zero,
   One,
   SrcAlpha,
@@ -275,13 +275,13 @@ enum class EBlendFactor {
   Count,
 };
 
-enum class EBlendOp {
+enum class ERHIBlendOp {
   Add,
   Count,
 };
 
 // vulkan当前创建交换链的时候用了这个东西
-enum ESurfaceTransformBits {
+enum ERHISurfaceTransformBits {
   STFB_Identity = 0x00000001,
   STFB_Rotate90 = 0x00000002,
   STFB_Rotate180 = 0x00000004,
@@ -293,21 +293,21 @@ enum ESurfaceTransformBits {
   STFB_Inherit = 0x00000100,
   STFB_Max = 0x7FFFFFFF
 };
-typedef UInt32 ESurfaceTransform;
+typedef UInt32 ERHISurfaceTransform;
 
-enum class EPipelineBindPoint { Graphics, Compute, Count };
+enum class ERHIPipelineBindPoint { Graphics, Compute, Count };
 
-enum class EPrimitiveTopology {
+enum class ERHIPrimitiveTopology {
   TriangleList,
   Count,
 };
 
-enum EColorComponentBits {
+enum ERHIColorComponentBits {
   ECCB_R = 1,
   ECCB_G = 1 << 1,
   ECCB_B = 1 << 2,
   ECCB_A = 1 << 3,
 };
-using EColorComponent = UInt32;
+using ERHIColorComponent = UInt32;
 
-enum class ELogicOp { Copy, Count };
+enum class ERHILogicOp { Copy, Count };

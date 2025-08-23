@@ -7,6 +7,9 @@
 struct Field;
 struct Type;
 
+typedef void (*Constructor)(void*);
+typedef void (*Destructor)(void*);
+
 class TypeRegistry : NonCopyable, NonMovable {
 public:
   TypeRegistry();
@@ -16,8 +19,18 @@ public:
   [[nodiscard]] const Type* GetType(const StringView& TypeName) const;
   [[nodiscard]] const Type* GetType(SizeType& HashCode) const;
 
+  void RegisterCtorAndDtor(const Type* Type, Constructor Ctor, Destructor Dtor);
+
+  Constructor GetConstructor(const Type* Type) const;
+  Destructor GetDestructor(const Type* Type) const;
+
+  void* CreateTypeInstance(const Type* InType) const;
+  void DestroyTypeInstance(const Type* InType, void* Instance) const;
+
 private:
   Array<const Type*> mRegisteredTypes;
+  Map<const Type*, Constructor> mConstructors;
+  Map<const Type*, Destructor> mDestructors;
 };
 
 inline TypeRegistry gTypeRegistry;
@@ -99,7 +112,10 @@ struct TypeBuilder {
     return *this;
   }
 
-  void Register() const { GetTypeRegistry().RegisterType(OperatingType); }
+  void Register() const {
+    GetTypeRegistry().RegisterType(OperatingType);
+    GetTypeRegistry().RegisterCtorAndDtor(OperatingType, Ctor, Dtor);
+  }
 
   template <typename T> void AddParent() const {
     if constexpr (Traits::IsReflected<T>) {
@@ -108,8 +124,20 @@ struct TypeBuilder {
     }
   }
 
+  TypeBuilder& SetConstructor(Constructor InCtor) {
+    Ctor = InCtor;
+    return *this;
+  }
+
+  TypeBuilder& SetDestructor(Destructor InDtor) {
+    Dtor = InDtor;
+    return *this;
+  }
+
   /// 当前正在构建的类型
   Type* OperatingType;
   /// 最后一个添加的字段, 可以用于为字段设置属性
   Field* LastOperatingField;
+  Constructor Ctor;
+  Destructor Dtor;
 };

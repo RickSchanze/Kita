@@ -69,10 +69,6 @@ struct TOMLInputArchive::Impl {
 };
 
 ESerializationError TOMLInputArchive::ParseFile(const StringView Path) {
-  if (!Path.EndsWith(".toml")) {
-    LOG_ERROR_TAG("Serialization", "Path must not end with '.toml'.");
-    return ESerializationError::TargetInvalid;
-  }
   const ESerializationError Error = mImpl->ParseFile(Path);
   if (Error == ESerializationError::Ok) {
     mStateStack.Push(ReadingObject);

@@ -2,6 +2,7 @@ project(KitaCore)
 
 
 add_library(KitaCore
+        ${Core_GENERATED_FILES}
         String/String.h
         String/String.cpp
         String/StringView.cpp
@@ -73,6 +74,13 @@ add_library(KitaCore
         TaskGraph/ThreadUtils.h
         Reflection/TemplateAdapter.h
         Reflection/EnumString.h
+        Config/ConfigManager.cpp
+        Config/ConfigManager.h
+        Config/IConfig.cpp
+        Config/IConfig.h
+        Macros.cpp
+        FileSystem/OutputFileStream.cpp
+        FileSystem/OutputFileStream.h
 )
 
 find_package(spdlog CONFIG REQUIRED)
@@ -95,8 +103,4 @@ find_package(absl CONFIG REQUIRED)
 target_link_libraries(KitaCore PUBLIC absl::any absl::log absl::base absl::bits)
 
 target_include_directories(KitaCore PUBLIC ../)
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_definitions(DEBUG_MODE)
-    message("CMAKE_BUILD_TYPE is Debug")
-endif()
+target_include_directories(KitaCore PUBLIC ${Core_GENERATED_DIR})
