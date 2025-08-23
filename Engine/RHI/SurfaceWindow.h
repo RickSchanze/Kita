@@ -5,16 +5,16 @@
 #include "Math/Vector.h"
 
 KENUM()
-enum class ESurfaceWindowType {
+enum class ERHISurfaceWindowType {
   GLFW,
   Count,
 };
 
 extern void GetVulkanGLFWSurfaceWindowExtensions(Array<const char*>& OutExtensions);
 
-class SurfaceWindow {
+class RHISurfaceWindow {
 public:
-  virtual ~SurfaceWindow() = default;
+  virtual ~RHISurfaceWindow() = default;
 
   virtual void* GetNativeSurfaceObject() = 0;
   virtual void* GetNativeSwapchainObject() = 0;

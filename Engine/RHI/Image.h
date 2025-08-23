@@ -2,7 +2,7 @@
 #include "IRHIResource.h"
 #include "RHIFormat.h"
 
-struct ImageDesc {
+struct RHIImageDesc {
   RHI_DEFINE_BUILDER_FIELD(UInt32, Width, 0)  // necessary
   RHI_DEFINE_BUILDER_FIELD(UInt32, Height, 0) // necessary
   RHI_DEFINE_BUILDER_FIELD(UInt32, Depth, 1)
@@ -18,12 +18,12 @@ struct ImageDesc {
 #endif
 };
 
-class Image : public IRHIResource {
+class RHIImage : public IRHIResource {
 public:
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::Image; }
   [[nodiscard]] virtual void* GetNativeHandle() const override = 0;
-  [[nodiscard]] const ImageDesc& GetDesc() const { return mDesc; }
+  [[nodiscard]] const RHIImageDesc& GetDesc() const { return mDesc; }
 
 protected:
-  ImageDesc mDesc{};
+  RHIImageDesc mDesc{};
 };

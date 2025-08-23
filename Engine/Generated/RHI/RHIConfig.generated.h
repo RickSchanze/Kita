@@ -22,6 +22,7 @@ Builder.AddParent<IConfig>(); \
 Builder.SetConstructor(RHIConfig::ConstructSelf).SetDestructor(RHIConfig::DestructSelf); \
 Builder.SetTypeAttribute("Category", "RHI"); \
 Builder.AddField("PresentMode", &RHIConfig::PresentMode); \
+Builder.AddField("SurfaceWindowType", &RHIConfig::SurfaceWindowType); \
 Builder.Register(); \
 } \
 }; \

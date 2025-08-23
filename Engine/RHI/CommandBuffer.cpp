@@ -1,0 +1,25 @@
+//
+// Created by kita on 25-8-23.
+//
+#include "CommandBuffer.h"
+
+#include "Commands.h"
+#include "Generated/Object/Actor.generated.h"
+
+RHICommandBuffer::~RHICommandBuffer() = default;
+
+void RHICommandBuffer::PushCommand(UniquePtr<IRHICommand> Cmd) { mCommandQueue.Enqueue(Cmd); }
+
+void RHICommandBuffer::Clear() { mCommandQueue = {}; }
+
+void RHICommandBuffer::BeginRenderPass(RHIRenderPass* RenderPass, RHIFrameBuffer* FrameBuffer, const Vector2i Size, const Optional<Color>& ClearColor, const Vector2i Offset,
+                                       const Optional<float> ClearDepth) {
+  UniquePtr<RHICmd_BeginRenderPass> Cmd = MakeUnique<RHICmd_BeginRenderPass>();
+  Cmd->SetRenderPass(RenderPass).SetFrameBuffer(FrameBuffer).SetSize(Size).SetClearColor(ClearColor).SetOffset(Offset).SetClearDepthStencil(ClearDepth);
+  PushCommand(std::move(Cmd));
+}
+
+void RHICommandBuffer::EndRenderPass() {
+  UniquePtr<RHICmd_EndRenderPass> Cmd = MakeUnique<RHICmd_EndRenderPass>();
+  PushCommand(std::move(Cmd));
+}

@@ -1,8 +1,8 @@
 // Auto-generated source file
 #include "RHI/SurfaceWindow.h"
 
-void Z_Reflection_Register_Func_Enum_ESurfaceWindowType() {TypeBuilder Builder{};Builder.CreateType<ESurfaceWindowType>("ESurfaceWindowType");
-Builder.AddField("GLFW", ESurfaceWindowType::GLFW);
-Builder.AddField("Count", ESurfaceWindowType::Count);
+void Z_Reflection_Register_Func_Enum_ERHISurfaceWindowType() {TypeBuilder Builder{};Builder.CreateType<ERHISurfaceWindowType>("ERHISurfaceWindowType");
+Builder.AddField("GLFW", ERHISurfaceWindowType::GLFW);
+Builder.AddField("Count", ERHISurfaceWindowType::Count);
 Builder.Register();
 }

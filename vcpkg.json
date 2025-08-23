@@ -26,5 +26,11 @@
   }, {
     "name" : "glm",
     "version>=" : "1.0.1#3"
+  }, {
+    "name" : "glfw3",
+    "version>=" : "3.4#1"
+  }, {
+    "name" : "tracy",
+    "version>=" : "0.11.1#2"
   } ]
 }

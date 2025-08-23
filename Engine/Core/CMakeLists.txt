@@ -81,6 +81,8 @@ add_library(KitaCore
         Macros.cpp
         FileSystem/OutputFileStream.cpp
         FileSystem/OutputFileStream.h
+        Container/Queue.h
+        Performance/ProfilerMark.h
 )
 
 find_package(spdlog CONFIG REQUIRED)
@@ -104,3 +106,7 @@ target_link_libraries(KitaCore PUBLIC absl::any absl::log absl::base absl::bits)
 
 target_include_directories(KitaCore PUBLIC ../)
 target_include_directories(KitaCore PUBLIC ${Core_GENERATED_DIR})
+
+find_package(Tracy CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC Tracy::TracyClient)
+

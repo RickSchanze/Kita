@@ -4,6 +4,13 @@
 
 #include "IConfig.generated.h"
 
+#define KITA_CONFIG_GETTER_SETTER(PropertyType, Property)                            \
+  [[nodiscard]] FORCE_INLINE PropertyType Get##Property() const { return Property; } \
+  void Set##Property(const PropertyType& InProperty) {                               \
+    this->Property = InProperty;                                                     \
+    SetSaveDirty(true);                                                              \
+  }
+
 KCLASS(Abstract)
 class IConfig {
   GENERATED_BODY(IConfig)

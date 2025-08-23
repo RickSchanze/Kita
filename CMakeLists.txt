@@ -18,6 +18,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_definitions(DEBUG_MODE)
 endif()
 add_definitions(-DKITA_EDITOR)
+add_definitions(-DENABLE_PROFILING)
 
 add_subdirectory(Engine)
 

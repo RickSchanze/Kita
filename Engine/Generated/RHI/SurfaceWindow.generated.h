@@ -5,5 +5,5 @@
 #include "Core/Reflection/TypeRegistry.h"
 #include "Core/Serialization/InputArchive.h"
 #include "Core/Serialization/OutputArchive.h"
-void Z_Reflection_Register_Func_Enum_ESurfaceWindowType();struct Z_Reflection_Register_Enum_ESurfaceWindowType { Z_Reflection_Register_Enum_ESurfaceWindowType() {Z_Reflection_Register_Func_Enum_ESurfaceWindowType(); }};
-inline Z_Reflection_Register_Enum_ESurfaceWindowType Z_Reflection_Register_Enum_ESurfaceWindowType___Instance{}; 
+void Z_Reflection_Register_Func_Enum_ERHISurfaceWindowType();struct Z_Reflection_Register_Enum_ERHISurfaceWindowType { Z_Reflection_Register_Enum_ERHISurfaceWindowType() {Z_Reflection_Register_Func_Enum_ERHISurfaceWindowType(); }};
+inline Z_Reflection_Register_Enum_ERHISurfaceWindowType Z_Reflection_Register_Enum_ERHISurfaceWindowType___Instance{}; 
