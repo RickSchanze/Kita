@@ -2,7 +2,6 @@
 #include "Core/Reflection/MetaMark.h"
 #include "Vector.h"
 
-KSTRUCT()
 struct Color {
   float& R() { return Data.X(); }
   const float& R() const { return Data.X(); }

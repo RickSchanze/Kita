@@ -72,6 +72,7 @@ add_library(KitaCore
         TaskGraph/ThreadUtils.cpp
         TaskGraph/ThreadUtils.h
         Reflection/TemplateAdapter.h
+        Reflection/EnumString.h
 )
 
 find_package(spdlog CONFIG REQUIRED)

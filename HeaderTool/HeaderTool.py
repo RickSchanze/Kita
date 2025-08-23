@@ -488,7 +488,7 @@ class CodeGenerator:
             self._write_generated_header(gen_h_path, base_name, parsed_items)
             self._write_generated_cpp(gen_cpp_path, base_name, parsed_items, proj.files[abs_header_path])
 
-    def _get_true_name(self, obj: ClassInfo | EnumInfo | FunctionInfo | PropertyInfo):
+    def _get_true_name(self, obj: ClassInfo | EnumInfo | FunctionInfo | PropertyInfo | EnumMemberInfo):
         if "Name" in obj.attributes:
             return obj.attributes["Name"]
         return obj.name
@@ -573,6 +573,33 @@ class CodeGenerator:
             f.write("private: \\\n")
         f.write("\n")
 
+    def _write_generated_header_enum(self, f: TextIO, enum_info: EnumInfo):
+        f.write(f"void Z_Reflection_Register_Func_Enum_{enum_info.name}();")
+        f.write(
+            f"struct Z_Reflection_Register_Enum_{enum_info.name} {{ "
+            f"Z_Reflection_Register_Enum_{enum_info.name}() {{"
+            f"Z_Reflection_Register_Func_Enum_{enum_info.name}(); "
+            f"}}}};\n")
+        f.write(
+            f"inline Z_Reflection_Register_Enum_{enum_info.name} Z_Reflection_Register_Enum_{enum_info.name}___Instance{{}}; \n")
+
+    def _write_generated_source_enum(self, f: TextIO, enum_info: EnumInfo):
+        f.write(f"void Z_Reflection_Register_Func_Enum_{enum_info.name}() {{")
+        f.write("TypeBuilder Builder{};")
+        f.write(f"Builder.CreateType<{enum_info.name}>(\"{self._get_true_name(enum_info)}\")")
+        for attr_name, attr_value in enum_info.attributes:
+            if attr_name not in ["Name"]:
+                f.write(f".SetTypeAttribute(\"{attr_name}\", \"{attr_value}\")")
+        f.write(";\n")
+        for enum_value in enum_info.members:
+            f.write(f"Builder.AddField(\"{self._get_true_name(enum_value)}\", {enum_info.name}::{enum_value.name})")
+            for attr_name, attr_value in enum_value.attributes:
+                if not attr_name in "Name":
+                    f.write(f".SetAttribute(\"{attr_name}\", \"{attr_value}\")")
+            f.write(";\n")
+        f.write("Builder.Register();\n")
+        f.write("}")
+
     def _write_generated_header(self, path: str, base_name: str, parsed_items: List[object]):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
@@ -585,6 +612,8 @@ class CodeGenerator:
             for item in parsed_items:
                 if isinstance(item, ClassInfo):
                     self._write_generated_header_class(f, item)
+                if isinstance(item, EnumInfo):
+                    self._write_generated_header_enum(f, item)
 
     def _write_generated_cpp(self, path: str, base_name: str, parsed_items: List[object], relative_path: str):
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -594,6 +623,8 @@ class CodeGenerator:
             for item in parsed_items:
                 if isinstance(item, ClassInfo):
                     self._write_generated_source_class(f, item)
+                if isinstance(item, EnumInfo):
+                    self._write_generated_source_enum(f, item)
 
 
 # ---------------- 运行示例 ----------------
