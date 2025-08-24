@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/TypeDefs.h"
 #include "IRHIResource.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 
 class RHIImage;
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Config/IConfig.h"
 #include "Core/Reflection/MetaMark.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 #include "SurfaceWindow.h"
 
 #include "RHIConfig.generated.h"

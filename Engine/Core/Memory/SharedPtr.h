@@ -52,6 +52,8 @@ template <typename T> struct SharedPtr {
   T& GetRef() { return *mPtr; }
   const T& GetRef() const { return *mPtr; }
 
+  operator bool() const { return mPtr != nullptr; }
+
 private:
   std::shared_ptr<T> mPtr;
 };

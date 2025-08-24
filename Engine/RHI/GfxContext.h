@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Event/Callback.h"
 #include "Math/Vector.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 #include "SurfaceWindow.h"
 
 class RHISurfaceWindow;
@@ -55,6 +55,16 @@ class GfxContext {
 public:
   static void StartUp();
   static void ShutDown();
+
+  static GfxContext* Get() {
+    ASSERT_MSG(mContext != nullptr, "GfxContext::Get() called before StartUp()");
+    return mContext;
+  }
+
+  static GfxContext& GetRef() {
+    ASSERT_MSG(mContext != nullptr, "GfxContext::Get() called before StartUp()");
+    return *mContext;
+  }
 
   virtual ~GfxContext() = default;
   [[nodiscard]] virtual ERHIBackend GetBackend() const = 0;

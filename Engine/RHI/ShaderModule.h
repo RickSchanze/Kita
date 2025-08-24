@@ -1,6 +1,6 @@
 #pragma once
 #include "IRHIResource.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 
 struct RHIShaderModuleDesc {
   RHI_DEFINE_BUILDER_FIELD(SizeType, CodeSize, 0)            // NECESSARY

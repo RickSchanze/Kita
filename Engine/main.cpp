@@ -14,7 +14,8 @@
 #include "Math/Vector.h"
 #include "Object/Actor.h"
 #include "RHI/RHIConfig.h"
-#include "RHI/RHIFormat.h"
+#include "RHI/RHIEnums.h"
+#include "RHI/Vulkan/RHIEnums_Vulkan.h"
 #include "Windows.h"
 
 void StartUpSystems() { TaskGraph::StartUp(); }
@@ -30,6 +31,8 @@ int main() {
 
   RHIConfig* Cfg = ConfigManager::GetConfig<RHIConfig>();
   RHIConfig* Cfg1 = ConfigManager::GetConfig<RHIConfig>();
+
+  RHIFormatToVkFormat(ERHIFormat::A2B10G10R10_UNorm);
 
   ShutDownSystems();
 }

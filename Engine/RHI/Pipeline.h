@@ -1,7 +1,7 @@
 #pragma once
 #include "IRHIResource.h"
 #include "Math/Vector.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 
 struct RHIPipelineLayoutDesc {
   RHI_DEFINE_BUILDER_FIELD(Array<class RHIDescriptorSetLayout*>, Layouts, {})

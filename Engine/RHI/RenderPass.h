@@ -1,6 +1,6 @@
 #pragma once
 #include "IRHIResource.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 
 struct RHISubpassDependency {
   RHI_DEFINE_BUILDER_FIELD(UInt32, SrcSubpass, 0);

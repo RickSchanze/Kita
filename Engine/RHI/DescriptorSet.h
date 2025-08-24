@@ -1,6 +1,6 @@
 #pragma once
 #include "IRHIResource.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 struct RHIDescriptorSetLayoutBinding {
   RHI_DEFINE_BUILDER_FIELD(UInt32, Binding, 0)
   RHI_DEFINE_BUILDER_FIELD(ERHIDescriptorType, DescriptorType, ERHIDescriptorType::Count)

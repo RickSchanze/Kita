@@ -1,5 +1,5 @@
 // Auto-generated source file
-#include "RHI/RHIFormat.h"
+#include "RHI/RHIEnums.h"
 
 void Z_Reflection_Register_Func_Enum_ERHIFormat() {TypeBuilder Builder{};Builder.CreateType<ERHIFormat>("ERHIFormat");
 Builder.AddField("R32G32B32_Float", ERHIFormat::R32G32B32_Float);

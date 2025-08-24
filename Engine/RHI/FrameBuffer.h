@@ -1,6 +1,6 @@
 #pragma once
 #include "IRHIResource.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 
 class RHIRenderPass;
 class RHIImageView;

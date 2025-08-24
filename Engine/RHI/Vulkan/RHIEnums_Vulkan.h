@@ -1,0 +1,96 @@
+#pragma once
+
+#include "vulkan/vulkan.h"
+#include "RHI/RHIEnums.h" // 这里包含你第二段发的所有枚举定义
+
+VkFormat RHIFormatToVkFormat(ERHIFormat format);
+ERHIFormat VkFormatToRHIFormat(VkFormat format);
+
+VkColorSpaceKHR RHIColorSpaceToVkColorSpace(ERHIColorSpace ColorSpace);
+ERHIColorSpace VkColorSpaceToRHIColorSpace(VkColorSpaceKHR ColorSpace);
+
+VkPresentModeKHR RHIPresentModeToVkPresentMode(ERHIPresentMode present_mode);
+ERHIPresentMode VkPresentModeToRHIPresentMode(VkPresentModeKHR present_mode);
+
+VkSampleCountFlagBits RHISampleCountToVkSampleCount(ERHISampleCount sample_count);
+ERHISampleCount VkSampleCountToRHISampleCount(VkSampleCountFlagBits sample_count);
+
+VkImageAspectFlags RHIImageAspectToVkImageAspect(ERHIImageAspect aspect);
+ERHIImageAspect VkImageAspectToRHIImageAspect(VkImageAspectFlags aspect);
+
+ERHIComponentMappingElement VkComponentSwizzleToRHIComponentMappingElement(VkComponentSwizzle swizzle);
+VkComponentSwizzle RHIComponentMappingElementToVkComponentSwizzle(ERHIComponentMappingElement swizzle);
+
+VkImageViewType RHIImageDimensionToVkImageViewType(ERHIImageDimension type);
+ERHIImageDimension VkImageViewTypeToRHIImageDimension(VkImageViewType type);
+
+VkBufferUsageFlags RHIBufferUsageToVkBufferUsage(ERHIBufferUsage usage);
+ERHIBufferUsage VkBufferUsageToRHIBufferUsage(VkBufferUsageFlags usage);
+
+VkMemoryPropertyFlags RHIMemoryPropertyToVkMemoryProperty(ERHIBufferMemoryProperty property);
+ERHIBufferMemoryProperty VkMemoryPropertyToRHIMemoryProperty(VkMemoryPropertyFlags property);
+
+VkImageLayout RHIImageLayoutToVkImageLayout(ERHIImageLayout layout);
+ERHIImageLayout VkImageLayoutToRHIImageLayout(VkImageLayout layout);
+
+VkAttachmentLoadOp RHIAttachmentLoadOpToVkAttachmentLoadOp(ERHIAttachmentLoadOperation load_op);
+ERHIAttachmentLoadOperation VkAttachmentLoadOpToRHIAttachmentLoadOp(VkAttachmentLoadOp load_op);
+
+VkAttachmentStoreOp RHIAttachmentStoreOpToVkAttachmentStoreOp(ERHIAttachmentStoreOperation store_op);
+ERHIAttachmentStoreOperation VkAttachmentStoreOpToRHIAttachmentStoreOp(VkAttachmentStoreOp store_op);
+
+VkPolygonMode RHIPolygonModeToVkPolygonMode(ERHIPolygonMode polygon_mode);
+ERHIPolygonMode VkPolygonModeToRHIPolygonMode(VkPolygonMode polygon_mode);
+
+VkFrontFace RHIFrontFaceToVkFrontFace(ERHIFrontFace front_face);
+ERHIFrontFace VkFrontFaceToRHIFrontFace(VkFrontFace front_face);
+
+VkCullModeFlags RHICullModeToVkCullMode(ERHICullMode cull_mode);
+ERHICullMode VkCullModeToRHICullMode(VkCullModeFlags cull_mode);
+
+VkCompareOp RHICompareOpToVkCompareOp(ERHICompareOp compare_op);
+ERHICompareOp VkCompareOpToRHICompareOp(VkCompareOp compare_op);
+
+VkShaderStageFlags RHIShaderStageToVkShaderStage(ERHIShaderStage stage);
+ERHIShaderStage VkShaderStageToRHIShaderStage(VkShaderStageFlags stage);
+
+VkShaderStageFlagBits RHIShaderStageBitToVkShaderStageBit(ERHIShaderStageBits Stage);
+
+VkDescriptorType RHIDescriptorTypeToVkDescriptorType(ERHIDescriptorType type);
+ERHIDescriptorType VkDescriptorTypeToRHIDescriptorType(VkDescriptorType type);
+
+VkAccessFlags RHIAccessFlagToVkAccessFlag(ERHIAccessFlags access_flag);
+ERHIAccessFlags VkAccessFlagToRHIAccessFlag(VkAccessFlags access_flag);
+
+VkPipelineStageFlags RHIPipelineStageToVkPipelineStage(ERHIPipelineStageFlags pipeline_stage);
+ERHIPipelineStageFlags VkPipelineStageToRHIPipelineStage(VkPipelineStageFlags pipeline_stage);
+
+VkVertexInputRate RHIVertexInputRateToVkVertexInputRate(ERHIVertexInputRate rate);
+ERHIVertexInputRate VkVertexInputRateToRHIVertexInputRate(VkVertexInputRate rate);
+
+VkImageType RHIImageDimensionToVkImageType(ERHIImageDimension dimension);
+ERHIImageDimension VkImageTypeToRHIImageDimension(VkImageType type);
+
+VkImageUsageFlags RHIImageUsageToVkImageUsageFlags(ERHIImageUsage usage_flag);
+ERHIImageUsage VkImageUsageFlagsToRHIImageUsage(VkImageUsageFlags usage_flag);
+
+VkFilter RHIFilterToVkFilter(ERHIFilterMode filter);
+ERHIFilterMode VkFilterToRHIFilter(VkFilter filter);
+
+VkSamplerAddressMode RHISamplerAddressModeToVkSamplerAddressMode(ERHISamplerAddressMode address_mode);
+ERHISamplerAddressMode VkSamplerAddressModeToRHISamplerAddressMode(VkSamplerAddressMode address_mode);
+
+VkBlendFactor RHIBlendFactorToVkBlendFactor(ERHIBlendFactor blend_factor);
+ERHIBlendFactor VkBlendFactorToRHIBlendFactor(VkBlendFactor blend_factor);
+
+VkBlendOp RHIBlendOpToVkBlendOp(ERHIBlendOp op);
+ERHIBlendOp VKBlendOpToRHIBlendOp(VkBlendOp op);
+
+VkSurfaceTransformFlagsKHR RHISurfaceTransformToVkSurfaceTransform(ERHISurfaceTransform Transform);
+ERHISurfaceTransform VkSurfaceTransformToRHISurfaceTransform(VkSurfaceTransformFlagsKHR Transform);
+
+VkPrimitiveTopology RHIPrimitiveTopologyToVkPrimitiveTopology(ERHIPrimitiveTopology Topology);
+
+VkLogicOp RHILogicOpToVkLogicOp(ERHILogicOp op);
+
+VkColorComponentFlags RHIColorComponentToVkColorComponent(ERHIColorComponent Component);

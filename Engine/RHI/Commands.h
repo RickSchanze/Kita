@@ -2,7 +2,7 @@
 #include "FrameBuffer.h"
 #include "Math/Color.h"
 #include "Math/Vector.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 #include "RenderPass.h"
 
 enum class ERHICommandType {

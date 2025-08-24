@@ -101,6 +101,9 @@ public:
   /// @return true 为空 false 不为空
   [[nodiscard]] bool Empty() const { return mData.empty(); }
 
+  T* Data() { return mData.data(); }
+  const T* Data() const { return mData.data(); }
+
 private:
   std::vector<T, STLAllocator<T, Label>> mData;
 };

@@ -3,7 +3,7 @@
 #include "IRHIResource.h"
 #include "Math/Color.h"
 #include "Math/Vector.h"
-#include "RHIFormat.h"
+#include "RHIEnums.h"
 
 class RHIFrameBuffer;
 class RHIRenderPass;

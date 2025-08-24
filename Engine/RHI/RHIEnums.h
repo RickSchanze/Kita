@@ -2,7 +2,7 @@
 #include "Core/Reflection/MetaMark.h"
 #include "Core/TypeDefs.h"
 
-#include "RHIFormat.generated.h"
+#include "RHIEnums.generated.h"
 
 #define RHI_DEFINE_BUILDER_FIELD(Type, Name, DefaultValue)   \
   Type Name = DefaultValue;                                  \
@@ -207,7 +207,7 @@ enum ERHIAccessFlagBits {
   AFB_Max = 0x7FFFFFFF,
 };
 
-using EAccessFlags = int32_t;
+using ERHIAccessFlags = int32_t;
 
 enum ERHIPipelineStageFlagBits {
   PSFB_None = 0,

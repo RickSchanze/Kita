@@ -22,7 +22,7 @@ public:
   virtual UniquePtr<RHIFence> CreateFenceU() override;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() override;
   SharedPtr<RHIImageView> CreateSwapchainImageView(VkImage Img, VkFormat Format);
-  virtual RHISurfaceWindow* CreateSurfaceWindowR(int32_t Width, int32_t Height) override;
+  virtual RHISurfaceWindow* CreateSurfaceWindowR(Int32 Width, Int32 Height) override;
   virtual UInt32 GetNextImage(RHISurfaceWindow* Window, RHISemaphore* WaitSemaphore, RHIFence* WaitFence, bool& NeedRecreation) override;
   virtual UniquePtr<RHIRenderPass> CreateRenderPassU(const RHIRenderPassDesc&) override;
   virtual UniquePtr<RHIFrameBuffer> CreateFrameBufferU(const RHIFrameBufferDesc& Desc) override;
@@ -53,8 +53,8 @@ private:
   void CreateInstance();
   void SetupDebugMessenger();
   void SelectPhysicalDevice(RHISurfaceWindow& TempWindow);
-  bool IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow) const;
-  bool CheckDeviceExtensionSupport(VkPhysicalDevice Device) const;
+  [[nodiscard]] bool IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow) const;
+  [[nodiscard]] bool CheckDeviceExtensionSupport(VkPhysicalDevice Device) const;
   void CreateLogicalDevice(RHISurfaceWindow& TempWindow);
 
   void FindPhysicalDeviceFeatures();
@@ -76,3 +76,6 @@ private:
   bool mEnabledValidationLayer = false;
   const std::vector<const char*> mDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
+
+inline GfxContext_Vulkan& GetVulkanGfxContexRef() { return *static_cast<GfxContext_Vulkan*>(GfxContext::Get()); }
+inline GfxContext_Vulkan* GetVulkanGfxContex() { return static_cast<GfxContext_Vulkan*>(GfxContext::Get()); }
