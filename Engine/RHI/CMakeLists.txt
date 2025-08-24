@@ -1,5 +1,7 @@
 project(KitaRHI)
 
+find_package(Vulkan REQUIRED)
+
 add_library(KitaRHI
         ${RHI_GENERATED_FILES}
         RHIFormat.h
@@ -12,13 +14,15 @@ add_library(KitaRHI
         Sync.h
         RHIConfig.h
         FrameBuffer.h
-        DescripotrSet.h
+        DescriptorSet.h
         Commands.h
         CommandBuffer.h
         CommandBuffer.cpp
         GfxContext.cpp
         GfxContext.h
         Pipeline.h
+        Vulkan/GfxContext_Vulkan.cpp
+        Vulkan/GfxContext_Vulkan.h
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)
@@ -28,3 +32,6 @@ target_link_libraries(KitaRHI PRIVATE glfw)
 
 target_include_directories(KitaRHI PUBLIC ${RHI_GENERATED_DIR})
 target_include_directories(KitaRHI PUBLIC ../)
+
+target_include_directories(KitaRHI PRIVATE ${Vulkan_INCLUDE_DIRS})
+target_link_libraries(KitaRHI PRIVATE ${Vulkan_LIBRARIES})

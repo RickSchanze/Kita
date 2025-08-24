@@ -15,9 +15,8 @@ void GfxContext::StartUp() {}
 void GfxContext::ShutDown() {}
 
 void WindowBackendSupport::InitializeWindowBackend() {
-  RHIConfig* Cfg = ConfigManager::GetConfig<RHIConfig>();
-  ERHISurfaceWindowType SurfaceWindow = Cfg->GetSurfaceWindowType();
-  if (SurfaceWindow == ERHISurfaceWindowType::GLFW) {
+  const RHIConfig* Cfg = ConfigManager::GetConfig<RHIConfig>();
+  if (const ERHISurfaceWindowType SurfaceWindow = Cfg->GetSurfaceWindowType(); SurfaceWindow == ERHISurfaceWindowType::GLFW) {
     glfwInit();
     SurfaceWindowBackendType = ERHISurfaceWindowType::GLFW;
   } else {

@@ -1,8 +1,7 @@
 #pragma once
+
 #include "Core/Concurrency/ConcurrentSet.h"
 #include "Core/Container/Array.h"
-#include "Core/Macros.h"
-#include "Core/Memory/SharedPtr.h"
 #include "Core/Singleton/Singleton.h"
 #include "Core/TypeDefs.h"
 #include "QueuedThread.h"

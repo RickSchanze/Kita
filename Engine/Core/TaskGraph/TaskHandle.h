@@ -1,7 +1,4 @@
 #pragma once
-#include "Core/Macros.h"
-#include "Core/String/String.h"
-#include "Core/TypeDefs.h"
 
 enum class ETaskState {
   Lazy,       // 等待被启动

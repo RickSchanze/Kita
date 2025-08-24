@@ -27,7 +27,7 @@ public:
 
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::CommandBuffer; }
 
-  void PushCommand(UniquePtr<IRHICommand> Cmd);
+  void PushCommand(UniquePtr<IRHICommand>&& Cmd);
 
   void Clear();
 

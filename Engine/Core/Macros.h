@@ -1,12 +1,12 @@
 #pragma once
 
-#ifdef DEBUG_MODE
+#if DEBUG_MODE
 #define KITA_DEBUG 1
 #else
 #define KITA_DEBUG 0
 #endif
 
-#ifdef KITA_DEBUG
+#if KITA_DEBUG
 #define FORCE_INLINE inline
 
 bool CheckDebuggerPresent();

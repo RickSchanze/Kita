@@ -109,4 +109,3 @@ target_include_directories(KitaCore PUBLIC ${Core_GENERATED_DIR})
 
 find_package(Tracy CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC Tracy::TracyClient)
-

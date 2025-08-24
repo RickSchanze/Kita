@@ -8,7 +8,7 @@
 
 RHICommandBuffer::~RHICommandBuffer() = default;
 
-void RHICommandBuffer::PushCommand(UniquePtr<IRHICommand> Cmd) { mCommandQueue.Enqueue(Cmd); }
+void RHICommandBuffer::PushCommand(UniquePtr<IRHICommand>&& Cmd) { mCommandQueue.Enqueue(std::move(Cmd)); }
 
 void RHICommandBuffer::Clear() { mCommandQueue = {}; }
 

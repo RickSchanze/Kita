@@ -1,8 +1,6 @@
 #pragma once
 
-#include "tracy/Tracy.hpp"
-
-#ifdef ENABLE_PROFILING
+#if ENABLE_PROFILING
 #include "tracy/Tracy.hpp"
 #define CPU_PROFILING_SCOPE ZoneScoped
 #define CPU_PROFILING_SCOPE_N(Name) ZoneScopedN(Name)

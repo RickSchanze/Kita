@@ -3,6 +3,11 @@
 #include "Core/Ranges.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
+#include "Core/Macros.h"
+
+#if not KITA_DEBUG
+#include "absl/container/flat_hash_set.h"
+#endif
 
 #include <mutex>
 #include <unordered_set>

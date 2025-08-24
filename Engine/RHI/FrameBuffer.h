@@ -4,7 +4,7 @@
 
 class RHIRenderPass;
 class RHIImageView;
-struct FrameBufferDesc {
+struct RHIFrameBufferDesc {
   RHI_DEFINE_BUILDER_FIELD_PTR(RHIRenderPass*, RenderPass, nullptr); // NECESSARY
   RHI_DEFINE_BUILDER_FIELD(UInt32, Layers, 1);                       // NECESSARY
   RHI_DEFINE_BUILDER_FIELD(UInt32, Width, 0);                        // NECESSARY

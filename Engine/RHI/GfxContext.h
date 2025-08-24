@@ -1,6 +1,5 @@
 #pragma once
 #include "Core/Event/Callback.h"
-#include "Core/Singleton/Singleton.h"
 #include "Math/Vector.h"
 #include "RHIFormat.h"
 #include "SurfaceWindow.h"
@@ -60,7 +59,7 @@ public:
   virtual ~GfxContext() = default;
   [[nodiscard]] virtual ERHIBackend GetBackend() const = 0;
 
-  virtual SharedPtr<RHIImage> CreateRHIImage(const RHIImageDesc& Desc) = 0;
+  virtual SharedPtr<RHIImage> CreateImage(const RHIImageDesc& Desc) = 0;
 
   [[nodiscard]] const GfxDeviceFeatures& GetGfxDeviceFeatures() const { return mGfxDeviceFeatures; }
 
@@ -71,13 +70,13 @@ public:
   virtual SharedPtr<RHIFence> CreateFenceS() = 0;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() = 0;
   virtual UniquePtr<RHICommandPool> CreateCommandPoolU(ERHIQueueFamilyType QueueFamily) = 0;
-  virtual UniquePtr<RHIRenderPass> CreateRenderPassU(const struct RenderPassDesc&) = 0;
-  virtual UniquePtr<RHIFrameBuffer> CreateFrameBufferU(const struct FrameBufferDesc& Desc) = 0;
-  virtual UniquePtr<RHIShaderModule> CreateShaderModuleU(const struct ShaderModuleDesc& Desc) = 0;
-  virtual UniquePtr<RHIDescriptorSetLayout> CreateDescriptorSetLayoutU(const struct DescriptorSetLayoutDesc& Desc) = 0;
-  virtual UniquePtr<RHIDescriptorPool> CreateDescriptorPoolU(const struct DescriptorPoolDesc& Desc) = 0;
-  virtual UniquePtr<RHIPipelineLayout> CreatePipelineLayoutU(const struct PipelineLayoutDesc& Desc) = 0;
-  virtual UniquePtr<RHIPipeline> CreatePipeline(const struct GraphicsPipelineDesc& Desc) = 0;
+  virtual UniquePtr<RHIRenderPass> CreateRenderPassU(const struct RHIRenderPassDesc&) = 0;
+  virtual UniquePtr<RHIFrameBuffer> CreateFrameBufferU(const struct RHIFrameBufferDesc& Desc) = 0;
+  virtual UniquePtr<RHIShaderModule> CreateShaderModuleU(const struct RHIShaderModuleDesc& Desc) = 0;
+  virtual UniquePtr<RHIDescriptorSetLayout> CreateDescriptorSetLayoutU(const struct RHIDescriptorSetLayoutDesc& Desc) = 0;
+  virtual UniquePtr<RHIDescriptorPool> CreateDescriptorPoolU(const struct RHIDescriptorPoolDesc& Desc) = 0;
+  virtual UniquePtr<RHIPipelineLayout> CreatePipelineLayoutU(const struct RHIPipelineLayoutDesc& Desc) = 0;
+  virtual UniquePtr<RHIPipeline> CreatePipeline(const struct RHIGraphicsPipelineDesc& Desc) = 0;
 
   /**
    * 创建一个SurfaceWindow用于渲染
@@ -85,7 +84,7 @@ public:
    * @param Height <=0时选择配置文件中的默认值
    * @return 只应该调用一次用来创建一个全局的SurfaceWindow
    */
-  virtual RHISurfaceWindow* CreateSurfaceWindowR(int32_t Width, int32_t Height) = 0;
+  virtual RHISurfaceWindow* CreateSurfaceWindowR(Int32 Width, Int32 Height) = 0;
   /**
    * 获取下一个可用图像的索引
    * @param Window
@@ -105,11 +104,10 @@ protected:
   static inline GfxContext* mContext = nullptr;
 };
 
-
-inline Callback<void()> Evt_PreGfxContextCreated;
-inline Callback<void(GfxContext* /* GfxContext */)> Evt_PostGfxContextCreated;
-inline Callback<void(GfxContext* /* GfxContext */)> Evt_PreGfxContextDestroyed;
-inline Callback<void()> Evt_PostGfxContextDestroyed;
+inline Callback<void> Evt_PreGfxContextCreated;
+inline Callback<void, GfxContext* /* GfxContext */> Evt_PostGfxContextCreated;
+inline Callback<void, GfxContext* /* GfxContext */> Evt_PreGfxContextDestroyed;
+inline Callback<void> Evt_PostGfxContextDestroyed;
 
 struct WindowBackendSupport {
   static inline ERHISurfaceWindowType SurfaceWindowBackendType = ERHISurfaceWindowType::Count;

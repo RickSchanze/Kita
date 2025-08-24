@@ -11,6 +11,7 @@
       <w>lerp</w>
       <w>memcpy</w>
       <w>swapchain</w>
+      <w>texs</w>
     </words>
   </dictionary>
 </component>
