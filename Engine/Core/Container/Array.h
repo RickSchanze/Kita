@@ -19,6 +19,11 @@ public:
   Array& operator=(const Array&) = default;
   Array& operator=(Array&&) = default;
 
+  // ✅ C++23 from_range 构造函数
+  template <std::ranges::input_range R>
+    requires std::convertible_to<std::ranges::range_value_t<R>, T>
+  Array(std::from_range_t, R&& InRange) : mData(std::ranges::begin(InRange), std::ranges::end(InRange)) {}
+
   auto begin() { return mData.begin(); }
   auto end() { return mData.end(); }
   auto begin() const { return mData.begin(); }
@@ -57,6 +62,9 @@ public:
       }
     }
   }
+
+  auto& Last() { return mData.back(); }
+  const auto& Last() const { return mData.back(); }
 
   auto&& operator[](this auto&& Self, SizeType Index) {
     DEBUG_ASSERT_MSG(Index < Self.Count(), "Index out of range");
@@ -125,3 +133,6 @@ template <typename T, EMemoryLabel Label> struct ArrayTraits<Array<T, Label>> {
 };
 
 } // namespace Traits
+
+// 推导 Array<T> 的模板参数 T
+template <std::ranges::input_range R> Array(std::from_range_t, R&&) -> Array<std::ranges::range_value_t<R>>;

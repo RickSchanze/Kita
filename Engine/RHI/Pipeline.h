@@ -13,7 +13,7 @@ public:
 };
 
 struct RHIPipelineShaderStageDesc {
-  RHI_DEFINE_BUILDER_FIELD_PTR(class ERHIShaderModule*, SShaderModule, nullptr);
+  RHI_DEFINE_BUILDER_FIELD_PTR(class RHIShaderModule*, ShaderModule, nullptr);
   RHI_DEFINE_BUILDER_FIELD_PTR(const char*, EntryName, "main");
   RHI_DEFINE_BUILDER_FIELD(ERHIShaderStageBits, ShaderStage, ERHIShaderStageBits::SSB_MAX);
   // TODO: 特化信息

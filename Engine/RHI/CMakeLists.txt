@@ -31,6 +31,16 @@ add_library(KitaRHI
         Vulkan/Image_Vulkan.h
         Vulkan/ImageView_Vulkan.cpp
         Vulkan/ImageView_Vulkan.h
+        Vulkan/Pipeline_Vulkan.cpp
+        Vulkan/Pipeline_Vulkan.h
+        Vulkan/RenderPass_Vulkan.cpp
+        Vulkan/RenderPass_Vulkan.h
+        Vulkan/ShaderModule_Vulkan.cpp
+        Vulkan/ShaderModule_Vulkan.h
+        Vulkan/Sync_Vulkan.cpp
+        Vulkan/Sync_Vulkan.h
+        Vulkan/DescriptorSet_Vulkan.cpp
+        Vulkan/DescriptorSet_Vulkan.h
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)

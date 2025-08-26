@@ -8,21 +8,21 @@
 #include "../SurfaceWindow/VulkanGLFWSurfaceWindow.hpp"
 #include "RHIEnums_Vulkan.h"
 #include "VulkanCommandBuffer.hpp"
-#include "VulkanDescriptorSet.hpp"
+#include "DescriptorSet_Vulkan.h"
 #include "FrameBuffer_Vulkan.h"
 #include "Image_Vulkan.h"
 #include "ImageView_Vulkan.h"
-#include "VulkanPipeline.hpp"
-#include "VulkanRenderPass.hpp"
-#include "VulkanShaderModule.hpp"
-#include "VulkanSync.hpp"
+#include "Pipeline_Vulkan.h"
+#include "RenderPass_Vulkan.h"
+#include "ShaderModule_Vulkan.h"
+#include "Sync_Vulkan.h"
 
 const char* VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validation";
 
 
-void kita::rhi::VulkanGfxContext::OnPostGfxContextCreated(GfxContext* Context)
+void GfxContext_Vulkan::OnPostGfxContextCreated(GfxContext* Context)
 {
-    VulkanGfxContext* Ctx = static_cast<kita::rhi::VulkanGfxContext*>(Context);
+    GfxContext_Vulkan* Ctx = static_cast<GfxContext_Vulkan*>(Context);
     VulkanGLFWSurfaceWindow TempWindow{-1, -1, true};
     TempWindow.CreateSurface(Ctx->mInstance);
     Ctx->SetupDebugMessenger();
@@ -31,56 +31,56 @@ void kita::rhi::VulkanGfxContext::OnPostGfxContextCreated(GfxContext* Context)
     TempWindow.DestroySurface(Ctx->mInstance);
 }
 
-kita::rhi::VulkanGfxContext::VulkanGfxContext()
+GfxContext_Vulkan::GfxContext_Vulkan()
 {
     // 此初始化函数仅仅创建Vulkan实例 选择物理设备并创建逻辑设备, 而不关心交换链、渲染管线等
     CreateInstance();
     // 创建一个临时的SurfaceWindow用于创建Device
-    Evt_PostGfxContextCreated.Add(&VulkanGfxContext::OnPostGfxContextCreated);
+    Evt_PostGfxContextCreated.Add(&GfxContext_Vulkan::OnPostGfxContextCreated);
 }
 
-kita::rhi::VulkanGfxContext::~VulkanGfxContext()
+GfxContext_Vulkan::~GfxContext_Vulkan()
 {
     Dyn_DestroyDebugUtilsMessengerEXT(mDebugMessenger, nullptr);
     vkDestroyInstance(mInstance, nullptr);
 }
 
-std::shared_ptr<kita::rhi::Image> kita::rhi::VulkanGfxContext::CreateImage(const ImageDesc& Desc)
+SharedPtr<RHIImage> GfxContext_Vulkan::CreateImage(const RHIImageDesc& Desc)
 {
     return nullptr;
 }
 
-std::shared_ptr<kita::rhi::ImageView> kita::rhi::VulkanGfxContext::CreateImageViewS(const ImageViewDesc& Desc)
+SharedPtr<RHIImageView> GfxContext_Vulkan::CreateImageViewS(const ImageViewDesc& Desc)
 {
     return std::make_shared<VulkanImageView>(Desc);
 }
 
-std::shared_ptr<kita::rhi::Fence> kita::rhi::VulkanGfxContext::CreateFenceS()
+SharedPtr<RHIFence> GfxContext_Vulkan::CreateFenceS()
 {
     return std::make_shared<VulkanFence>();
 }
 
-std::unique_ptr<kita::rhi::Fence> kita::rhi::VulkanGfxContext::CreateFenceU()
+UniquePtr<RHIFence> GfxContext_Vulkan::CreateFenceU()
 {
     return std::make_unique<VulkanFence>();
 }
 
-std::unique_ptr<kita::rhi::Semaphore> kita::rhi::VulkanGfxContext::CreateSemaphoreU()
+UniquePtr<RHISemaphore> GfxContext_Vulkan::CreateSemaphoreU()
 {
     return std::make_unique<VulkanSemaphore>();
 }
 
-std::shared_ptr<kita::rhi::ImageView> kita::rhi::VulkanGfxContext::CreateSwapchainImageView(VkImage Img, VkFormat Format)
+SharedPtr<RHIImageView> GfxContext_Vulkan::CreateSwapchainImageView(VkImage Img, VkFormat Format)
 {
     return std::make_shared<VulkanImageView>(Img, Format);
 }
 
-kita::rhi::SurfaceWindow* kita::rhi::VulkanGfxContext::CreateSurfaceWindowR(int32_t Width, int32_t Height)
+RHISurfaceWindow* GfxContext_Vulkan::CreateSurfaceWindowR(int32_t Width, int32_t Height)
 {
     return new VulkanGLFWSurfaceWindow(Width, Height);
 }
 
-uint32_t kita::rhi::VulkanGfxContext::GetNextImage(SurfaceWindow* Window, Semaphore* WaitSemaphore, Fence* WaitFence, bool& NeedRecreation)
+uint32_t GfxContext_Vulkan::GetNextImage(RHISurfaceWindow* Window, RHISemaphore* WaitSemaphore, RHIFence* WaitFence, bool& NeedRecreation)
 {
     uint32_t Return;
     const VkResult Result = vkAcquireNextImageKHR(mDevice, static_cast<VkSwapchainKHR>(Window->GetNativeSwapchainObject()), UINT64_MAX,
@@ -100,47 +100,47 @@ uint32_t kita::rhi::VulkanGfxContext::GetNextImage(SurfaceWindow* Window, Semaph
     return Return;
 }
 
-std::unique_ptr<kita::rhi::RenderPass> kita::rhi::VulkanGfxContext::CreateRenderPassU(const RenderPassDesc& Desc)
+UniquePtr<RHIRenderPass> GfxContext_Vulkan::CreateRenderPassU(const RHIRenderPassDesc& Desc)
 {
     return std::make_unique<VulkanRenderPass>(Desc);
 }
 
-std::unique_ptr<kita::rhi::FrameBuffer> kita::rhi::VulkanGfxContext::CreateFrameBufferU(const FrameBufferDesc& Desc)
+UniquePtr<RHIFrameBuffer> GfxContext_Vulkan::CreateFrameBufferU(const RHIFrameBufferDesc& Desc)
 {
     return std::make_unique<VulkanFrameBuffer>(Desc);
 }
 
-std::unique_ptr<kita::rhi::CommandPool> kita::rhi::VulkanGfxContext::CreateCommandPoolU(EQueueFamilyType QueueFamily)
+UniquePtr<RHICommandPool> GfxContext_Vulkan::CreateCommandPoolU(ERHIQueueFamilyType QueueFamily)
 {
     return std::make_unique<VulkanCommandPool>(QueueFamily);
 }
 
-std::unique_ptr<kita::rhi::ShaderModule> kita::rhi::VulkanGfxContext::CreateShaderModuleU(const ShaderModuleDesc& Desc)
+UniquePtr<RHIShaderModule> GfxContext_Vulkan::CreateShaderModuleU(const RHIShaderModuleDesc& Desc)
 {
     return std::make_unique<VulkanShaderModule>(Desc);
 }
 
-std::unique_ptr<kita::rhi::DescriptorSetLayout> kita::rhi::VulkanGfxContext::CreateDescriptorSetLayoutU(const DescriptorSetLayoutDesc& Desc)
+UniquePtr<RHIDescriptorSetLayout> GfxContext_Vulkan::CreateDescriptorSetLayoutU(const RHIDescriptorSetLayoutDesc& Desc)
 {
-    return std::make_unique<VulkanDescriptorSetLayout>(Desc);
+    return std::make_unique<RHIDescriptorSetLayout_Vulkan>(Desc);
 }
 
-std::unique_ptr<kita::rhi::DescriptorPool> kita::rhi::VulkanGfxContext::CreateDescriptorPoolU(const DescriptorPoolDesc& Desc)
+UniquePtr<RHIDescriptorPool> GfxContext_Vulkan::CreateDescriptorPoolU(const RHIDescriptorPoolDesc& Desc)
 {
-    return std::make_unique<VulkanDescriptorPool>(Desc);
+    return std::make_unique<RHIDescriptorPool_Vulkan>(Desc);
 }
 
-std::unique_ptr<kita::rhi::PipelineLayout> kita::rhi::VulkanGfxContext::CreatePipelineLayoutU(const PipelineLayoutDesc& Desc)
+UniquePtr<RHIPipelineLayout> GfxContext_Vulkan::CreatePipelineLayoutU(const RHIPipelineLayoutDesc& Desc)
 {
-    return std::make_unique<VulkanPipelineLayout>(Desc);
+    return std::make_unique<RHIPipelineLayout_Vulkan>(Desc);
 }
 
-std::unique_ptr<kita::rhi::Pipeline> kita::rhi::VulkanGfxContext::CreatePipeline(const GraphicsPipelineDesc& Desc)
+UniquePtr<RHIPipeline> GfxContext_Vulkan::CreatePipeline(const RHIGraphicsPipelineDesc& Desc)
 {
-    return std::make_unique<VulkanPipeline>(Desc);
+    return std::make_unique<RHIPipeline_Vulkan>(Desc);
 }
 
-void kita::rhi::VulkanGfxContext::Submit(const CommandBufferSubmitParams& Params)
+void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params)
 {
     VkSubmitInfo SubmitInfo{};
     SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -171,7 +171,7 @@ void kita::rhi::VulkanGfxContext::Submit(const CommandBufferSubmitParams& Params
     }
 }
 
-bool kita::rhi::VulkanGfxContext::IsLayerSupported(const char* LayerName)
+bool GfxContext_Vulkan::IsLayerSupported(const char* LayerName)
 {
     uint32_t LayerCount;
     vkEnumerateInstanceLayerProperties(&LayerCount, nullptr);
@@ -219,7 +219,7 @@ static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT&
     Info.pfnUserCallback = &DebugCallback;
 }
 
-void kita::rhi::VulkanGfxContext::CreateInstance()
+void GfxContext_Vulkan::CreateInstance()
 {
     CPU_PROFILING_SCOPE;
     VkApplicationInfo AppInfo{};
@@ -279,7 +279,7 @@ void kita::rhi::VulkanGfxContext::CreateInstance()
     }
 }
 
-void kita::rhi::VulkanGfxContext::SetupDebugMessenger()
+void GfxContext_Vulkan::SetupDebugMessenger()
 {
     if (!mEnabledValidationLayer)
         return;
@@ -288,7 +288,7 @@ void kita::rhi::VulkanGfxContext::SetupDebugMessenger()
     KITA_ASSERT(Dyn_CreateDebugUtilsMessengerEXT(&Info, nullptr, &mDebugMessenger) == VK_SUCCESS, "Vulkan调试信息设置失败");
 }
 
-void kita::rhi::VulkanGfxContext::SelectPhysicalDevice(SurfaceWindow& TempWindow)
+void GfxContext_Vulkan::SelectPhysicalDevice(SurfaceWindow& TempWindow)
 {
     uint32_t DeviceCount = 0;
     vkEnumeratePhysicalDevices(mInstance, &DeviceCount, nullptr);
@@ -321,7 +321,7 @@ void kita::rhi::VulkanGfxContext::SelectPhysicalDevice(SurfaceWindow& TempWindow
     }
 }
 
-bool kita::rhi::VulkanGfxContext::IsDeviceSuitable(VkPhysicalDevice Device, SurfaceWindow& TempWindow) const
+bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, SurfaceWindow& TempWindow) const
 {
     bool ExtensionsSupported = CheckDeviceExtensionSupport(Device);
 
@@ -336,7 +336,7 @@ bool kita::rhi::VulkanGfxContext::IsDeviceSuitable(VkPhysicalDevice Device, Surf
     return ExtensionsSupported && SupportedFeatures.samplerAnisotropy && SwapchainAvailable && Indices.IsComplete();
 }
 
-bool kita::rhi::VulkanGfxContext::CheckDeviceExtensionSupport(VkPhysicalDevice Device) const
+bool GfxContext_Vulkan::CheckDeviceExtensionSupport(VkPhysicalDevice Device) const
 {
     uint32_t Extension;
     vkEnumerateDeviceExtensionProperties(Device, nullptr, &Extension, nullptr);
@@ -354,7 +354,7 @@ bool kita::rhi::VulkanGfxContext::CheckDeviceExtensionSupport(VkPhysicalDevice D
     return RequiredExtensions.empty();
 }
 
-void kita::rhi::VulkanGfxContext::CreateLogicalDevice(SurfaceWindow& TempWindow)
+void GfxContext_Vulkan::CreateLogicalDevice(SurfaceWindow& TempWindow)
 {
     std::vector<VkDeviceQueueCreateInfo> QueueInfos{};
     float QueuePriority = 1.0f;
@@ -392,7 +392,7 @@ void kita::rhi::VulkanGfxContext::CreateLogicalDevice(SurfaceWindow& TempWindow)
     }
 }
 
-kita::rhi::QueueFamilyIndices kita::rhi::VulkanGfxContext::FindQueueFamilies(VkPhysicalDevice Device, VkSurfaceKHR Surface)
+QueueFamilyIndices GfxContext_Vulkan::FindQueueFamilies(VkPhysicalDevice Device, VkSurfaceKHR Surface)
 {
     QueueFamilyIndices Indices;
 
@@ -428,44 +428,44 @@ kita::rhi::QueueFamilyIndices kita::rhi::VulkanGfxContext::FindQueueFamilies(VkP
     return Indices;
 }
 
-kita::rhi::QueueFamilyIndices kita::rhi::VulkanGfxContext::GetQueueFamilies(VkSurfaceKHR Surface) const
+QueueFamilyIndices GfxContext_Vulkan::GetQueueFamilies(VkSurfaceKHR Surface) const
 {
     return FindQueueFamilies(mPhysicalDevice, Surface);
 }
 
-uint32_t kita::rhi::VulkanGfxContext::GetQueueFamilyIndex(EQueueFamilyType Family) const
+uint32_t GfxContext_Vulkan::GetQueueFamilyIndex(ERHIQueueFamilyType Family) const
 {
     switch (Family)
     {
-    case EQueueFamilyType::Graphics:
+    case ERHIQueueFamilyType::Graphics:
         return mQueueFamilies.GraphicsFamily.value();
-    case EQueueFamilyType::Compute:
+    case ERHIQueueFamilyType::Compute:
         KITA_UNREACHABLE();
-    case EQueueFamilyType::Transfer:
+    case ERHIQueueFamilyType::Transfer:
         KITA_UNREACHABLE();
-    case EQueueFamilyType::Present:
+    case ERHIQueueFamilyType::Present:
         return mQueueFamilies.PresentFamily.value();
     }
     return -1;
 }
 
-VkQueue kita::rhi::VulkanGfxContext::GetQueue(EQueueFamilyType Family) const
+VkQueue GfxContext_Vulkan::GetQueue(ERHIQueueFamilyType Family) const
 {
     switch (Family)
     {
-    case EQueueFamilyType::Graphics:
+    case ERHIQueueFamilyType::Graphics:
         return mGraphicsQueue;
-    case EQueueFamilyType::Compute:
+    case ERHIQueueFamilyType::Compute:
         break;
-    case EQueueFamilyType::Transfer:
+    case ERHIQueueFamilyType::Transfer:
         break;
-    case EQueueFamilyType::Present:
+    case ERHIQueueFamilyType::Present:
         return mPresentQueue;
     }
     return VK_NULL_HANDLE;
 }
 
-void kita::rhi::VulkanGfxContext::FindPhysicalDeviceFeatures()
+void GfxContext_Vulkan::FindPhysicalDeviceFeatures()
 {
     VkPhysicalDeviceProperties PhysicalDeviceProperties;
     vkGetPhysicalDeviceProperties(mPhysicalDevice, &PhysicalDeviceProperties);
@@ -477,31 +477,31 @@ void kita::rhi::VulkanGfxContext::FindPhysicalDeviceFeatures()
         PhysicalDeviceProperties.limits.framebufferColorSampleCounts & PhysicalDeviceProperties.limits.framebufferDepthSampleCounts;
     if (MaxSampleCount & VK_SAMPLE_COUNT_64_BIT)
     {
-        mGfxDeviceFeatures.MaxSampleCount = ESampleCount::SC_64;
+        mGfxDeviceFeatures.MaxSampleCount = ERHISampleCount::SC_64;
     }
     else if (MaxSampleCount & VK_SAMPLE_COUNT_32_BIT)
     {
-        mGfxDeviceFeatures.MaxSampleCount = ESampleCount::SC_32;
+        mGfxDeviceFeatures.MaxSampleCount = ERHISampleCount::SC_32;
     }
     else if (MaxSampleCount & VK_SAMPLE_COUNT_16_BIT)
     {
-        mGfxDeviceFeatures.MaxSampleCount = ESampleCount::SC_16;
+        mGfxDeviceFeatures.MaxSampleCount = ERHISampleCount::SC_16;
     }
     else if (MaxSampleCount & VK_SAMPLE_COUNT_8_BIT)
     {
-        mGfxDeviceFeatures.MaxSampleCount = ESampleCount::SC_8;
+        mGfxDeviceFeatures.MaxSampleCount = ERHISampleCount::SC_8;
     }
     else if (MaxSampleCount & VK_SAMPLE_COUNT_4_BIT)
     {
-        mGfxDeviceFeatures.MaxSampleCount = ESampleCount::SC_4;
+        mGfxDeviceFeatures.MaxSampleCount = ERHISampleCount::SC_4;
     }
     else if (MaxSampleCount & VK_SAMPLE_COUNT_2_BIT)
     {
-        mGfxDeviceFeatures.MaxSampleCount = ESampleCount::SC_2;
+        mGfxDeviceFeatures.MaxSampleCount = ERHISampleCount::SC_2;
     }
     else
     {
-        mGfxDeviceFeatures.MaxSampleCount = ESampleCount::SC_1;
+        mGfxDeviceFeatures.MaxSampleCount = ERHISampleCount::SC_1;
     }
 
     mGfxDeviceFeatures.SamplerAnisotropy = PhysicalDeviceFeatures.samplerAnisotropy;
@@ -509,7 +509,7 @@ void kita::rhi::VulkanGfxContext::FindPhysicalDeviceFeatures()
     LogInfoStream("Vulkan") << "选用设备: " << PhysicalDeviceProperties.deviceName << Log::EndLine;
 }
 
-kita::rhi::PhysicalDeviceSwapchainFeatures kita::rhi::VulkanGfxContext::QueryPhysicalDeviceSwapchainFeatures(VkPhysicalDevice Device,
+PhysicalDeviceSwapchainFeatures GfxContext_Vulkan::QueryPhysicalDeviceSwapchainFeatures(VkPhysicalDevice Device,
                                                                                                              SurfaceWindow& TempWindow)
 {
     PhysicalDeviceSwapchainFeatures Features{};
@@ -554,7 +554,7 @@ kita::rhi::PhysicalDeviceSwapchainFeatures kita::rhi::VulkanGfxContext::QueryPhy
     return Features;
 }
 
-VkResult kita::rhi::VulkanGfxContext::Dyn_CreateDebugUtilsMessengerEXT(const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+VkResult GfxContext_Vulkan::Dyn_CreateDebugUtilsMessengerEXT(const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
                                                                        const VkAllocationCallbacks* pAllocator,
                                                                        VkDebugUtilsMessengerEXT* pDebugMessenger) const
 {
@@ -570,7 +570,7 @@ VkResult kita::rhi::VulkanGfxContext::Dyn_CreateDebugUtilsMessengerEXT(const VkD
     }
 }
 
-void kita::rhi::VulkanGfxContext::Dyn_DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT DebugMessenger,
+void GfxContext_Vulkan::Dyn_DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT DebugMessenger,
                                                                     const VkAllocationCallbacks* pAllocator) const
 {
     static auto Func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(mInstance, "vkDestroyDebugUtilsMessengerEXT"));
