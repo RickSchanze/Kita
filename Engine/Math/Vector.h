@@ -7,6 +7,9 @@
 #include "Core/Traits.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#include "Core/Serialization/InputArchive.h"
+#include "Core/Serialization/OutputArchive.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
@@ -67,6 +70,16 @@ template <typename T> struct Vector2 {
   }
 
   [[nodiscard]] String ToString() const { return Format("[{}, {}]", X(), Y()); }
+
+  void WriteArchive(OutputArchive& Archive) const {
+    Archive.WriteType("X", X());
+    Archive.WriteType("Y", Y());
+  }
+
+  void ReadArchive(InputArchive& Archive) {
+    Archive.ReadType("X", X());
+    Archive.ReadType("Y", Y());
+  }
 };
 
 #define VECTOR2_DECL(Type, Name)                                                                                               \

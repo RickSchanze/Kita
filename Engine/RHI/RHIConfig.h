@@ -3,6 +3,7 @@
 #include "Core/Reflection/MetaMark.h"
 #include "RHIEnums.h"
 #include "SurfaceWindow.h"
+#include "GfxContext.h"
 
 #include "RHIConfig.generated.h"
 
@@ -17,8 +18,12 @@ public:
   KITA_CONFIG_GETTER_SETTER(ERHIFormat, DesiredSwapchainFormat)
   KITA_CONFIG_GETTER_SETTER(ERHIColorSpace, DesiredSwapchainColorSpace)
   KITA_CONFIG_GETTER_SETTER(Vector2i, DefaultWindowSize)
+  KITA_CONFIG_GETTER_SETTER(ERHIBackend, GraphicsBackend)
 
 private:
+  KPROPERTY()
+  ERHIBackend GraphicsBackend = ERHIBackend::Vulkan;
+
   KPROPERTY()
   ERHIPresentMode PresentMode = ERHIPresentMode::VSync;
 

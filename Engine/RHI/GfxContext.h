@@ -4,6 +4,8 @@
 #include "RHIEnums.h"
 #include "SurfaceWindow.h"
 
+#include "GfxContext.generated.h"
+
 class RHISurfaceWindow;
 class RHIPipelineLayout;
 class RHIPipeline;
@@ -18,6 +20,9 @@ class RHISemaphore;
 class RHIFence;
 struct RHIImageDesc;
 class RHIImage;
+
+
+
 struct GfxDeviceFeatures {
   ERHISampleCount MaxSampleCount = ERHISampleCount::SC_1;
 

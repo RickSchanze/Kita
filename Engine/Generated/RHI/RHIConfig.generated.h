@@ -21,8 +21,13 @@ Builder.CreateType<RHIConfig>("RHIConfig"); \
 Builder.AddParent<IConfig>(); \
 Builder.SetConstructor(RHIConfig::ConstructSelf).SetDestructor(RHIConfig::DestructSelf); \
 Builder.SetTypeAttribute("Category", "RHI"); \
+Builder.AddField("GraphicsBackend", &RHIConfig::GraphicsBackend); \
 Builder.AddField("PresentMode", &RHIConfig::PresentMode); \
 Builder.AddField("SurfaceWindowType", &RHIConfig::SurfaceWindowType); \
+Builder.AddField("EnableVulkanValidationLayer", &RHIConfig::EnableVulkanValidationLayer); \
+Builder.AddField("DesiredSwapchainFormat", &RHIConfig::DesiredSwapchainFormat); \
+Builder.AddField("DesiredSwapchainColorSpace", &RHIConfig::DesiredSwapchainColorSpace); \
+Builder.AddField("DefaultWindowSize", &RHIConfig::DefaultWindowSize); \
 Builder.Register(); \
 } \
 }; \

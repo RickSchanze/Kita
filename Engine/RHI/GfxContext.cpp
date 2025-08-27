@@ -9,10 +9,26 @@
 #include "RHIConfig.h"
 
 #include "GLFW/glfw3.h"
+#include "Vulkan/GfxContext_Vulkan.h"
 
-void GfxContext::StartUp() {}
+void GfxContext::StartUp() {
+  Evt_PreGfxContextCreated.Invoke();
+  auto& Config = ConfigManager::GetConfigRef<RHIConfig>();
+  switch (Config.GetGraphicsBackend()) {
+  case ERHIBackend::Vulkan:
+    mContext = New<GfxContext_Vulkan>();
+    break;
+  default:
+    LOG_CRITICAL_TAG("RHI", "未知的渲染后端: {}.", EnumToString(Config.GetGraphicsBackend()));
+  }
+  Evt_PostGfxContextCreated.Invoke(mContext);
+}
 
-void GfxContext::ShutDown() {}
+void GfxContext::ShutDown() {
+  Evt_PreGfxContextDestroyed.Invoke(mContext);
+  Delete(mContext);
+  Evt_PostGfxContextDestroyed.Invoke();
+}
 
 void WindowBackendSupport::InitializeWindowBackend() {
   const RHIConfig* Cfg = ConfigManager::GetConfig<RHIConfig>();

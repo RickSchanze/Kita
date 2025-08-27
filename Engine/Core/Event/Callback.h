@@ -13,7 +13,12 @@ template <typename Result, typename... Args> struct Callback {
     return mCallbackList.append([Obj, Fn](OtherArgs&&... args) -> Result { return (Obj->*Fn)(std::forward<OtherArgs>(args)...); });
   }
 
-  Result Invoke(Args&&... InArgs) { return mCallbackList(std::forward<Args>(InArgs)...); }
+  template <typename... OtherArgs>
+    requires std::invocable<CallbackList, OtherArgs...>
+  Result Invoke(OtherArgs&&... InArgs) {
+    return mCallbackList(std::forward<OtherArgs>(InArgs)...);
+  }
+
   bool Remove(const Handle& InHandle) { return mCallbackList.remove(InHandle); }
   void Clear() { mCallbackList = {}; }
 

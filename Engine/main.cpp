@@ -13,18 +13,23 @@
 #include "Core/TaskGraph/ThreadUtils.h"
 #include "Math/Vector.h"
 #include "Object/Actor.h"
+#include "RHI/GfxContext.h"
 #include "RHI/RHIConfig.h"
 #include "RHI/RHIEnums.h"
 #include "RHI/Vulkan/RHIEnums_Vulkan.h"
 #include "Windows.h"
 
-void StartUpSystems() { TaskGraph::StartUp(); }
+void StartUpSystems() {
+  TaskGraph::StartUp();
+  GfxContext::StartUp();
+}
 
 void ShutDownSystems() {
-
+  GfxContext::ShutDown();
   ConfigManager::ShutDown();
   TaskGraph::ShutDown();
 }
+
 int main() {
   SetConsoleOutputCP(CP_UTF8);
   StartUpSystems();
