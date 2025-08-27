@@ -23,7 +23,7 @@ template <typename T> struct SharedPtr {
   template <typename R> friend struct SharedPtr;
 
   SharedPtr() = default;
-  explicit SharedPtr(std::nullptr_t) {}
+  SharedPtr(std::nullptr_t) {}
   explicit SharedPtr(const std::shared_ptr<T>& InPtr) : mPtr(InPtr) {}
   SharedPtr& operator=(std::nullptr_t) {
     mPtr.reset();

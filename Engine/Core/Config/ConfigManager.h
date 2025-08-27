@@ -20,6 +20,7 @@ public:
   IConfig* GetConfigM(const Type* InType);
   static IConfig* GetConfig(const Type* InType) { return GetRef().GetConfigM(InType); }
   template <typename T> static T* GetConfig() { return static_cast<T*>(GetConfig(TypeOf<T>())); }
+  template <typename T> static T& GetConfigRef() { return *static_cast<T*>(GetConfig(TypeOf<T>())); }
 
 private:
   void ClearDeleteAllConfigs();

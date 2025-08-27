@@ -41,6 +41,10 @@ add_library(KitaRHI
         Vulkan/Sync_Vulkan.h
         Vulkan/DescriptorSet_Vulkan.cpp
         Vulkan/DescriptorSet_Vulkan.h
+        Vulkan/SurfaceWindow_Vulkan.cpp
+        Vulkan/SurfaceWindow_Vulkan.h
+        Vulkan/CommandBuffer_Vulkan.cpp
+        Vulkan/CommandBuffer_Vulkan.h
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)

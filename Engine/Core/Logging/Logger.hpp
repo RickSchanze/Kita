@@ -37,9 +37,11 @@ inline Logger gLogger = {};
   DEBUG_BREAK()
 
 #define LOG_ERROR_TAG(Tag, ...)                                                                                                   \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                                  \
   gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "[" Tag "] " __VA_ARGS__); \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_);             \
+  {                                                                                                                               \
+    String Trace_ = Trace::GenerateTraceString(0);                                                                                \
+    gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_);           \
+  }                                                                                                                               \
   DEBUG_BREAK()
 
 #define LOG_CRITICAL(...)                                                                                                  \

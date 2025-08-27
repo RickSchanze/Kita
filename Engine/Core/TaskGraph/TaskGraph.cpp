@@ -6,6 +6,14 @@
 
 #include "ThreadUtils.h"
 
+ETaskState TaskInstance::GetState(const bool InLock) const {
+  if (!InLock) {
+    return State;
+  }
+  std::lock_guard Lock(Mutex);
+  return State;
+}
+
 void TaskGraph::StartUp() {
   ThreadUtils::SetCurrentThreadMain();
   LOG_INFO_TAG("TaskGraph", "启动Game线程于{}.", ThreadUtils::GetCurrentThreadId());
@@ -55,6 +63,7 @@ void TaskGraph::NotifyTaskFailed(TaskInstance* InInstance) const {
   // TODO: 失败的情况有点复杂，需要去掉当前图中所有与InInstance直接或间接相关的任务, 以后再写
   std::unreachable();
 }
+
 bool TaskGraph::IsTaskExists(TaskInstance* InInstance) const { return mInstances.Contains(InInstance); }
 
 struct TaskInstanceLock {
@@ -84,6 +93,10 @@ void TaskGraph::StartLazyTask(TaskInstance* InInstance) {
 
 void TaskGraph::WaitTaskSync(TaskInstance* InInstance) const {
   if UNLIKELY (!InInstance) {
+    return;
+  }
+  if (!IsTaskExists(InInstance)) {
+    // Task已完成
     return;
   }
   std::unique_lock Lock(InInstance->Mutex);

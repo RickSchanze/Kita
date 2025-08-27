@@ -35,17 +35,17 @@ public:
 
   virtual void Submit(const RHICommandBufferSubmitParams& Params) override;
 
-  VkDevice GetDevice() const { return mDevice; }
+  [[nodiscard]] VkDevice GetDevice() const { return mDevice; }
 
-  VkPhysicalDevice GetPhysicalDevice() const { return mPhysicalDevice; }
+  [[nodiscard]] VkPhysicalDevice GetPhysicalDevice() const { return mPhysicalDevice; }
 
-  VkInstance GetInstance() const { return mInstance; }
+  [[nodiscard]] VkInstance GetInstance() const { return mInstance; }
 
   static QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice Device, VkSurfaceKHR Surface);
   QueueFamilyIndices GetQueueFamilies(VkSurfaceKHR Surface) const;
 
-  UInt32 GetQueueFamilyIndex(ERHIQueueFamilyType Family) const;
-  VkQueue GetQueue(ERHIQueueFamilyType Family) const;
+  [[nodiscard]] UInt32 GetQueueFamilyIndex(ERHIQueueFamilyType Family) const;
+  [[nodiscard]] VkQueue GetQueue(ERHIQueueFamilyType Family) const;
 
 private:
   static bool IsLayerSupported(const char* LayerName);
@@ -74,7 +74,7 @@ private:
   QueueFamilyIndices mQueueFamilies;
 
   bool mEnabledValidationLayer = false;
-  const std::vector<const char*> mDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  const Array<const char*> mDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 };
 
 inline GfxContext_Vulkan& GetVulkanGfxContexRef() { return *static_cast<GfxContext_Vulkan*>(GfxContext::Get()); }

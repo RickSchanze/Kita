@@ -25,6 +25,8 @@ public:
 
   Set(std::initializer_list<K> Init) : mData(Init) {}
 
+  template <typename... Args> Set(Args&&... InArgs) : mData(std::forward<Args>(InArgs)...) {}
+
   [[nodiscard]] bool Empty() const { return mData.empty(); }
   [[nodiscard]] SizeType Count() const { return mData.size(); }
 

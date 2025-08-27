@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Container/Queue.h"
+#include "Core/TaskGraph/TaskHandle.h"
 #include "IRHIResource.h"
 #include "Math/Color.h"
 #include "Math/Vector.h"
@@ -35,7 +36,7 @@ public:
    * 此函数的行为是将Queue的东西交给渲染线程进行渲染
    * @param DebugName
    */
-  virtual void Execute(StringView DebugName) = 0;
+  virtual TaskHandle Execute(StringView DebugName) = 0;
 
   void BeginRenderPass(RHIRenderPass* RenderPass, RHIFrameBuffer* FrameBuffer, Vector2i Size, const Optional<Color>& ClearColor = {}, Vector2i Offset = {}, Optional<float> ClearDepth = std::nullopt);
 
@@ -50,7 +51,7 @@ class RHICommandPool : IRHIResource {
 public:
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::CommandPool; }
 
-  virtual std::unique_ptr<RHICommandBuffer> CreateCommandBuffer() = 0;
+  virtual UniquePtr<RHICommandBuffer> CreateCommandBuffer() = 0;
 
   /**
    * 重置CommandPool 同时重置其创建的CommandBuffer

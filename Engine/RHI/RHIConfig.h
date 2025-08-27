@@ -13,6 +13,10 @@ class RHIConfig : public IConfig {
 public:
   KITA_CONFIG_GETTER_SETTER(ERHIPresentMode, PresentMode)
   KITA_CONFIG_GETTER_SETTER(ERHISurfaceWindowType, SurfaceWindowType)
+  KITA_CONFIG_GETTER_SETTER(bool, EnableVulkanValidationLayer)
+  KITA_CONFIG_GETTER_SETTER(ERHIFormat, DesiredSwapchainFormat)
+  KITA_CONFIG_GETTER_SETTER(ERHIColorSpace, DesiredSwapchainColorSpace)
+  KITA_CONFIG_GETTER_SETTER(Vector2i, DefaultWindowSize)
 
 private:
   KPROPERTY()
@@ -20,4 +24,16 @@ private:
 
   KPROPERTY()
   ERHISurfaceWindowType SurfaceWindowType = ERHISurfaceWindowType::GLFW;
+
+  KPROPERTY()
+  bool EnableVulkanValidationLayer = true;
+
+  KPROPERTY()
+  ERHIFormat DesiredSwapchainFormat = ERHIFormat::B8G8R8A8_SRGB;
+
+  KPROPERTY()
+  ERHIColorSpace DesiredSwapchainColorSpace = ERHIColorSpace::sRGB;
+
+  KPROPERTY()
+  Vector2i DefaultWindowSize = {1920, 1080};
 };

@@ -33,13 +33,12 @@ struct TaskInstance {
   void Lock() const { Mutex.lock(); }
   void Unlock() const { Mutex.unlock(); }
 
-  [[nodiscard]] ETaskState GetState(const bool InLock = true) const {
-    if (!InLock) {
-      return State;
-    }
-    std::lock_guard Lock(Mutex);
-    return State;
-  }
+  /// 获取当前State
+  /// @param InLock 一般为true, 为False的情况是调用WaitSync时, 内部通过GetState判断是否处于Finished状态, 此时为false,
+  /// 如果此时再Lock会死锁
+  /// @return
+  /// @TODO: 感觉可以通过判断指针是否在TaskGraph管理来判断是否完成
+  [[nodiscard]] ETaskState GetState(const bool InLock = true) const ;
 };
 
 struct TaskHandleListAutoLock {

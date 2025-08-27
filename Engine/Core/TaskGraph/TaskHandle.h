@@ -13,6 +13,7 @@ struct TaskInstance;
 
 struct TaskHandle {
   explicit TaskHandle(TaskInstance* Instance) : mInstance(Instance) {}
+  TaskHandle() = default;
 
   /**
    * 启动一个Lazy任务
