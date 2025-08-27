@@ -2,7 +2,6 @@
 #include "Core/Assert.h" // for assert
 #include "Core/Logging/Logger.hpp"
 #include "Core/Memory/Malloc.h"
-#include "Core/Ranges.h"
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
@@ -79,11 +78,12 @@ public:
   {
     static_assert(!Traits::SameAs<T, bool>, "bool array is not allowed");
     String Result = "[";
-    for (const auto& [Index, Item] : *this | Ranges::Views::Enumerate) {
+    for (int i = 0; i < Count(); i++) {
+      auto& Item = mData[i];
       if constexpr (Traits::ISelfStringable<T>) {
-        Result += (::ToString(Item) + (Index != Count() - 1 ? ", " : ""));
+        Result += (::ToString(Item) + (i != Count() - 1 ? ", " : ""));
       } else {
-        Result += (Item.ToString() + (Index != Count() - 1 ? ", " : ""));
+        Result += (Item.ToString() + (i != Count() - 1 ? ", " : ""));
       }
     }
     Result += "]";

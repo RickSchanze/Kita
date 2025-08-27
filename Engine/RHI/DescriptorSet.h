@@ -9,7 +9,7 @@ struct RHIDescriptorSetLayoutBinding {
 };
 
 struct RHIDescriptorSetLayoutDesc {
-  RHI_DEFINE_BUILDER_FIELD(std::vector<RHIDescriptorSetLayoutBinding>, Bindings, {})
+  RHI_DEFINE_BUILDER_FIELD(Array<RHIDescriptorSetLayoutBinding>, Bindings, {})
 };
 
 class RHIDescriptorSetLayout : public IRHIResource {

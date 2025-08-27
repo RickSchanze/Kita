@@ -10,8 +10,8 @@
 RHIDescriptorSetLayout_Vulkan::RHIDescriptorSetLayout_Vulkan(const RHIDescriptorSetLayoutDesc& Desc) {
   VkDescriptorSetLayoutCreateInfo CreateInfo = {};
   CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  std::vector<VkDescriptorSetLayoutBinding> Bindings;
-  Bindings.reserve(Desc.GetBindings().size());
+  Array<VkDescriptorSetLayoutBinding> Bindings;
+  Bindings.Reserve(Desc.GetBindings().Count());
   for (auto& Binding : Desc.GetBindings()) {
     VkDescriptorSetLayoutBinding NewBinding;
     NewBinding.binding = Binding.Binding;
@@ -19,9 +19,9 @@ RHIDescriptorSetLayout_Vulkan::RHIDescriptorSetLayout_Vulkan(const RHIDescriptor
     NewBinding.descriptorType = RHIDescriptorTypeToVkDescriptorType(Binding.DescriptorType);
     NewBinding.stageFlags = RHIShaderStageToVkShaderStage(Binding.Stage);
     NewBinding.pImmutableSamplers = nullptr;
-    Bindings.push_back(NewBinding);
+    Bindings.Add(NewBinding);
   }
-  CreateInfo.pBindings = Bindings.data();
+  CreateInfo.pBindings = Bindings.Data();
   if (const auto Result = vkCreateDescriptorSetLayout(GetVulkanGfxContexRef().GetDevice(), &CreateInfo, nullptr, &mLayout); Result != VK_SUCCESS) {
     mLayout = VK_NULL_HANDLE;
     LOG_ERROR_TAG("RHI.Vulkan", "创建DescriptorSetLayout失败, Code={}", Result);
@@ -63,19 +63,21 @@ RHIDescriptorPool_Vulkan::~RHIDescriptorPool_Vulkan() {
 }
 
 Array<UniquePtr<RHIDescriptorSet>> RHIDescriptorPool_Vulkan::CreateDescriptorSets(const RHIDescriptorSetsAllocInfo& AllocInfo) {
-  const Array<VkDescriptorSetLayout> Layouts = //
-      AllocInfo.DescriptorSetLayouts | Ranges::Views::Transform([](const RHIDescriptorSetLayout* Layout) { return Layout->GetNativeHandleT<VkDescriptorSetLayout>(); }) | Ranges::To<Array>();
-  std::vector<VkDescriptorSet> RawSets;
+  const auto Layouts = //
+      AllocInfo.DescriptorSetLayouts | Ranges::Views::Transform([](const RHIDescriptorSetLayout* Layout) { return Layout->GetNativeHandleT<VkDescriptorSetLayout>(); }) |
+      Ranges::To<Array<VkDescriptorSetLayout>>();
+  Array<VkDescriptorSet> RawSets;
   VkDescriptorSetAllocateInfo AllocateInfo{};
   AllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
   AllocateInfo.descriptorPool = mPool;
   AllocateInfo.descriptorSetCount = Layouts.Count();
   AllocateInfo.pSetLayouts = Layouts.Data();
-  if (const auto Result = vkAllocateDescriptorSets(GetVulkanGfxContexRef().GetDevice(), &AllocateInfo, RawSets.data()); Result != VK_SUCCESS) {
+  if (const auto Result = vkAllocateDescriptorSets(GetVulkanGfxContexRef().GetDevice(), &AllocateInfo, RawSets.Data()); Result != VK_SUCCESS) {
     LOG_ERROR_TAG("RHI.Vulkan", "创建DescriptorSet失败, 错误码={}", Result);
     return {};
   }
 
-  auto Sets = RawSets | Ranges::Views::Transform([](const VkDescriptorSet& Set) -> UniquePtr<RHIDescriptorSet> { return MakeUnique<VulkanDescriptorSet>(Set); }) | Ranges::To<Array>();
+  auto Sets = RawSets | Ranges::Views::Transform([](const VkDescriptorSet& Set) -> UniquePtr<RHIDescriptorSet> { return MakeUnique<VulkanDescriptorSet>(Set); }) |
+              Ranges::To<Array<UniquePtr<RHIDescriptorSet>>>();
   return Sets;
 }

@@ -58,7 +58,7 @@ RHIRenderPass_Vulkan::RHIRenderPass_Vulkan(const RHIRenderPassDesc& Desc) {
       if (Subpass.ResolveAttachment) {
         VkAttachmentReference AttachmentRef{};
         AttachmentRef.attachment = Subpass.ResolveAttachment->Attachment;
-        AttachmentRef.layout = RHIImageLayoutToVkImageLayout(Subpass.ResolveAttachment->.Layout);
+        AttachmentRef.layout = RHIImageLayoutToVkImageLayout(Subpass.ResolveAttachment->Layout);
         ResolveAttachments.Add(AttachmentRef);
       }
       if (Subpass.DepthStencilAttachment) {

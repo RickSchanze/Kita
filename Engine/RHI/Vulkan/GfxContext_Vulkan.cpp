@@ -45,7 +45,7 @@ GfxContext_Vulkan::~GfxContext_Vulkan() {
 
 SharedPtr<RHIImage> GfxContext_Vulkan::CreateImage(const RHIImageDesc& Desc) { return nullptr; }
 
-SharedPtr<RHIImageView> GfxContext_Vulkan::CreateImageViewS(const ImageViewDesc& Desc) { return MakeShared<RHIImageView_Vulkan>(Desc); }
+SharedPtr<RHIImageView> GfxContext_Vulkan::CreateImageViewS(const RHIImageViewDesc& Desc) { return MakeShared<RHIImageView_Vulkan>(Desc); }
 
 SharedPtr<RHIFence> GfxContext_Vulkan::CreateFenceS() { return MakeShared<RHIFence_Vulkan>(); }
 
@@ -73,7 +73,7 @@ UInt32 GfxContext_Vulkan::GetNextImage(RHISurfaceWindow* Window, RHISemaphore* W
 
 UniquePtr<RHIRenderPass> GfxContext_Vulkan::CreateRenderPassU(const RHIRenderPassDesc& Desc) { return MakeUnique<RHIRenderPass_Vulkan>(Desc); }
 
-UniquePtr<RHIFrameBuffer> GfxContext_Vulkan::CreateFrameBufferU(const RHIFrameBufferDesc& Desc) { return MakeUnique<RHIFence_Vulkan>(Desc); }
+UniquePtr<RHIFrameBuffer> GfxContext_Vulkan::CreateFrameBufferU(const RHIFrameBufferDesc& Desc) { return MakeUnique<RHIFrameBuffer_Vulkan>(Desc); }
 
 UniquePtr<RHICommandPool> GfxContext_Vulkan::CreateCommandPoolU(ERHIQueueFamilyType QueueFamily) { return MakeUnique<RHICommandPool_Vulkan>(QueueFamily); }
 
@@ -118,8 +118,8 @@ bool GfxContext_Vulkan::IsLayerSupported(const char* LayerName) {
   UInt32 LayerCount;
   vkEnumerateInstanceLayerProperties(&LayerCount, nullptr);
 
-  std::vector<VkLayerProperties> AvailableLayers(LayerCount);
-  vkEnumerateInstanceLayerProperties(&LayerCount, AvailableLayers.data());
+  Array<VkLayerProperties> AvailableLayers(LayerCount);
+  vkEnumerateInstanceLayerProperties(&LayerCount, AvailableLayers.Data());
 
   for (const auto& layerProperties : AvailableLayers) {
     if (strcmp(LayerName, layerProperties.layerName) == 0) {
@@ -239,7 +239,7 @@ bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWind
   bool ExtensionsSupported = CheckDeviceExtensionSupport(Device);
 
   PhysicalDeviceSwapchainFeatures SwapchainFeatures = QueryPhysicalDeviceSwapchainFeatures(Device, TempWindow);
-  bool SwapchainAvailable = !SwapchainFeatures.Formats.empty() && !SwapchainFeatures.PresentModes.empty();
+  bool SwapchainAvailable = !SwapchainFeatures.Formats.Empty() && !SwapchainFeatures.PresentModes.Empty();
 
   VkPhysicalDeviceFeatures SupportedFeatures{};
   vkGetPhysicalDeviceFeatures(Device, &SupportedFeatures);
@@ -289,10 +289,10 @@ void GfxContext_Vulkan::CreateLogicalDevice(RHISurfaceWindow& TempWindow) {
   DeviceInfo.pEnabledFeatures = &DeviceFeatures;
   DeviceInfo.enabledExtensionCount = static_cast<UInt32>(mDeviceExtensions.Count());
   DeviceInfo.ppEnabledExtensionNames = mDeviceExtensions.Data();
-  std::vector<const char*> ValidationLayerNames = {VALIDATION_LAYER_NAME};
+  Array ValidationLayerNames = {VALIDATION_LAYER_NAME};
   if (mEnabledValidationLayer) {
-    DeviceInfo.enabledLayerCount = static_cast<UInt32>(ValidationLayerNames.size());
-    DeviceInfo.ppEnabledLayerNames = ValidationLayerNames.data();
+    DeviceInfo.enabledLayerCount = static_cast<UInt32>(ValidationLayerNames.Count());
+    DeviceInfo.ppEnabledLayerNames = ValidationLayerNames.Data();
   }
   if (VkResult Code = vkCreateDevice(mPhysicalDevice, &DeviceInfo, nullptr, &mDevice); Code != VK_SUCCESS) {
     LOG_CRITICAL_TAG("RHI.Vulkan", "初始化Vulkan上下文失败, Code={}", Code);
@@ -305,8 +305,8 @@ QueueFamilyIndices GfxContext_Vulkan::FindQueueFamilies(const VkPhysicalDevice D
   UInt32 QueueFamilyCount = 0;
   vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, nullptr);
 
-  std::vector<VkQueueFamilyProperties> QueueFamilies(QueueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, QueueFamilies.data());
+  Array<VkQueueFamilyProperties> QueueFamilies(QueueFamilyCount);
+  vkGetPhysicalDeviceQueueFamilyProperties(Device, &QueueFamilyCount, QueueFamilies.Data());
 
   int Index = 0;
   for (const auto& queueFamily : QueueFamilies) {
@@ -401,26 +401,26 @@ PhysicalDeviceSwapchainFeatures GfxContext_Vulkan::QueryPhysicalDeviceSwapchainF
   Features.Capabilities.MaxImageCount = SurfaceCapabilities.maxImageCount;
   Features.Capabilities.SupportedTransforms = VkSurfaceTransformToRHISurfaceTransform(SurfaceCapabilities.currentTransform);
   Features.Capabilities.CurrentTransform = static_cast<ERHISurfaceTransformBits>(VkSurfaceTransformToRHISurfaceTransform(SurfaceCapabilities.currentTransform));
-  std::vector<VkSurfaceFormatKHR> Formats;
-  std::vector<VkPresentModeKHR> PresentModes;
+  Array<VkSurfaceFormatKHR> Formats;
+  Array<VkPresentModeKHR> PresentModes;
   if (FormatCount != 0) {
-    Formats.resize(FormatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()), &FormatCount, Formats.data());
+    Formats.Resize(FormatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()), &FormatCount, Formats.Data());
     UInt32 PresentModeCount;
     vkGetPhysicalDeviceSurfacePresentModesKHR(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()), &PresentModeCount, nullptr);
     if (PresentModeCount != 0) {
-      PresentModes.resize(PresentModeCount);
-      vkGetPhysicalDeviceSurfacePresentModesKHR(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()), &PresentModeCount, PresentModes.data());
+      PresentModes.Resize(PresentModeCount);
+      vkGetPhysicalDeviceSurfacePresentModesKHR(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()), &PresentModeCount, PresentModes.Data());
     }
   }
   for (const auto SurfaceFormatKhr : Formats) {
     PhysicalDeviceSwapchainFeatures::SurfaceFormat NewFormat{};
     NewFormat.Format = VkFormatToRHIFormat(SurfaceFormatKhr.format);
     NewFormat.ColorSpace = VkColorSpaceToRHIColorSpace(SurfaceFormatKhr.colorSpace);
-    Features.Formats.push_back(NewFormat);
+    Features.Formats.Add(NewFormat);
   }
   for (const auto PresentMode : PresentModes) {
-    Features.PresentModes.push_back(VkPresentModeToRHIPresentMode(PresentMode));
+    Features.PresentModes.Add(VkPresentModeToRHIPresentMode(PresentMode));
   }
   return Features;
 }

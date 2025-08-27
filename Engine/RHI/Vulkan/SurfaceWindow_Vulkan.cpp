@@ -13,19 +13,19 @@
 
 #include <GLFW/glfw3.h>
 
-void GetVulkanGLFWSurfaceWindowExtensions(std::vector<const char*>& OutExtensions) {
+void GetVulkanGLFWSurfaceWindowExtensions(Array<const char*>& OutExtensions) {
   uint32_t glfwExtensionCount = 0;
   const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
   for (uint32_t i = 0; i < glfwExtensionCount; i++) {
-    OutExtensions.push_back(glfwExtensions[i]);
+    OutExtensions.Add(glfwExtensions[i]);
   }
 }
 
 RHISurfaceWindow_Vulkan::RHISurfaceWindow_Vulkan(int32_t Width, int32_t Height, bool InternalUse) {
   CPU_PROFILING_SCOPE;
   const RHIConfig& Cfg = ConfigManager::GetConfigRef<RHIConfig>();
-  Width = Width <= 0 ? Cfg.GetDefaultWindowSize().X : Width;
-  Height = Height <= 0 ? Cfg.GetDefaultWindowSize().Y : Height;
+  Width = Width <= 0 ? Cfg.GetDefaultWindowSize().X() : Width;
+  Height = Height <= 0 ? Cfg.GetDefaultWindowSize().Y() : Height;
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   if (InternalUse) {
     glfwWindowHint(GLFW_VISIBLE, false);
@@ -129,7 +129,7 @@ void RHISurfaceWindow_Vulkan::DestroySwapchain() {
 
 Vector2i RHISurfaceWindow_Vulkan::GetSize() {
   Vector2i Result;
-  glfwGetWindowSize(mWindow, &Result.X, &Result.Y);
+  glfwGetWindowSize(mWindow, &Result.X(), &Result.Y());
   return Result;
 }
 
@@ -171,16 +171,16 @@ VkPresentModeKHR RHISurfaceWindow_Vulkan::ChoosePresentMode(const PhysicalDevice
 }
 
 VkExtent2D RHISurfaceWindow_Vulkan::ChooseSwapchainExtent(const PhysicalDeviceSwapchainFeatures& Features) const {
-  if (Features.Capabilities.CurrentExtent.X != std::numeric_limits<uint32_t>::max()) {
-    return {Features.Capabilities.CurrentExtent.X, Features.Capabilities.CurrentExtent.Y};
+  if (Features.Capabilities.CurrentExtent.X() != std::numeric_limits<uint32_t>::max()) {
+    return {static_cast<UInt32>(Features.Capabilities.CurrentExtent.X()), static_cast<UInt32>(Features.Capabilities.CurrentExtent.Y())};
   }
   int Width, Height;
   glfwGetFramebufferSize(mWindow, &Width, &Height);
 
   VkExtent2D ActualExtent = {static_cast<uint32_t>(Width), static_cast<uint32_t>(Height)};
 
-  ActualExtent.width = std::clamp(ActualExtent.width, Features.Capabilities.MinImageExtent.X, Features.Capabilities.MaxImageExtent.X);
-  ActualExtent.height = std::clamp(ActualExtent.height, Features.Capabilities.MinImageExtent.Y, Features.Capabilities.MaxImageExtent.Y);
+  ActualExtent.width = std::clamp(ActualExtent.width, static_cast<UInt32>(Features.Capabilities.MinImageExtent.X()), static_cast<UInt32>(Features.Capabilities.MaxImageExtent.X()));
+  ActualExtent.height = std::clamp(ActualExtent.height, static_cast<UInt32>(Features.Capabilities.MinImageExtent.Y()), static_cast<UInt32>(Features.Capabilities.MaxImageExtent.Y()));
 
   return ActualExtent;
 }

@@ -46,8 +46,8 @@ struct PhysicalDeviceSwapchainFeatures {
     ERHISurfaceTransformBits CurrentTransform;
   };
 
-  std::vector<SurfaceFormat> Formats;
-  std::vector<ERHIPresentMode> PresentModes;
+  Array<SurfaceFormat > Formats;
+  Array<ERHIPresentMode > PresentModes;
   MyCapabilities Capabilities;
 };
 
@@ -75,7 +75,7 @@ public:
 
   [[nodiscard]] const PhysicalDeviceSwapchainFeatures& GetPhysicalDeviceSwapchainFeatures() const { return mPhysicalDeviceSwapchainFeatures; }
 
-  virtual SharedPtr<RHIImageView> CreateImageViewS(const struct ImageViewDesc& Desc) = 0;
+  virtual SharedPtr<RHIImageView> CreateImageViewS(const struct RHIImageViewDesc& Desc) = 0;
   virtual UniquePtr<RHIFence> CreateFenceU() = 0;
   virtual SharedPtr<RHIFence> CreateFenceS() = 0;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() = 0;

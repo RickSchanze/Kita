@@ -1,5 +1,6 @@
 #pragma once
 #include "RHI/GfxContext.h"
+#include "RHI/ImageView.h"
 #include "vulkan/vulkan.h"
 
 struct QueueFamilyIndices {
@@ -17,7 +18,7 @@ public:
   [[nodiscard]] virtual ERHIBackend GetBackend() const override { return ERHIBackend::Vulkan; }
 
   virtual SharedPtr<RHIImage> CreateImage(const RHIImageDesc& Desc) override;
-  virtual SharedPtr<RHIImageView> CreateImageViewS(const ImageViewDesc& Desc) override;
+  virtual SharedPtr<RHIImageView> CreateImageViewS(const RHIImageViewDesc& Desc) override;
   virtual SharedPtr<RHIFence> CreateFenceS() override;
   virtual UniquePtr<RHIFence> CreateFenceU() override;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() override;
