@@ -16,7 +16,7 @@ public:
   [[nodiscard]] StringView GetObjectName() const { return mName; }
 
   /// 供内部使用的设置对象Handle的方法
-  void InternalSetObjectHandle(Int32 NewHandle) { mHandle = NewHandle; }
+  void InternalSetObjectHandle(const Int32 NewHandle) { mHandle = NewHandle; }
   [[nodiscard]] Int32 GetObjectHandle() const { return mHandle; }
 
 protected:

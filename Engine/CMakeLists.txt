@@ -19,5 +19,6 @@ kita_add_subdirectory(Core)
 kita_add_subdirectory(Object)
 kita_add_subdirectory(Math)
 kita_add_subdirectory(RHI)
+kita_add_subdirectory(World)
 
 include_directories(Generated)

@@ -24,6 +24,6 @@ if (MSVC)
 endif ()
 
 add_executable(Kita Engine/main.cpp)
-target_link_libraries(Kita PRIVATE KitaCore KitaObject KitaMath KitaRHI)
+target_link_libraries(Kita PRIVATE KitaCore KitaObject KitaMath KitaRHI KitaWorld)
 
 

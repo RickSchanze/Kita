@@ -52,12 +52,13 @@ public:
     return INVALID_INDEX;
   }
 
-  // 交换然后删除 erase-remove
+  /// 删除一个元素, 不存在则不删
   void Remove(const T& InValue) {
     static_assert(Traits::IEquatable<T>, "T must be equatable when use IndexOf(const T&)");
     for (SizeType Index = 0; Index < mData.size(); Index++) {
       if (mData[Index] == InValue) {
-        mData.erase(std::remove(mData.begin() + Index, mData.begin() + Index + 1), mData.end());
+        mData.erase(mData.begin() + Index);
+        return;
       }
     }
   }

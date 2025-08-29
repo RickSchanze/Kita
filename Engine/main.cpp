@@ -18,26 +18,11 @@
 #include "RHI/RHIEnums.h"
 #include "RHI/Vulkan/RHIEnums_Vulkan.h"
 #include "Windows.h"
-
-void StartUpSystems() {
-  TaskGraph::StartUp();
-  GfxContext::StartUp();
-}
-
-void ShutDownSystems() {
-  GfxContext::ShutDown();
-  ConfigManager::ShutDown();
-  TaskGraph::ShutDown();
-}
+#include "World/EngineLoop.h"
 
 int main() {
   SetConsoleOutputCP(CP_UTF8);
-  StartUpSystems();
-
-  RHIConfig* Cfg = ConfigManager::GetConfig<RHIConfig>();
-  RHIConfig* Cfg1 = ConfigManager::GetConfig<RHIConfig>();
-
-  RHIFormatToVkFormat(ERHIFormat::A2B10G10R10_UNorm);
-
-  ShutDownSystems();
+  EngineLoop::StartUpSystems();
+  EngineLoop::Run();
+  EngineLoop::ShutDownSystems();
 }
