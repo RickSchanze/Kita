@@ -53,7 +53,7 @@ IConfig* ConfigManager::GetConfigM(const Type* InType) {
     ESerializationError Error = Archive.ParseFile(FilePath);
     if (Error != ESerializationError::Ok) {
       if (Error == ESerializationError::TargetInvalid) {
-        LOG_WARN_TAG("Config", "{}对应的路径[{}]不存在, 将使用默认值.", InType->GetName(), FilePath);
+        LOG_WARN_TAG("Config", "{}对应的路径'{}'不存在, 将使用默认值.", InType->GetName(), FilePath);
         NewConfig->SetSaveDirty(true);
       } else {
         LOG_ERROR_TAG("Config", "{}配置文件[{}]解析失败, 将使用默认值. Error={}", InType->GetName(), FilePath, static_cast<int>(Error));
