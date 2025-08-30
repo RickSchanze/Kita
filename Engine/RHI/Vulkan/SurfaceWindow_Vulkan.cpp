@@ -78,7 +78,7 @@ void RHISurfaceWindow_Vulkan::DestroySurface(VkInstance Instance) {
 
 void RHISurfaceWindow_Vulkan::CreateSwapchain() {
   const auto& Ctx = GetVulkanGfxContexRef();
-  const PhysicalDeviceSwapchainFeatures& Features = Ctx.GetPhysicalDeviceSwapchainFeatures();
+  const PhysicalDeviceSwapchainFeatures& Features = Ctx.GetPhysicalDeviceSwapchainFeatures(*this);
   const VkSurfaceFormatKHR SurfaceFormat = ChooseSwapchainFormat(Features);
   const VkPresentModeKHR PresentMode = ChoosePresentMode(Features);
   const VkExtent2D Extent = ChooseSwapchainExtent(Features);
@@ -162,7 +162,10 @@ Vector2i RHISurfaceWindow_Vulkan::GetSize() {
 
 bool RHISurfaceWindow_Vulkan::ShouldClose() { return glfwWindowShouldClose(mWindow); }
 
-void RHISurfaceWindow_Vulkan::TickInput() { glfwPollEvents(); }
+void RHISurfaceWindow_Vulkan::TickInput() {
+  glfwPollEvents();
+  ImGui_ImplGlfw_NewFrame();
+}
 
 VkSurfaceFormatKHR RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(const PhysicalDeviceSwapchainFeatures& Features) {
   const auto& Cfg = ConfigManager::GetConfigRef<RHIConfig>();

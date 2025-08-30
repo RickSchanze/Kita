@@ -22,6 +22,9 @@ public:
 
   static void SetRenderPipeline(UniquePtr<RenderPipeline> InNewPipeline) { GetRef().mRenderPipeline = std::move(InNewPipeline); }
 
+  /// 更新并且获知当前Window有没有进行Resize
+  bool IsWindowResized();
+
 private:
   UniquePtr<RenderTicker> mRenderTicker{};
 
@@ -36,5 +39,5 @@ private:
   UniquePtr<RHICommandBuffer> mCommandBuffers[MAX_FRAMES_INFLIGHT];
   Int32 mFrameIndex = 0;
   class GfxContext* mGfxContext = nullptr;
-  bool mNeedRecreation = false;
+  Vector2i mWindowSize = {1, 1};
 };

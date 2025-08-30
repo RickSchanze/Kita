@@ -37,6 +37,8 @@ public:
   virtual bool Present(const RHIPresentParams& Params) override;
   virtual void WaitDeviceIdle() override;
 
+  virtual PhysicalDeviceSwapchainFeatures GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const override;
+
 #if KITA_EDITOR
   virtual void DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) override;
   void StartUpImGui();
@@ -62,14 +64,12 @@ public:
   [[nodiscard]] VkQueue GetQueue(ERHIQueueFamilyType Family) const;
 
 private:
-
-
   static bool IsLayerSupported(const char* LayerName);
   static void OnPostGfxContextCreated(GfxContext* Context);
   void CreateInstance();
   void SetupDebugMessenger();
   void SelectPhysicalDevice(RHISurfaceWindow& TempWindow);
-  [[nodiscard]] bool IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow, QueueFamilyIndices& OutFamilyIndicies) const;
+  [[nodiscard]] bool IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow, QueueFamilyIndices& OutFamilyIndices, VkSurfaceFormatKHR& OutFormat) const;
   [[nodiscard]] bool CheckDeviceExtensionSupport(VkPhysicalDevice Device) const;
   void CreateLogicalDevice(RHISurfaceWindow& TempWindow);
 
@@ -86,7 +86,10 @@ private:
   VkDevice mDevice = nullptr;
   VkQueue mGraphicsQueue = nullptr;
   VkQueue mPresentQueue = nullptr;
+  /// 用于
+  // PhysicalDeviceSwapchainFeatures mPhysicalDeviceSwapchainFeatures = {};
 
+  VkSurfaceFormatKHR mSwapchainFormat{};
   QueueFamilyIndices mQueueFamilies;
 
   bool mEnabledValidationLayer = false;

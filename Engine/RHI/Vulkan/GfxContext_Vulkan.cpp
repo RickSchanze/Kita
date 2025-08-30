@@ -125,6 +125,8 @@ bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) {
 
 void GfxContext_Vulkan::WaitDeviceIdle() { vkDeviceWaitIdle(mDevice); }
 
+PhysicalDeviceSwapchainFeatures GfxContext_Vulkan::GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const { return QueryPhysicalDeviceSwapchainFeatures(mPhysicalDevice, Window); }
+
 class ImGuiDrawTask : public TaskNode {
 public:
   VkCommandBuffer Cmd;
@@ -294,7 +296,7 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
   vkEnumeratePhysicalDevices(mInstance, &DeviceCount, devices.Data());
 
   for (const auto& Device : devices) {
-    if (IsDeviceSuitable(Device, TempWindow, mQueueFamilies)) {
+    if (IsDeviceSuitable(Device, TempWindow, mQueueFamilies, mSwapchainFormat)) {
       mPhysicalDevice = Device;
       break;
     }
@@ -304,11 +306,10 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
     LOG_CRITICAL_TAG("RHI.Vulkan", "没有可用的Vulkan设备!");
   } else {
     FindPhysicalDeviceFeatures();
-    mPhysicalDeviceSwapchainFeatures = QueryPhysicalDeviceSwapchainFeatures(mPhysicalDevice, TempWindow);
   }
 }
 
-bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow, QueueFamilyIndices& OutFamilyIndicies) const {
+bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow, QueueFamilyIndices& OutFamilyIndices, VkSurfaceFormatKHR& OutFormat) const {
   bool ExtensionsSupported = CheckDeviceExtensionSupport(Device);
 
   PhysicalDeviceSwapchainFeatures SwapchainFeatures = QueryPhysicalDeviceSwapchainFeatures(Device, TempWindow);
@@ -317,9 +318,10 @@ bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWind
   VkPhysicalDeviceFeatures SupportedFeatures{};
   vkGetPhysicalDeviceFeatures(Device, &SupportedFeatures);
 
-  OutFamilyIndicies = FindQueueFamilies(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()));
+  OutFamilyIndices = FindQueueFamilies(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()));
+  OutFormat = RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(SwapchainFeatures);
 
-  return ExtensionsSupported && SupportedFeatures.samplerAnisotropy && SwapchainAvailable && OutFamilyIndicies.IsComplete();
+  return ExtensionsSupported && SupportedFeatures.samplerAnisotropy && SwapchainAvailable && OutFamilyIndices.IsComplete();
 }
 
 bool GfxContext_Vulkan::CheckDeviceExtensionSupport(const VkPhysicalDevice Device) const {
@@ -472,7 +474,7 @@ void GfxContext_Vulkan::ShutDownImGui() {
 void GfxContext_Vulkan::CreateImGuiRenderPass() {
   // 颜色附件描述
   VkAttachmentDescription ColorAttachment = {};
-  ColorAttachment.format = RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(mPhysicalDeviceSwapchainFeatures).format;
+  ColorAttachment.format = mSwapchainFormat.format;
   ColorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
   ColorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // 如果你想保留之前绘制的内容
   ColorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;

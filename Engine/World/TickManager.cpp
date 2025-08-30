@@ -6,6 +6,8 @@
 
 #include "Core/Performance/ProfilerMark.h"
 
+#include <imgui.h>
+
 void TickManager::ShutDown() {
   auto& Self = GetRef();
   if (!Self.mTickObjects.Empty()) {

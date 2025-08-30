@@ -83,7 +83,7 @@ public:
 
   [[nodiscard]] const GfxDeviceFeatures& GetGfxDeviceFeatures() const { return mGfxDeviceFeatures; }
 
-  [[nodiscard]] const PhysicalDeviceSwapchainFeatures& GetPhysicalDeviceSwapchainFeatures() const { return mPhysicalDeviceSwapchainFeatures; }
+  [[nodiscard]] virtual PhysicalDeviceSwapchainFeatures GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const = 0;
 
   virtual SharedPtr<RHIImageView> CreateImageViewS(const struct RHIImageViewDesc& Desc) = 0;
   virtual UniquePtr<RHIFence> CreateFenceU() = 0;
@@ -134,7 +134,6 @@ protected:
 
 protected:
   GfxDeviceFeatures mGfxDeviceFeatures{};
-  PhysicalDeviceSwapchainFeatures mPhysicalDeviceSwapchainFeatures = {};
 
   static inline GfxContext* mContext = nullptr;
 };

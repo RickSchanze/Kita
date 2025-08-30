@@ -50,16 +50,22 @@ void RenderContext::ShutDown() {
 }
 
 void RenderContext::Render(double Time) {
+  CPU_PROFILING_SCOPE;
+  if (IsWindowResized()) {
+    if (mWindowSize.X() == 0 || mWindowSize.Y() == 0) {
+      return;
+    }
+    GfxContext::GetRef().WaitDeviceIdle();
+    mSurfaceWindow->DestroySwapchain();
+    mSurfaceWindow->CreateSwapchain();
+  }
   if (!ShouldRender())
     return;
-  CPU_PROFILING_SCOPE;
+
   Int32 FrameIndex = mFrameIndex % MAX_FRAMES_INFLIGHT;
   mInFlightFences[FrameIndex]->Wait(UINT64_MAX);
-  bool NeedRecreation;
-  UInt32 ImageIndex = mGfxContext->GetNextImage(mSurfaceWindow, mImageAvailableSemaphores[FrameIndex].Get(), nullptr, mNeedRecreation);
-  if (mNeedRecreation) {
-  }
-
+  bool ResizeNeeded;
+  UInt32 ImageIndex = mGfxContext->GetNextImage(mSurfaceWindow, mImageAvailableSemaphores[FrameIndex].Get(), nullptr, ResizeNeeded);
   mInFlightFences[FrameIndex]->Reset();
   mCommandBuffers[FrameIndex]->Reset();
   mCommandBuffers[FrameIndex]->BeginRecord();
@@ -68,7 +74,6 @@ void RenderContext::Render(double Time) {
 
 #if KITA_EDITOR
   ImGui_ImplVulkan_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 #endif
   bool show_demo_window = true;
@@ -104,7 +109,16 @@ void RenderContext::Render(double Time) {
       .SetWaitSemaphores({mRenderFinishedSemaphores[FrameIndex].Get()}) //
       .SetSurfaceWindow(mSurfaceWindow)                                 //
       .SetImageIndex(ImageIndex);
-  mNeedRecreation = mGfxContext->Present(PresentParams);
+  mGfxContext->Present(PresentParams);
 }
 
-bool RenderContext::ShouldRender() const { return mRenderPipeline; }
+bool RenderContext::ShouldRender() const { return mRenderPipeline && mWindowSize.X() != 0 && mWindowSize.Y() != 0; }
+
+bool RenderContext::IsWindowResized() {
+  Vector2i NewSize = mSurfaceWindow->GetSize();
+  if (NewSize != mWindowSize) {
+    mWindowSize = NewSize;
+    return true;
+  }
+  return false;
+}
