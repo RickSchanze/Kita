@@ -140,6 +140,7 @@ public:
 
   virtual ENamedThread GetDesiredThread() const override { return ENamedThread::Render; }
   virtual ETaskNodeResult Run() override {
+    CPU_PROFILING_SCOPE;
     VkRenderPassBeginInfo RenderPassBeginInfo{};
     RenderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     RenderPassBeginInfo.renderPass = RenderPass;

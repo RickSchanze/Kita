@@ -55,6 +55,7 @@ void RenderContext::Render(double Time) {
     if (mWindowSize.X() == 0 || mWindowSize.Y() == 0) {
       return;
     }
+    CPU_NAMED_PROFILING_SCOPE("SwapchainRecreate");
     GfxContext::GetRef().WaitDeviceIdle();
     mSurfaceWindow->DestroySwapchain();
     mSurfaceWindow->CreateSwapchain();
@@ -62,10 +63,18 @@ void RenderContext::Render(double Time) {
   if (!ShouldRender())
     return;
 
-  Int32 FrameIndex = mFrameIndex % MAX_FRAMES_INFLIGHT;
-  mInFlightFences[FrameIndex]->Wait(UINT64_MAX);
-  bool ResizeNeeded;
-  UInt32 ImageIndex = mGfxContext->GetNextImage(mSurfaceWindow, mImageAvailableSemaphores[FrameIndex].Get(), nullptr, ResizeNeeded);
+  Int32 FrameIndex;
+  {
+    CPU_NAMED_PROFILING_SCOPE("WaitFence");
+    FrameIndex = mFrameIndex % MAX_FRAMES_INFLIGHT;
+    mInFlightFences[FrameIndex]->Wait(UINT64_MAX);
+  }
+  UInt32 ImageIndex;
+  {
+    CPU_NAMED_PROFILING_SCOPE("GetNextImage");
+    bool ResizeNeeded;
+    ImageIndex = mGfxContext->GetNextImage(mSurfaceWindow, mImageAvailableSemaphores[FrameIndex].Get(), nullptr, ResizeNeeded);
+  }
   mInFlightFences[FrameIndex]->Reset();
   mCommandBuffers[FrameIndex]->Reset();
   mCommandBuffers[FrameIndex]->BeginRecord();
@@ -104,12 +113,15 @@ void RenderContext::Render(double Time) {
   ExecuteWaitHandle.WaitSync();
   mGfxContext->Submit(SubmitParams);
 
-  RHIPresentParams PresentParams = {};
-  PresentParams
-      .SetWaitSemaphores({mRenderFinishedSemaphores[FrameIndex].Get()}) //
-      .SetSurfaceWindow(mSurfaceWindow)                                 //
-      .SetImageIndex(ImageIndex);
-  mGfxContext->Present(PresentParams);
+  {
+    CPU_NAMED_PROFILING_SCOPE("Present");
+    RHIPresentParams PresentParams = {};
+    PresentParams
+        .SetWaitSemaphores({mRenderFinishedSemaphores[FrameIndex].Get()}) //
+        .SetSurfaceWindow(mSurfaceWindow)                                 //
+        .SetImageIndex(ImageIndex);
+    mGfxContext->Present(PresentParams);
+  }
 }
 
 bool RenderContext::ShouldRender() const { return mRenderPipeline && mWindowSize.X() != 0 && mWindowSize.Y() != 0; }

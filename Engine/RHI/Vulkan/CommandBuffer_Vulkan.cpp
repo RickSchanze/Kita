@@ -4,6 +4,7 @@
 
 #include "CommandBuffer_Vulkan.h"
 
+#include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskGraph.h"
 #include "Core/TaskGraph/TaskNode.h"
 #include "GfxContext_Vulkan.h"
@@ -54,14 +55,19 @@ public:
   VkCommandBuffer CmdBuffer;
 
   void BeginRecord(IRHICommand* Cmd) {
+    CPU_PROFILING_SCOPE;
     VkCommandBufferBeginInfo BeginInfo{};
     BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     vkBeginCommandBuffer(CmdBuffer, &BeginInfo);
   }
 
-  void EndRecord(IRHICommand* Cmd) { vkEndCommandBuffer(CmdBuffer); }
+  void EndRecord(IRHICommand* Cmd) {
+    CPU_PROFILING_SCOPE;
+    vkEndCommandBuffer(CmdBuffer);
+  }
 
   void BeginRenderPass(IRHICommand* Cmd) {
+    CPU_PROFILING_SCOPE;
     RHICmd_BeginRenderPass* CmdBeginRenderPass = static_cast<RHICmd_BeginRenderPass*>(Cmd);
     VkRenderPassBeginInfo BeginInfo{};
     BeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -83,9 +89,13 @@ public:
     vkCmdBeginRenderPass(CmdBuffer, &BeginInfo, VK_SUBPASS_CONTENTS_INLINE);
   }
 
-  void EndRenderPass(IRHICommand* Cmd) { vkCmdEndRenderPass(CmdBuffer); }
+  void EndRenderPass(IRHICommand* Cmd) {
+    CPU_PROFILING_SCOPE;
+    vkCmdEndRenderPass(CmdBuffer);
+  }
 
   virtual ETaskNodeResult Run() override {
+    CPU_PROFILING_SCOPE;
     while (!Queue.Empty()) {
       UniquePtr<IRHICommand> Cmd = Queue.Dequeue();
       switch (Cmd->GetType()) {
