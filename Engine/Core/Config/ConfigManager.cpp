@@ -21,7 +21,8 @@ void ConfigManager::SaveAllDirtyConfigsM() {
   for (const auto& [ConfigType, Config] : mConfigs) {
     String ConfigPath = Config->GetFilePath();
     if (!FileArchives.Contains(ConfigPath)) {
-      FileArchives[ConfigPath] = {};
+      // 构造而不赋值
+      FileArchives[ConfigPath];
     }
     FileConfigTypes[ConfigPath].Add(ConfigType->GetName().ToString());
   }

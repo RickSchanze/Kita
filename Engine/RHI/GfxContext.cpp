@@ -32,6 +32,7 @@ void GfxContext::StartUp() {
 }
 
 void GfxContext::ShutDown() {
+  mContext->WaitDeviceIdle();
   Evt_PreGfxContextDestroyed.Invoke(mContext);
   Delete(mContext);
   auto& Config = ConfigManager::GetConfigRef<RHIConfig>();

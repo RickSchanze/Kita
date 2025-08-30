@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Memory/UniquePtr.h"
 #include "Core/Singleton/Singleton.h"
 
 class InputTicker;

@@ -6,7 +6,7 @@
 
 #include "TaskGraph.h"
 
-void TaskHandle::StartLazy() const { TaskGraph::GetRef().StartLazyTask(mInstance); }
+void TaskHandle::StartLazy() { TaskGraph::GetRef().StartLazyTask(mInstance); }
 
 ETaskState TaskHandle::GetState(bool Lock) const {
   if (mInstance == nullptr) {
@@ -20,4 +20,4 @@ ETaskState TaskHandle::GetState(bool Lock) const {
 
 bool TaskHandle::IsValid() const { return mInstance != nullptr; }
 
-void TaskHandle::WaitSync() const { TaskGraph::GetRef().WaitTaskSync(mInstance); }
+void TaskHandle::WaitSync() { TaskGraph::GetRef().WaitTaskSync(mInstance); }

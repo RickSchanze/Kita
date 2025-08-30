@@ -54,6 +54,8 @@ template <typename T> struct SharedPtr {
 
   operator bool() const { return mPtr != nullptr; }
 
+  [[nodiscard]] SizeType GetHashCode() const { return std::hash<std::shared_ptr<T>>{}(mPtr); }
+
 private:
   std::shared_ptr<T> mPtr;
 };

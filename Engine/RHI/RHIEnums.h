@@ -48,6 +48,7 @@ enum class ERHIFormat {
   Count, // 超出范围(Undefined)
 };
 
+KENUM()
 enum class ERHIColorSpace {
   sRGB,  // 非线性sRGB, 适用于大部分普通内容, 标准显示器
   HDR10, // HDR10

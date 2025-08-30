@@ -1,11 +1,8 @@
 #pragma once
-#include "Core/Container/Array.h"
-#include "Core/Container/Map.h"
+
 #include "Core/Container/Stack.h"
-#include "Core/Memory/UniquePtr.h"
 #include "Core/Serialization/OutputArchive.h"
 #include "Core/Serialization/SerializationError.h"
-#include "Core/Traits.h"
 
 class TOMLOutputArchive : public OutputArchive {
 public:
@@ -14,6 +11,8 @@ public:
     WritingObject,
   };
   TOMLOutputArchive();
+  virtual ~TOMLOutputArchive() override;
+
   virtual void BeginObject(StringView ObjectName) override;
   virtual void EndObject() override;
   virtual void BeginArray(StringView Key) override;
@@ -37,6 +36,6 @@ public:
   ESerializationError WriteFile(StringView Path);
 
 private:
-  UniquePtr<Impl> mImpl;
+  std::unique_ptr<Impl> mImpl;
   Stack<ArchiveState> mStateStack;
 };

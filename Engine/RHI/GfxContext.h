@@ -4,7 +4,6 @@
 #include "RHIEnums.h"
 #include "SurfaceWindow.h"
 
-#include "Core/TaskGraph/TaskHandle.h"
 #include "GfxContext.generated.h"
 
 class RHICommandBuffer;
@@ -101,6 +100,7 @@ public:
   virtual UniquePtr<RHIDescriptorPool> CreateDescriptorPoolU(const struct RHIDescriptorPoolDesc& Desc) = 0;
   virtual UniquePtr<RHIPipelineLayout> CreatePipelineLayoutU(const struct RHIPipelineLayoutDesc& Desc) = 0;
   virtual UniquePtr<RHIPipeline> CreatePipeline(const struct RHIGraphicsPipelineDesc& Desc) = 0;
+  virtual void WaitDeviceIdle() = 0;
 
   /**
    * 创建一个SurfaceWindow用于渲染

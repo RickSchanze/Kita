@@ -5,7 +5,7 @@
 #include <memory>
 
 template <typename T, EMemoryLabel Label> struct UniquePtrDeleter {
-  void operator()(T* Ptr) { Free(Ptr, Label); }
+  void operator()(T* Ptr) { Delete<T, Label>(Ptr); }
 };
 
 template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct UniquePtr {

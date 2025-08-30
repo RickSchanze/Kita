@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Memory/SharedPtr.h"
 
 enum class ETaskState {
   Lazy,       // 等待被启动
@@ -12,13 +13,13 @@ enum class ETaskState {
 struct TaskInstance;
 
 struct TaskHandle {
-  explicit TaskHandle(TaskInstance* Instance) : mInstance(Instance) {}
+  explicit TaskHandle(const SharedPtr<TaskInstance>& Instance) : mInstance(Instance) {}
   TaskHandle() = default;
 
   /**
    * 启动一个Lazy任务
    */
-  void StartLazy() const;
+  void StartLazy();
 
   /**
    * 获取任务状态
@@ -32,10 +33,10 @@ struct TaskHandle {
   [[nodiscard]] bool IsLazy() const { return GetState() == ETaskState::Lazy; }
   [[nodiscard]] bool IsValid() const;
 
-  void WaitSync() const;
+  void WaitSync();
 
-  [[nodiscard]] TaskInstance* GetInstance() const { return mInstance; }
+  [[nodiscard]] SharedPtr<TaskInstance> GetInstance() const { return mInstance; }
 
 private:
-  TaskInstance* mInstance = nullptr;
+  SharedPtr<TaskInstance> mInstance = nullptr;
 };

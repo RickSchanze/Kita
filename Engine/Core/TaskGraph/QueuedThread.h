@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Concurrency/ConcurrentQueue.h"
+#include "Core/Memory/SharedPtr.h"
 #include "Core/String/StringView.h"
 #include "Core/TypeDefs.h"
 
@@ -17,9 +18,7 @@ public:
   void ShutDown();
 
   /// 添加任务（不阻塞）
-  void Enqueue(TaskInstance* task) {
-    mQueue.Enqueue(task);
-  }
+  void Enqueue(const SharedPtr<TaskInstance>& Task) { mQueue.Enqueue(Task); }
 
   /// 停止工作线程
   void Stop();
@@ -32,7 +31,7 @@ private:
   void ThreadLoop();
 
 private:
-  ConcurrentQueue<TaskInstance*> mQueue;
+  ConcurrentQueue<SharedPtr<TaskInstance>> mQueue;
   std::thread mThread;
   std::atomic<bool> mStop;
 };

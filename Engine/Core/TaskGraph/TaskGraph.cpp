@@ -33,10 +33,10 @@ void TaskGraph::ShutDown() {
   LOG_INFO_TAG("TaskGraph", "IO线程池已关闭.");
 }
 
-void TaskGraph::NotifyTaskCompleted(TaskInstance* InInstance) {
+void TaskGraph::NotifyTaskCompleted(SharedPtr<TaskInstance>& InInstance) {
   ASSERT_MSG(InInstance != nullptr, "TaskGraph::NotifyTaskCompleted called with nullptr");
   ASSERT_MSG(mInstances.Contains(InInstance), "TaskGraph::NotifyTaskCompleted called with invalid instance(instance not be managed). Name=\"{}\", Ptr={}", InInstance->DebugName, Ptr(InInstance));
-  for (const auto& DependentInstance : InInstance->Subsequence) {
+  for (auto& DependentInstance : InInstance->Subsequence) {
     if (DependentInstance == nullptr) {
       continue;
     }
@@ -53,26 +53,25 @@ void TaskGraph::NotifyTaskCompleted(TaskInstance* InInstance) {
     }
   }
   InInstance->SetState(ETaskState::Finished);
-  Delete(InInstance);
   mInstances.Remove(InInstance);
 }
 
-void TaskGraph::NotifyTaskFailed(TaskInstance* InInstance) const {
+void TaskGraph::NotifyTaskFailed(SharedPtr<TaskInstance>& InInstance) const {
   ASSERT_MSG(InInstance != nullptr, "TaskGraph::NotifyTaskCompleted called with nullptr");
   ASSERT_MSG(mInstances.Contains(InInstance), "TaskGraph::NotifyTaskCompleted called with invalid instance(instance not be managed). Name=\"{}\", Ptr={}", InInstance->DebugName, Ptr(InInstance));
   // TODO: 失败的情况有点复杂，需要去掉当前图中所有与InInstance直接或间接相关的任务, 以后再写
   std::unreachable();
 }
 
-bool TaskGraph::IsTaskExists(TaskInstance* InInstance) const { return mInstances.Contains(InInstance); }
+bool TaskGraph::IsTaskExists(const SharedPtr<TaskInstance>& InInstance) const { return mInstances.Contains(InInstance); }
 
 struct TaskInstanceLock {
-  TaskInstance* Instance;
-  TaskInstanceLock(TaskInstance* InInstance) : Instance(InInstance) { Instance->Lock(); }
+  const SharedPtr<TaskInstance> Instance;
+  explicit TaskInstanceLock(const SharedPtr<TaskInstance>& InInstance) : Instance(InInstance) { Instance->Lock(); }
   ~TaskInstanceLock() { Instance->Unlock(); }
 };
 
-void TaskGraph::StartLazyTask(TaskInstance* InInstance) {
+void TaskGraph::StartLazyTask(SharedPtr<TaskInstance>& InInstance) {
   if (InInstance == nullptr) {
     return;
   }
@@ -91,7 +90,7 @@ void TaskGraph::StartLazyTask(TaskInstance* InInstance) {
   }
 }
 
-void TaskGraph::WaitTaskSync(TaskInstance* InInstance) const {
+void TaskGraph::WaitTaskSync(SharedPtr<TaskInstance>& InInstance) const {
   if UNLIKELY (!InInstance) {
     return;
   }
@@ -99,14 +98,11 @@ void TaskGraph::WaitTaskSync(TaskInstance* InInstance) const {
     // Task已完成
     return;
   }
-  while (true) {
-    if (InInstance->GetState() == ETaskState::Finished) {
-      return;
-    }
-  }
+  std::unique_lock Lock(InInstance->Mutex);
+  InInstance->CV.wait(Lock, [InInstance] { return InInstance->GetState(false) == ETaskState::Finished; });
 }
 
-void TaskGraph::ScheduleTask(TaskInstance* InInstance) {
+void TaskGraph::ScheduleTask(const SharedPtr<TaskInstance>& InInstance) {
   switch (InInstance->Node->GetDesiredThread()) {
   case ENamedThread::Render:
     mRenderExecutor.Enqueue(InInstance);

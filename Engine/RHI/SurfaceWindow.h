@@ -4,13 +4,15 @@
 #include "Core/Reflection/MetaMark.h"
 #include "Math/Vector.h"
 
-class RHIFrameBuffer;
+#include "SurfaceWindow.generated.h"
+
 KENUM()
 enum class ERHISurfaceWindowType {
   GLFW,
   Count,
 };
 
+class RHIFrameBuffer;
 extern void GetVulkanGLFWSurfaceWindowExtensions(Array<const char*>& OutExtensions);
 
 class RHISurfaceWindow {

@@ -35,6 +35,7 @@ public:
   virtual UniquePtr<RHIPipelineLayout> CreatePipelineLayoutU(const RHIPipelineLayoutDesc& Desc) override;
   virtual UniquePtr<RHIPipeline> CreatePipeline(const RHIGraphicsPipelineDesc& Desc) override;
   virtual bool Present(const RHIPresentParams& Params) override;
+  virtual void WaitDeviceIdle() override;
 
 #if KITA_EDITOR
   virtual void DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) override;

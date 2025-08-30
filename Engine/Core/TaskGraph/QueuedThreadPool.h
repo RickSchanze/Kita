@@ -12,9 +12,7 @@ public:
   void ShutDown();
 
   // 添加任务
-  void Enqueue(TaskInstance* task) {
-    mQueue.Enqueue(task);
-  }
+  void Enqueue(const SharedPtr<TaskInstance>& task) { mQueue.Enqueue(task); }
 
   void Stop();
 
@@ -22,7 +20,7 @@ private:
   void ThreadLoop(const String& Name, SizeType index);
 
 private:
-  ConcurrentQueue<TaskInstance*> mQueue;
+  ConcurrentQueue<SharedPtr<TaskInstance>> mQueue;
   Array<std::thread> mWorkers;
   std::atomic<bool> mStop;
 };

@@ -2,6 +2,7 @@
 
 #include "Core/Concurrency/ConcurrentSet.h"
 #include "Core/Container/Array.h"
+#include "Core/Memory/SharedPtr.h"
 #include "Core/Singleton/Singleton.h"
 #include "Core/TypeDefs.h"
 #include "QueuedThread.h"
@@ -15,7 +16,7 @@ struct TaskInstance {
 
   TaskNode* Node = nullptr;
   ETaskState State = ETaskState::Finished; // DummyTaskInstance认为是Finished状态
-  Array<TaskInstance*> Subsequence;
+  Array<SharedPtr<TaskInstance>> Subsequence;
   std::atomic<int> RemainingDependencies = 0;
 
   String DebugName;
@@ -38,7 +39,7 @@ struct TaskInstance {
   /// 如果此时再Lock会死锁
   /// @return
   /// @TODO: 感觉可以通过判断指针是否在TaskGraph管理来判断是否完成
-  [[nodiscard]] ETaskState GetState(const bool InLock = true) const ;
+  [[nodiscard]] ETaskState GetState(bool InLock = true) const;
 };
 
 struct TaskHandleListAutoLock {
@@ -78,7 +79,7 @@ public:
       }
     }
     T* NewTask = New<T>(std::forward<Args>(InArgs)...);
-    TaskInstance* NewInstance = New<TaskInstance>();
+    SharedPtr<TaskInstance> NewInstance = MakeShared<TaskInstance>();
     NewInstance->State = ETaskState::Lazy;
     NewInstance->RemainingDependencies = RemainingDependencies;
     NewInstance->Node = NewTask;
@@ -106,7 +107,7 @@ public:
   template <typename T, typename... Args>
     requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
   TaskHandle CreateTaskM(const StringView DebugName, std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
-    const TaskHandle Handle = CreateLazyTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
+    TaskHandle Handle = CreateLazyTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
     Handle.StartLazy();
     return Handle;
   }
@@ -119,25 +120,25 @@ public:
 
   /// 当一个任务完成时调用此函数, 用于通知依赖
   /// @param InInstance 完成的任务实例
-  void NotifyTaskCompleted(TaskInstance* InInstance);
+  void NotifyTaskCompleted(SharedPtr<TaskInstance>& InInstance);
 
   /// 当一个任务失败时调用此函数,
   /// 此时其后继节点会递归的被Delete 并且不被执行
-  void NotifyTaskFailed(TaskInstance* InInstance) const;
+  void NotifyTaskFailed(SharedPtr<TaskInstance>& InInstance) const;
 
-  [[nodiscard]] bool IsTaskExists(TaskInstance* InInstance) const;
+  [[nodiscard]] bool IsTaskExists(const SharedPtr<TaskInstance>& InInstance) const;
 
-  void StartLazyTask(TaskInstance* InInstance);
+  void StartLazyTask(SharedPtr<TaskInstance>& InInstance);
 
   /// 等待任务完成
-  void WaitTaskSync(TaskInstance* InInstance) const;
+  void WaitTaskSync(SharedPtr<TaskInstance>& InInstance) const;
 
 private:
-  void ScheduleTask(TaskInstance* InInstance);
+  void ScheduleTask(const SharedPtr<TaskInstance>& InInstance);
   // 管理所有的TaskInstance
-  ConcurrentSet<TaskInstance*> mInstances;
+  ConcurrentSet<SharedPtr<TaskInstance>> mInstances;
   QueuedThread mRenderExecutor;
   QueuedThreadPool mIOExecutor;
   /// 主线程每帧执行的任务
-  ConcurrentQueue<TaskInstance*> mGameThreadTasks;
+  ConcurrentQueue<SharedPtr<TaskInstance>> mGameThreadTasks;
 };

@@ -5,6 +5,7 @@
 #include "Core/String/StringTraits.h"
 #include "Core/String/StringView.h"
 // ReSharper disable once CppUnusedIncludeDirective
+#include "Core/Memory/SharedPtr.h"
 #include "Core/Trace.h" // for Error and Fatal log stack trace
 
 #include "fmt/ostream.h"
@@ -89,6 +90,8 @@ template <Traits::IToString T> struct fmt::formatter<T> : ostream_formatter {};
 template <Traits::IsEnum T> struct fmt::formatter<T> : ostream_formatter {};
 
 template <typename T> void* Ptr(T* InPtr) { return InPtr; }
+template <typename T> void* Ptr(const T* InPtr) { return InPtr; }
+template <typename T> void* Ptr(SharedPtr<T>& InPtr) { return InPtr.Get(); }
+template <typename T> void* Ptr(const SharedPtr<T>& InPtr) { return InPtr.Get(); }
 
 template <typename... Args> String Format(fmt::format_string<Args...> FormatString, Args&&... InArgs) { return String(fmt::format(FormatString, std::forward<Args>(InArgs)...)); }
-

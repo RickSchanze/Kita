@@ -17,11 +17,15 @@ struct TOMLOutputArchive::Impl {
 
   toml::node* CurrentNode() { return NodeStack.Top(); }
 
-  Impl() { NodeStack.Push(&Root); }
+  Impl() {
+    NodeStack.Push(&Root);
+  }
 };
 
+TOMLOutputArchive::~TOMLOutputArchive() = default;
+
 TOMLOutputArchive::TOMLOutputArchive() {
-  mImpl = MakeUnique<Impl>();
+  mImpl = std::make_unique<Impl>();
   mStateStack.Push(WritingObject);
 }
 

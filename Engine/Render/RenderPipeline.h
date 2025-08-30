@@ -24,7 +24,5 @@ public:
 #if KITA_EDITOR
 protected:
   void DrawImGui(const RenderPipelineDrawParams& Params);
-
-  UniquePtr<class RHIRenderPass> mImGuiRenderPass;
 #endif
 };

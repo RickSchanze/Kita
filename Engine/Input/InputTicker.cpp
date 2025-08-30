@@ -11,6 +11,7 @@
 void InputTicker::Tick(double DeltaSeconds) {
   CPU_PROFILING_SCOPE;
   mWindow->TickInput();
+  UpdateInputData();
 }
 
 void InputTicker::UpdateInputData() const {

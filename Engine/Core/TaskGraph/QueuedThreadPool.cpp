@@ -53,7 +53,7 @@ void QueuedThreadPool::ThreadLoop(const String& Name, SizeType Index) {
   SetCurrentThreadName(Name + ::ToString(Index));
 
   while (!mStop) {
-    TaskInstance* Task = nullptr;
+    SharedPtr<TaskInstance> Task = nullptr;
     mQueue.WaitDequeued(Task);
     if (!Task) {
       continue; // nullptr 任务用于唤醒退出

@@ -29,4 +29,6 @@ RHISemaphore_Vulkan::RHISemaphore_Vulkan() {
   }
 }
 
-RHISemaphore_Vulkan::~RHISemaphore_Vulkan() { vkDestroySemaphore(GetVulkanGfxContexRef().GetDevice(), mSemaphore, nullptr); }
+RHISemaphore_Vulkan::~RHISemaphore_Vulkan() {
+  vkDestroySemaphore(GetVulkanGfxContexRef().GetDevice(), mSemaphore, nullptr);
+}

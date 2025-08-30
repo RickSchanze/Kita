@@ -15,6 +15,7 @@
 #include "imgui_impl_vulkan.h"
 #endif
 
+RenderContext::~RenderContext() = default;
 void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
   auto& Self = GetRef();
   Self.mGfxContext = GfxContext::Get();
@@ -33,12 +34,15 @@ void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
 }
 
 void RenderContext::ShutDown() {
+  GfxContext::GetRef().WaitDeviceIdle();
   auto& Self = GetRef();
   Self.mRenderPipeline = nullptr;
-  Ranges::Fill(Self.mImageAvailableSemaphores, nullptr);
-  Ranges::Fill(Self.mRenderFinishedSemaphores, nullptr);
-  Ranges::Fill(Self.mInFlightFences, nullptr);
-  Ranges::Fill(Self.mCommandBuffers, nullptr);
+  for (Int32 Index = 0; Index < KITA_MAX_FRAMES_IN_FLIGHT; Index++) {
+    Self.mImageAvailableSemaphores[Index] = nullptr;
+    Self.mRenderFinishedSemaphores[Index] = nullptr;
+    Self.mInFlightFences[Index] = nullptr;
+    Self.mCommandBuffers[Index] = nullptr;
+  }
   Self.mCommandPool = nullptr;
   Self.mRenderTicker = nullptr;
   Self.mGfxContext = nullptr;
@@ -103,6 +107,4 @@ void RenderContext::Render(double Time) {
   mNeedRecreation = mGfxContext->Present(PresentParams);
 }
 
-bool RenderContext::ShouldRender() const {
-  return mRenderPipeline;
-}
+bool RenderContext::ShouldRender() const { return mRenderPipeline; }

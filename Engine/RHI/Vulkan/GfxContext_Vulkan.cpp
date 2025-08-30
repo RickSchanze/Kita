@@ -51,6 +51,7 @@ GfxContext_Vulkan::GfxContext_Vulkan() {
 GfxContext_Vulkan::~GfxContext_Vulkan() {
   ShutDownImGui();
   Dyn_DestroyDebugUtilsMessengerEXT(mDebugMessenger, nullptr);
+  vkDestroyDevice(mDevice, nullptr);
   vkDestroyInstance(mInstance, nullptr);
 }
 
@@ -66,7 +67,7 @@ UniquePtr<RHISemaphore> GfxContext_Vulkan::CreateSemaphoreU() { return MakeUniqu
 
 SharedPtr<RHIImageView> GfxContext_Vulkan::CreateSwapchainImageView(VkImage Img, VkFormat Format) { return MakeShared<RHIImageView_Vulkan>(Img, Format); }
 
-RHISurfaceWindow* GfxContext_Vulkan::CreateSurfaceWindowR(const Int32 Width, const Int32 Height) { return new RHISurfaceWindow_Vulkan(Width, Height); }
+RHISurfaceWindow* GfxContext_Vulkan::CreateSurfaceWindowR(const Int32 Width, const Int32 Height) { return New<RHISurfaceWindow_Vulkan>(Width, Height); }
 
 UInt32 GfxContext_Vulkan::GetNextImage(RHISurfaceWindow* Window, RHISemaphore* WaitSemaphore, RHIFence* WaitFence, bool& NeedRecreation) {
   UInt32 Return;
@@ -121,6 +122,8 @@ bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) {
   }
   return true;
 }
+
+void GfxContext_Vulkan::WaitDeviceIdle() { vkDeviceWaitIdle(mDevice); }
 
 class ImGuiDrawTask : public TaskNode {
 public:
@@ -461,6 +464,8 @@ void GfxContext_Vulkan::StartUpImGui() {
 
 void GfxContext_Vulkan::ShutDownImGui() {
   ImGui_ImplVulkan_Shutdown();
+  mImGuiRenderPass = nullptr;
+  vkDestroyDescriptorPool(mDevice, mImGuiDescriptorPool, nullptr);
   ImGui::DestroyContext();
 }
 

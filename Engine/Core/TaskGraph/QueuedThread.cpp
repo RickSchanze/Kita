@@ -15,7 +15,7 @@ void QueuedThread::StartUp(const StringView Name) {
 
 void QueuedThread::ShutDown() { Stop(); }
 
-void QueuedThread::Stop()  {
+void QueuedThread::Stop() {
   if (!mStop.exchange(true)) {
     mStop = true;
 
@@ -48,7 +48,7 @@ void QueuedThread::SetThreadName(StringView Name) {
 
 void QueuedThread::ThreadLoop() {
   while (!mStop) {
-    TaskInstance* Task = nullptr;
+    SharedPtr<TaskInstance> Task = nullptr;
     mQueue.WaitDequeued(Task); // 会阻塞直到有任务
     if (!Task) {
       // nullptr 用于唤醒并退出

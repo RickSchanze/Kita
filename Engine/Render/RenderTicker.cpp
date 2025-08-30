@@ -5,4 +5,5 @@
 #include "RenderTicker.h"
 
 #include "RenderContext.h"
+
 void RenderTicker::Tick(double DeltaSeconds) { RenderContext::GetRef().Render(DeltaSeconds); }
