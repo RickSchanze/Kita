@@ -6,7 +6,11 @@
 
 #include "TickManager.h"
 
-ITick::ITick() { TickManager::RegisterTickInstance(this); }
+ITick::ITick(bool RegisterSelf) {
+  if (RegisterSelf) {
+    TickManager::RegisterTickInstance(this);
+  }
+}
 
 ITick::~ITick() { TickManager::UnRegisterTickInstance(this); }
 

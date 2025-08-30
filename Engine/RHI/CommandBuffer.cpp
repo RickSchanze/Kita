@@ -24,7 +24,7 @@ void RHICommandBuffer::EndRecord() {
   PushCommand(std::move(Cmd));
 }
 
-void RHICommandBuffer::BeginRenderPass(RHIRenderPass* RenderPass, RHIFrameBuffer* FrameBuffer, const Vector2i Size, const Optional<Color>& ClearColor, const Vector2i Offset,
+void RHICommandBuffer::BeginRenderPass(RHIRenderPass* RenderPass, RHIFrameBuffer* FrameBuffer, const Vector2u Size, const Optional<Color>& ClearColor, const Vector2i Offset,
                                        const Optional<float> ClearDepth) {
   UniquePtr<RHICmd_BeginRenderPass> Cmd = MakeUnique<RHICmd_BeginRenderPass>();
   Cmd->SetRenderPass(RenderPass).SetFrameBuffer(FrameBuffer).SetSize(Size).SetClearColor(ClearColor).SetOffset(Offset).SetClearDepthStencil(ClearDepth);

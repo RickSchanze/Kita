@@ -59,7 +59,7 @@ struct PhysicalDeviceSwapchainFeatures {
 struct RHIPresentParams {
   RHI_DEFINE_BUILDER_FIELD_PTR(RHISurfaceWindow*, SurfaceWindow, {}); // NECESSARY
   RHI_DEFINE_BUILDER_FIELD(Array<RHISemaphore*>, WaitSemaphores, {}); // NECESSARY
-  RHI_DEFINE_BUILDER_FIELD(Int32, ImageIndex, 0);                     // NECESSARY
+  RHI_DEFINE_BUILDER_FIELD(UInt32, ImageIndex, 0);                    // NECESSARY
 };
 
 class GfxContext {
@@ -90,7 +90,10 @@ public:
   virtual UniquePtr<RHIFence> CreateFenceU() = 0;
   virtual SharedPtr<RHIFence> CreateFenceS() = 0;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() = 0;
-  virtual UniquePtr<RHICommandPool> CreateCommandPoolU(ERHIQueueFamilyType QueueFamily) = 0;
+  /// 创建一个CommandPool
+  /// @param QueueFamily 队列家族
+  /// @param AllowReset 是否允许进行Reset
+  virtual UniquePtr<RHICommandPool> CreateCommandPoolU(ERHIQueueFamilyType QueueFamily, bool AllowReset) = 0;
   virtual UniquePtr<RHIRenderPass> CreateRenderPassU(const struct RHIRenderPassDesc&) = 0;
   virtual UniquePtr<RHIFrameBuffer> CreateFrameBufferU(const struct RHIFrameBufferDesc& Desc) = 0;
   virtual UniquePtr<RHIShaderModule> CreateShaderModuleU(const struct RHIShaderModuleDesc& Desc) = 0;

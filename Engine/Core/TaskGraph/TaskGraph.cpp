@@ -99,8 +99,11 @@ void TaskGraph::WaitTaskSync(TaskInstance* InInstance) const {
     // Task已完成
     return;
   }
-  std::unique_lock Lock(InInstance->Mutex);
-  InInstance->CV.wait(Lock, [InInstance] { return InInstance->GetState(false) == ETaskState::Finished; });
+  while (true) {
+    if (InInstance->GetState() == ETaskState::Finished) {
+      return;
+    }
+  }
 }
 
 void TaskGraph::ScheduleTask(TaskInstance* InInstance) {

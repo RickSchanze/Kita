@@ -102,6 +102,8 @@ VECTOR2_DECL(double, "Vector2d");
 typedef Vector2<double> Vector2d;
 VECTOR2_DECL(Int32, "Vector2i");
 typedef Vector2<Int32> Vector2i;
+VECTOR2_DECL(UInt32, "Vector2u");
+typedef Vector2<UInt32> Vector2u;
 #undef VECTOR2_DECL
 
 // =================== Vector3 ===================

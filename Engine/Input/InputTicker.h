@@ -5,7 +5,7 @@ class RHISurfaceWindow;
 
 class InputTicker : public ITick {
 public:
-  explicit InputTicker(RHISurfaceWindow* InWindow) : mWindow(InWindow) {}
+  explicit InputTicker(RHISurfaceWindow* InWindow) : ITick(false), mWindow(InWindow) {}
   virtual void Tick(double DeltaSeconds) override;
 
 private:

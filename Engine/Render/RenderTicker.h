@@ -3,8 +3,6 @@
 
 class RenderTicker : public ITick {
 public:
+  RenderTicker() : ITick(false) {}
   virtual void Tick(double DeltaSeconds) override;
-
-private:
-
 };

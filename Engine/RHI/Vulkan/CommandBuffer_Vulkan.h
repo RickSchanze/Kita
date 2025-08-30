@@ -5,7 +5,7 @@
 
 class RHICommandPool_Vulkan : public RHICommandPool {
 public:
-  explicit RHICommandPool_Vulkan(ERHIQueueFamilyType Family);
+  explicit RHICommandPool_Vulkan(ERHIQueueFamilyType Family, bool AllowReset);
   virtual ~RHICommandPool_Vulkan() override;
 
   virtual void* GetNativeHandle() const override { return mPool; }
@@ -26,6 +26,8 @@ public:
   virtual void* GetNativeHandle() const override final { return mBuffer; }
 
   virtual TaskHandle Execute(StringView DebugName) override;
+
+  virtual void Reset() override;
 
 private:
   VkCommandBuffer mBuffer = VK_NULL_HANDLE;

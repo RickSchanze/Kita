@@ -8,7 +8,7 @@ class ITick {
   GENERATED_BODY(ITick)
 public:
   /// 默认构造函数将自己加入TickManager
-  ITick();
+  explicit ITick(bool RegisterSelf = true);
 
   /// 析构函数将自己从TickManager中移除
   virtual ~ITick();

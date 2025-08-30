@@ -18,6 +18,7 @@ void EngineLoop::StartUpSystemsM() {
   GfxContext::StartUp();
 
   mSurfaceWindow = GfxContext::GetRef().CreateSurfaceWindowR(1920, 1080);
+  mSurfaceWindow->CreateSwapchain();
   RenderContext::StartUp(mSurfaceWindow);
 
   auto& Ref = TickManager::GetRef();
@@ -28,6 +29,7 @@ void EngineLoop::StartUpSystemsM() {
 }
 
 void EngineLoop::ShutDownSystemsM() {
+  RenderContext::ShutDown();
   auto& TickManagerRef = TickManager::GetRef();
   TickManagerRef.SetTickInstance(nullptr);
 

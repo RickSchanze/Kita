@@ -16,12 +16,15 @@ constexpr Int32 MAX_FRAMES_INFLIGHT = 2;
 class RenderContext : public Singleton<RenderContext> {
 public:
   static void StartUp(RHISurfaceWindow* InWindow);
+  static void ShutDown();
 
   void Render(double Time);
 
   bool ShouldRender() const;
 
   RenderTicker* GetRenderTicker() { return mRenderTicker.Get(); }
+
+  static void SetRenderPipeline(UniquePtr<RenderPipeline> InNewPipeline) { GetRef().mRenderPipeline = std::move(InNewPipeline); }
 
 private:
   UniquePtr<RenderTicker> mRenderTicker = {};

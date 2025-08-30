@@ -86,7 +86,7 @@ UniquePtr<RHIRenderPass> GfxContext_Vulkan::CreateRenderPassU(const RHIRenderPas
 
 UniquePtr<RHIFrameBuffer> GfxContext_Vulkan::CreateFrameBufferU(const RHIFrameBufferDesc& Desc) { return MakeUnique<RHIFrameBuffer_Vulkan>(Desc); }
 
-UniquePtr<RHICommandPool> GfxContext_Vulkan::CreateCommandPoolU(ERHIQueueFamilyType QueueFamily) { return MakeUnique<RHICommandPool_Vulkan>(QueueFamily); }
+UniquePtr<RHICommandPool> GfxContext_Vulkan::CreateCommandPoolU(ERHIQueueFamilyType QueueFamily, bool AllowReset) { return MakeUnique<RHICommandPool_Vulkan>(QueueFamily, AllowReset); }
 
 UniquePtr<RHIShaderModule> GfxContext_Vulkan::CreateShaderModuleU(const RHIShaderModuleDesc& Desc) { return MakeUnique<RHIShaderModule_Vulkan>(Desc); }
 
@@ -98,7 +98,29 @@ UniquePtr<RHIPipelineLayout> GfxContext_Vulkan::CreatePipelineLayoutU(const RHIP
 
 UniquePtr<RHIPipeline> GfxContext_Vulkan::CreatePipeline(const RHIGraphicsPipelineDesc& Desc) { return MakeUnique<RHIPipeline_Vulkan>(Desc); }
 
-bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) { VkPresentInfoKHR PresentInfo{}; }
+bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) {
+  VkPresentInfoKHR PresentInfo{};
+  PresentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+  PresentInfo.pImageIndices = &Params.ImageIndex;
+  PresentInfo.swapchainCount = 1;
+  const auto Swapchain = static_cast<VkSwapchainKHR>(Params.SurfaceWindow->GetNativeSwapchainObject());
+  PresentInfo.pSwapchains = &Swapchain;
+  PresentInfo.swapchainCount = 1;
+  Array<VkSemaphore> WaitSemaphores;
+  for (auto& Semaphore : Params.WaitSemaphores) {
+    WaitSemaphores.Add(static_cast<VkSemaphore>(Semaphore->GetNativeHandle()));
+  }
+  PresentInfo.pWaitSemaphores = WaitSemaphores.Data();
+  PresentInfo.waitSemaphoreCount = WaitSemaphores.Count();
+  const VkResult Result = vkQueuePresentKHR(mGraphicsQueue, &PresentInfo);
+  if (Result == VK_ERROR_OUT_OF_DATE_KHR || Result == VK_SUBOPTIMAL_KHR) {
+    return false;
+  }
+  if (Result != VK_SUCCESS) {
+    LOG_CRITICAL_TAG("RHI.Vulkan", "呈现(Present)图像失败! Code={}", Result);
+  }
+  return true;
+}
 
 class ImGuiDrawTask : public TaskNode {
 public:
@@ -130,7 +152,8 @@ public:
 };
 
 void GfxContext_Vulkan::DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) {
-  TaskGraph::CreateTask<ImGuiDrawTask>("", {}, Buffer->GetNativeHandleT<VkCommandBuffer>(), FrameBuffer->GetNativeHandleT<VkFramebuffer>(), mImGuiRenderPass, Width, Height);
+  TaskGraph::CreateTask<ImGuiDrawTask>( //
+      "", {}, Buffer->GetNativeHandleT<VkCommandBuffer>(), FrameBuffer->GetNativeHandleT<VkFramebuffer>(), mImGuiRenderPass->GetNativeHandleT<VkRenderPass>(), Width, Height);
 }
 
 void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params) {
@@ -150,6 +173,7 @@ void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params) {
     WaitSemaphores.Add(Semaphore->GetNativeHandleT<VkSemaphore>());
   }
   SubmitInfo.waitSemaphoreCount = WaitSemaphores.Count();
+  SubmitInfo.pWaitSemaphores = WaitSemaphores.Data();
   const VkPipelineStageFlags WaitPipelineStageFlags = RHIPipelineStageToVkPipelineStage(Params.WaitPipelineStages);
   SubmitInfo.pWaitDstStageMask = &WaitPipelineStageFlags;
   const VkFence WaitFence = Params.Fence == nullptr ? VK_NULL_HANDLE : Params.Fence->GetNativeHandleT<VkFence>();
@@ -424,7 +448,7 @@ void GfxContext_Vulkan::StartUpImGui() {
   InitInfo.Queue = mGraphicsQueue;
   InitInfo.PipelineCache = nullptr;
   CreateImGuiRenderPass();
-  InitInfo.RenderPass = mImGuiRenderPass;
+  InitInfo.RenderPass = mImGuiRenderPass->GetNativeHandleT<VkRenderPass>();
   CreateImGuiDescriptorPool();
   InitInfo.DescriptorPool = mImGuiDescriptorPool;
   InitInfo.Subpass = 0;
@@ -445,11 +469,11 @@ void GfxContext_Vulkan::CreateImGuiRenderPass() {
   VkAttachmentDescription ColorAttachment = {};
   ColorAttachment.format = RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(mPhysicalDeviceSwapchainFeatures).format;
   ColorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-  ColorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; // 如果你想保留之前绘制的内容
+  ColorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // 如果你想保留之前绘制的内容
   ColorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
   ColorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
   ColorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-  ColorAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  ColorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
   ColorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
   VkAttachmentReference ColorAttachmentRef = {};

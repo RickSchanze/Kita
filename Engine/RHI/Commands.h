@@ -36,7 +36,7 @@ struct RHICmd_BeginRenderPass : IRHICommand {
   RHI_DEFINE_BUILDER_FIELD_PTR(RHIRenderPass*, RenderPass, nullptr);
   RHI_DEFINE_BUILDER_FIELD_PTR(RHIFrameBuffer*, FrameBuffer, nullptr);
   RHI_DEFINE_BUILDER_FIELD(Vector2i, Offset, {});
-  RHI_DEFINE_BUILDER_FIELD(Vector2i, Size, {})
+  RHI_DEFINE_BUILDER_FIELD(Vector2u, Size, {})
   RHI_DEFINE_BUILDER_FIELD(Optional<Color>, ClearColor, {});
   RHI_DEFINE_BUILDER_FIELD(Optional<float>, ClearDepthStencil, 1.0f);
 };

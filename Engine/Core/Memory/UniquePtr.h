@@ -9,7 +9,7 @@ template <typename T, EMemoryLabel Label> struct UniquePtrDeleter {
 };
 
 template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct UniquePtr {
-  explicit UniquePtr(T* InPtr) : mPtr(InPtr, UniquePtrDeleter<T, Label>()) {}
+  UniquePtr(T* InPtr) : mPtr(InPtr, UniquePtrDeleter<T, Label>()) {}
 
   template <typename R, EMemoryLabel RLabel> friend struct UniquePtr;
 

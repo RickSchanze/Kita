@@ -8,6 +8,7 @@
 #include "RHI/CommandBuffer.h"
 #include "RHI/GfxContext.h"
 #include "RHI/Sync.h"
+#include "Render/RenderTicker.h"
 
 #if KITA_EDITOR
 #include "imgui_impl_glfw.h"
@@ -18,18 +19,34 @@ void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
   auto& Self = GetRef();
   Self.mGfxContext = GfxContext::Get();
   Self.mSurfaceWindow = InWindow;
-  Self.mRenderTicker = MakeUnique<RenderTicker>(InWindow);
-  Self.mCommandPool = Self.mGfxContext->CreateCommandPoolU(ERHIQueueFamilyType::Graphics);
+  Self.mRenderTicker = MakeUnique<RenderTicker>();
+  Self.mCommandPool = Self.mGfxContext->CreateCommandPoolU(ERHIQueueFamilyType::Graphics, true);
   for (Int32 Index = 0; Index < KITA_MAX_FRAMES_IN_FLIGHT; Index++) {
     Self.mImageAvailableSemaphores[Index] = Self.mGfxContext->CreateSemaphoreU();
     Self.mRenderFinishedSemaphores[Index] = Self.mGfxContext->CreateSemaphoreU();
     Self.mInFlightFences[Index] = Self.mGfxContext->CreateFenceU();
     Self.mCommandBuffers[Index] = Self.mCommandPool->CreateCommandBuffer();
   }
+
+  // TODO: 可配置RenderPipeline
+  Self.mRenderPipeline = MakeUnique<RenderPipeline>();
+}
+
+void RenderContext::ShutDown() {
+  auto& Self = GetRef();
+  Self.mRenderPipeline = nullptr;
+  Ranges::Fill(Self.mImageAvailableSemaphores, nullptr);
+  Ranges::Fill(Self.mRenderFinishedSemaphores, nullptr);
+  Ranges::Fill(Self.mInFlightFences, nullptr);
+  Ranges::Fill(Self.mCommandBuffers, nullptr);
+  Self.mCommandPool = nullptr;
+  Self.mRenderTicker = nullptr;
+  Self.mGfxContext = nullptr;
+  Self.mSurfaceWindow = nullptr;
 }
 
 void RenderContext::Render(double Time) {
-  if (ShouldRender())
+  if (!ShouldRender())
     return;
   CPU_PROFILING_SCOPE;
   Int32 FrameIndex = mFrameIndex % MAX_FRAMES_INFLIGHT;
@@ -42,10 +59,13 @@ void RenderContext::Render(double Time) {
   mInFlightFences[FrameIndex]->Reset();
   mCommandBuffers[FrameIndex]->Reset();
   mCommandBuffers[FrameIndex]->BeginRecord();
+  // 一开始记录就开始Execute一次 避免与ImGui冲突
+  mCommandBuffers[FrameIndex]->Execute("");
 
 #if KITA_EDITOR
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
 #endif
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
@@ -71,7 +91,7 @@ void RenderContext::Render(double Time) {
       .SetWaitPipelineStages(PSFB_ColorAttachmentOutput)
       .SetSignalSemaphores({mRenderFinishedSemaphores[FrameIndex].Get()})
       .SetTargetQueueFamily(ERHIQueueFamilyType::Graphics) //
-      .SetFence(mInFlightFences[mInFlightFences[FrameIndex]].Get());
+      .SetFence(mInFlightFences[FrameIndex].Get());
   ExecuteWaitHandle.WaitSync();
   mGfxContext->Submit(SubmitParams);
 
@@ -83,4 +103,6 @@ void RenderContext::Render(double Time) {
   mNeedRecreation = mGfxContext->Present(PresentParams);
 }
 
-bool RenderContext::ShouldRender() const { return mRenderPipeline; }
+bool RenderContext::ShouldRender() const {
+  return mRenderPipeline;
+}

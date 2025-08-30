@@ -8,6 +8,7 @@
 namespace Ranges {
 
 constexpr auto AnyOf = std::ranges::any_of;
+constexpr auto Fill = std::ranges::fill;
 
 namespace Views {
 

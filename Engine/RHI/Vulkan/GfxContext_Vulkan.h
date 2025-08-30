@@ -27,7 +27,8 @@ public:
   virtual UInt32 GetNextImage(RHISurfaceWindow* Window, RHISemaphore* WaitSemaphore, RHIFence* WaitFence, bool& NeedRecreation) override;
   virtual UniquePtr<RHIRenderPass> CreateRenderPassU(const RHIRenderPassDesc&) override;
   virtual UniquePtr<RHIFrameBuffer> CreateFrameBufferU(const RHIFrameBufferDesc& Desc) override;
-  virtual UniquePtr<RHICommandPool> CreateCommandPoolU(ERHIQueueFamilyType QueueFamily) override;
+
+  virtual UniquePtr<RHICommandPool> CreateCommandPoolU(ERHIQueueFamilyType QueueFamily, bool AllowReset) override;
   virtual UniquePtr<RHIShaderModule> CreateShaderModuleU(const RHIShaderModuleDesc& Desc) override;
   virtual UniquePtr<RHIDescriptorSetLayout> CreateDescriptorSetLayoutU(const RHIDescriptorSetLayoutDesc& Desc) override;
   virtual UniquePtr<RHIDescriptorPool> CreateDescriptorPoolU(const RHIDescriptorPoolDesc& Desc) override;

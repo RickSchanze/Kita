@@ -958,23 +958,23 @@ ERHIBlendOp VKBlendOpToRHIBlendOp(const VkBlendOp op) {
 
 VkSurfaceTransformFlagsKHR RHISurfaceTransformToVkSurfaceTransform(const ERHISurfaceTransform Transform) {
   VkSurfaceTransformFlagsKHR Result = 0;
-  if (Transform | STFB_Identity)
+  if (Transform & STFB_Identity)
     Result |= VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-  if (Transform | STFB_Rotate90)
+  if (Transform & STFB_Rotate90)
     Result |= VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR;
-  if (Transform | STFB_Rotate180)
+  if (Transform & STFB_Rotate180)
     Result |= VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR;
-  if (Transform | STFB_Rotate270)
+  if (Transform & STFB_Rotate270)
     Result |= VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR;
-  if (Transform | STFB_HorizontalMirror)
+  if (Transform & STFB_HorizontalMirror)
     Result |= VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR;
-  if (Transform | STFB_HorizontalMirrorRotate90)
+  if (Transform & STFB_HorizontalMirrorRotate90)
     Result |= VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR;
-  if (Transform | STFB_HorizontalMirrorRotate180)
+  if (Transform & STFB_HorizontalMirrorRotate180)
     Result |= VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR;
-  if (Transform | STFB_HorizontalMirrorRotate270)
+  if (Transform & STFB_HorizontalMirrorRotate270)
     Result |= VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR;
-  if (Transform | STFB_Inherit)
+  if (Transform & STFB_Inherit)
     Result |= VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR;
   return Result;
 }
