@@ -17,9 +17,7 @@ struct TOMLOutputArchive::Impl {
 
   toml::node* CurrentNode() { return NodeStack.Top(); }
 
-  Impl() {
-    NodeStack.Push(&Root);
-  }
+  Impl() { NodeStack.Push(&Root); }
 };
 
 TOMLOutputArchive::~TOMLOutputArchive() = default;
@@ -101,6 +99,7 @@ ESerializationError TOMLOutputArchive::WriteFile(const StringView Path) {
     return ESerializationError::TargetInvalid;
   }
   OutputFileStream FS(Path.Data(), std::ios::out);
-  FS.GetStream() << toml::toml_formatter(mImpl->Root);
+  toml::toml_formatter Formatter{mImpl->Root, toml::toml_formatter::default_flags & ~toml::format_flags::indent_sub_tables};
+  FS.GetStream() << Formatter;
   return ESerializationError::Ok;
 }

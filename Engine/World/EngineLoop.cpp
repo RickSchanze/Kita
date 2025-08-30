@@ -10,6 +10,7 @@
 #include "Input/Input.h"
 #include "Input/InputTicker.h"
 #include "RHI/GfxContext.h"
+#include "RHI/RHIConfig.h"
 #include "Render/RenderContext.h"
 #include "Render/RenderTicker.h"
 #include "TickManager.h"
@@ -21,7 +22,8 @@ void EngineLoop::StartUpSystemsM() {
   GfxContext::StartUp();
 
   // Swapchain
-  mSurfaceWindow = GfxContext::GetRef().CreateSurfaceWindowR(1920, 1080);
+  RHIConfig& Config = ConfigManager::GetConfigRef<RHIConfig>();
+  mSurfaceWindow = GfxContext::GetRef().CreateSurfaceWindowR(Config.GetDefaultWindowSize().X(), Config.GetDefaultWindowSize().Y());
   mSurfaceWindow->CreateSwapchain();
 
   // RenderContext
