@@ -53,6 +53,9 @@ void RenderContext::Render(double Time) {
   RenderPipelineDrawParams Params = {};
   Params.DeltaSeconds = Time;
   Params.Cmd = mCommandBuffers[FrameIndex].Get();
+  Params.TargetFramebuffer = mSurfaceWindow->GetImGuiFrameBuffer(ImageIndex);
+  Params.Width = mSurfaceWindow->GetSize().X();
+  Params.Height = mSurfaceWindow->GetSize().Y();
 
   ImGui::Render();
   mRenderPipeline->Draw(Params);
