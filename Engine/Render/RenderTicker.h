@@ -4,4 +4,7 @@
 class RenderTicker : public ITick {
 public:
   virtual void Tick(double DeltaSeconds) override;
+
+private:
+
 };

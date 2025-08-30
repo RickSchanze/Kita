@@ -4,6 +4,7 @@
 #include "Core/Reflection/MetaMark.h"
 #include "Math/Vector.h"
 
+class RHIFrameBuffer;
 KENUM()
 enum class ERHISurfaceWindowType {
   GLFW,
@@ -23,8 +24,11 @@ public:
   virtual Vector2i GetSize() = 0;
   virtual bool ShouldClose() = 0;
   virtual void TickInput() = 0;
-};
 
-/// 使用RHIConfig里的设置创建一个SurfaceWindow
-/// 需要自己调用Delete
-RHISurfaceWindow* CreateSurfaceWindow();
+#if KITA_EDITOR
+  RHIFrameBuffer* GetImGuiFrameBuffer(Int32 Index) { return mImGuiFrameBuffers[Index].Get(); }
+
+protected:
+  Array<UniquePtr<RHIFrameBuffer>> mImGuiFrameBuffers;
+#endif
+};

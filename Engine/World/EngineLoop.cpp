@@ -9,15 +9,20 @@
 #include "Core/TaskGraph/TaskGraph.h"
 #include "Input/InputTicker.h"
 #include "RHI/GfxContext.h"
+#include "Render/RenderContext.h"
+#include "Render/RenderTicker.h"
 #include "TickManager.h"
 
 void EngineLoop::StartUpSystemsM() {
   TaskGraph::StartUp();
   GfxContext::StartUp();
-  mSurfaceWindow = CreateSurfaceWindow();
+
+  mSurfaceWindow = GfxContext::GetRef().CreateSurfaceWindowR(1920, 1080);
+  RenderContext::StartUp(mSurfaceWindow);
+
   auto& Ref = TickManager::GetRef();
   mInputTicker = New<InputTicker>(mSurfaceWindow);
-  Ref.SetRenderTickInstance(New<ITick>());
+  Ref.SetRenderTickInstance(RenderContext::GetRef().GetRenderTicker());
   Ref.SetTickInstance(mInputTicker);
   mEngineData = {};
 }

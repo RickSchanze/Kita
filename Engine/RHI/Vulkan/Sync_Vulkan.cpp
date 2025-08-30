@@ -18,6 +18,8 @@ RHIFence_Vulkan::~RHIFence_Vulkan() { vkDestroyFence(GetVulkanGfxContexRef().Get
 
 void RHIFence_Vulkan::Wait(const uint64_t Timeout) { vkWaitForFences(GetVulkanGfxContexRef().GetDevice(), 1, &mFence, VK_TRUE, Timeout); }
 
+void RHIFence_Vulkan::Reset() { vkResetFences(GetVulkanGfxContexRef().GetDevice(), 1, &mFence); }
+
 RHISemaphore_Vulkan::RHISemaphore_Vulkan() {
   VkSemaphoreCreateInfo CreateInfo{};
   CreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

@@ -49,5 +49,6 @@ private:
   Array<SharedPtr<class RHIImageView>> mSwapchainImageViews{};
 #if KITA_EDITOR
   bool mInitImGui = true;
+
 #endif
 };

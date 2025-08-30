@@ -4,8 +4,10 @@
 #include "RHIEnums.h"
 #include "SurfaceWindow.h"
 
+#include "Core/TaskGraph/TaskHandle.h"
 #include "GfxContext.generated.h"
 
+class RHICommandBuffer;
 class RHISurfaceWindow;
 class RHIPipelineLayout;
 class RHIPipeline;
@@ -52,6 +54,12 @@ struct PhysicalDeviceSwapchainFeatures {
   Array<SurfaceFormat> Formats;
   Array<ERHIPresentMode> PresentModes;
   MyCapabilities Capabilities;
+};
+
+struct RHIPresentParams {
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHISurfaceWindow*, SurfaceWindow, {}); // NECESSARY
+  RHI_DEFINE_BUILDER_FIELD(Array<RHISemaphore*>, WaitSemaphores, {}); // NECESSARY
+  RHI_DEFINE_BUILDER_FIELD(Int32, ImageIndex, 0);                     // NECESSARY
 };
 
 class GfxContext {
@@ -109,6 +117,17 @@ public:
   virtual UInt32 GetNextImage(RHISurfaceWindow* Window, RHISemaphore* WaitSemaphore, RHIFence* WaitFence, bool& NeedRecreation) = 0;
 
   virtual void Submit(const struct RHICommandBufferSubmitParams& Params) = 0;
+
+  /// 呈现 返回是否需要重建交换链
+  virtual bool Present(const RHIPresentParams& Params) = 0;
+
+#if KITA_EDITOR
+  virtual void DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) = 0;
+  RHIRenderPass* GetImGuiRenderPass() const { return mImGuiRenderPass.Get(); }
+
+protected:
+  UniquePtr<RHIRenderPass> mImGuiRenderPass = {};
+#endif
 
 protected:
   GfxDeviceFeatures mGfxDeviceFeatures{};

@@ -27,6 +27,7 @@ public:
   virtual ~RHICommandBuffer() override;
 
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::CommandBuffer; }
+  virtual void Reset() = 0;
 
   void PushCommand(UniquePtr<IRHICommand>&& Cmd);
 
@@ -37,6 +38,10 @@ public:
    * @param DebugName
    */
   virtual TaskHandle Execute(StringView DebugName) = 0;
+
+  void BeginRecord();
+  void EndRecord();
+
 
   void BeginRenderPass(RHIRenderPass* RenderPass, RHIFrameBuffer* FrameBuffer, Vector2i Size, const Optional<Color>& ClearColor = {}, Vector2i Offset = {}, Optional<float> ClearDepth = std::nullopt);
 

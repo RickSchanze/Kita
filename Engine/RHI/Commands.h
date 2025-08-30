@@ -8,12 +8,26 @@
 enum class ERHICommandType {
   BeginRenderPass,
   EndRenderPass,
+  BeginRecord,
+  EndRecord,
 };
 
 struct IRHICommand {
 public:
   virtual ~IRHICommand() = default;
   [[nodiscard]] virtual ERHICommandType GetType() const = 0;
+};
+
+struct RHICmd_BeginRecord : IRHICommand {
+  [[nodiscard]] virtual ERHICommandType GetType() const override { return ERHICommandType::BeginRecord; }
+
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHICommandBuffer*, CmdBuffer, nullptr);
+};
+
+struct RHICmd_EndRecord : IRHICommand {
+  [[nodiscard]] virtual ERHICommandType GetType() const override { return ERHICommandType::EndRecord; }
+
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHICommandBuffer*, CmdBuffer, nullptr);
 };
 
 struct RHICmd_BeginRenderPass : IRHICommand {

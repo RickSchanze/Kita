@@ -12,6 +12,8 @@ public:
 
   virtual void Wait(uint64_t Timeout) override;
 
+  virtual void Reset() override;
+
 private:
   VkFence mFence = VK_NULL_HANDLE;
 };

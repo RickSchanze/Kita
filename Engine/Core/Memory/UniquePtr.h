@@ -1,6 +1,6 @@
 #pragma once
-#include "Malloc.h"
 #include "Core/Traits.h"
+#include "Malloc.h"
 
 #include <memory>
 
@@ -11,8 +11,7 @@ template <typename T, EMemoryLabel Label> struct UniquePtrDeleter {
 template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct UniquePtr {
   explicit UniquePtr(T* InPtr) : mPtr(InPtr, UniquePtrDeleter<T, Label>()) {}
 
-  template <typename R, EMemoryLabel RLabel>
-  friend struct UniquePtr;
+  template <typename R, EMemoryLabel RLabel> friend struct UniquePtr;
 
   template <typename R> UniquePtr(UniquePtr<R, Label>&& Other) noexcept {
     if constexpr (Traits::IsBaseOf<T, R>) {
@@ -33,7 +32,7 @@ template <typename T, EMemoryLabel Label = EMemoryLabel::Default> struct UniqueP
   }
   UniquePtr& operator=(UniquePtr&) = delete;
   T* Get() { return mPtr.get(); }
-  const T* Get() const { return mPtr.get(); }
+  T* Get() const { return mPtr.get(); }
   T& operator*() { return *mPtr; }
   const T& operator*() const { return *mPtr; }
   T* operator->() { return mPtr.get(); }

@@ -7,6 +7,7 @@
 #include "Core/Config/ConfigManager.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "GfxContext_Vulkan.h"
+#include "RHI/FrameBuffer.h"
 #include "RHI/GfxContext.h"
 #include "RHI/RHIConfig.h"
 #include "RHIEnums_Vulkan.h"
@@ -34,6 +35,8 @@ RHISurfaceWindow_Vulkan::RHISurfaceWindow_Vulkan(int32_t Width, int32_t Height, 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   if (HideWindow) {
     glfwWindowHint(GLFW_VISIBLE, false);
+  } else {
+    glfwWindowHint(GLFW_VISIBLE, true);
   }
   mWindow = glfwCreateWindow(Width, Height, "KitaEngine", nullptr, nullptr);
   if (HideWindow) // 内部使用则直接返回
@@ -44,6 +47,7 @@ RHISurfaceWindow_Vulkan::RHISurfaceWindow_Vulkan(int32_t Width, int32_t Height, 
   if (CreateImGuiContext) {
     StartUpImGui();
   }
+  // TODO: 交换链图像先写死
 }
 
 RHISurfaceWindow_Vulkan::~RHISurfaceWindow_Vulkan() {
@@ -126,10 +130,21 @@ void RHISurfaceWindow_Vulkan::CreateSwapchain() {
   for (size_t i = 0; i < mSwapchainImageCount; i++) {
     mSwapchainImageViews[i] = GetVulkanGfxContexRef().CreateSwapchainImageView(mSwapchainImages[i], mSwapchainImageFormat);
   }
+#if KITA_EDITOR
+  RHIFrameBufferDesc FrameBufferDesc{};
+  FrameBufferDesc.SetWidth(Extent.width).SetHeight(Extent.height).SetLayers(1).SetRenderPass(GfxContext::GetRef().GetImGuiRenderPass());
+  for (size_t i = 0; i < mSwapchainImageCount; i++) {
+    FrameBufferDesc.SetAttachments({mSwapchainImageViews[i].Get()});
+    mImGuiFrameBuffers.Add(GfxContext::GetRef().CreateFrameBufferU(FrameBufferDesc));
+  }
+#endif
 }
 
 void RHISurfaceWindow_Vulkan::DestroySwapchain() {
   const auto& Ctx = GetVulkanGfxContexRef();
+#if KITA_EDITOR
+  mImGuiFrameBuffers.Clear();
+#endif
   mSwapchainImageViews.Clear();
   vkDestroySwapchainKHR(Ctx.GetDevice(), mSwapchain, nullptr);
   mSwapchain = nullptr;

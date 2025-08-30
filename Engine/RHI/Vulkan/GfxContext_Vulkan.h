@@ -33,6 +33,17 @@ public:
   virtual UniquePtr<RHIDescriptorPool> CreateDescriptorPoolU(const RHIDescriptorPoolDesc& Desc) override;
   virtual UniquePtr<RHIPipelineLayout> CreatePipelineLayoutU(const RHIPipelineLayoutDesc& Desc) override;
   virtual UniquePtr<RHIPipeline> CreatePipeline(const RHIGraphicsPipelineDesc& Desc) override;
+  virtual bool Present(const RHIPresentParams& Params) override;
+
+#if KITA_EDITOR
+  virtual void DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) override;
+  void StartUpImGui();
+  void ShutDownImGui();
+  void CreateImGuiRenderPass();
+  void CreateImGuiDescriptorPool();
+
+  VkDescriptorPool mImGuiDescriptorPool = nullptr;
+#endif
 
   virtual void Submit(const RHICommandBufferSubmitParams& Params) override;
 
@@ -49,15 +60,7 @@ public:
   [[nodiscard]] VkQueue GetQueue(ERHIQueueFamilyType Family) const;
 
 private:
-#if KITA_EDITOR
-  void StartUpImGui();
-  void ShutDownImGui();
-  void CreateImGuiRenderPass();
-  void CreateImGuiDescriptorPool();
 
-  VkRenderPass mImGuiRenderPass = nullptr;
-  VkDescriptorPool mImGuiDescriptorPool = nullptr;
-#endif
 
   static bool IsLayerSupported(const char* LayerName);
   static void OnPostGfxContextCreated(GfxContext* Context);

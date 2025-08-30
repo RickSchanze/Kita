@@ -7,6 +7,8 @@
 #include "CommandBuffer_Vulkan.h"
 #include "Core/Config/ConfigManager.h"
 #include "Core/Performance/ProfilerMark.h"
+#include "Core/TaskGraph/TaskGraph.h"
+#include "Core/TaskGraph/TaskNode.h"
 #include "DescriptorSet_Vulkan.h"
 #include "FrameBuffer_Vulkan.h"
 #include "ImageView_Vulkan.h"
@@ -95,6 +97,41 @@ UniquePtr<RHIDescriptorPool> GfxContext_Vulkan::CreateDescriptorPoolU(const RHID
 UniquePtr<RHIPipelineLayout> GfxContext_Vulkan::CreatePipelineLayoutU(const RHIPipelineLayoutDesc& Desc) { return MakeUnique<RHIPipelineLayout_Vulkan>(Desc); }
 
 UniquePtr<RHIPipeline> GfxContext_Vulkan::CreatePipeline(const RHIGraphicsPipelineDesc& Desc) { return MakeUnique<RHIPipeline_Vulkan>(Desc); }
+
+bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) { VkPresentInfoKHR PresentInfo{}; }
+
+class ImGuiDrawTask : public TaskNode {
+public:
+  VkCommandBuffer Cmd;
+  VkFramebuffer FrameBuffer;
+  VkRenderPass RenderPass;
+  UInt32 Width;
+  UInt32 Height;
+
+  explicit ImGuiDrawTask(VkCommandBuffer Cmd, VkFramebuffer FrameBuffer, VkRenderPass RenderPass, UInt32 Width, UInt32 Height)
+      : Cmd(Cmd), FrameBuffer(FrameBuffer), RenderPass(RenderPass), Width(Width), Height(Height) {}
+
+  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::Render; }
+  virtual ETaskNodeResult Run() override {
+    VkRenderPassBeginInfo RenderPassBeginInfo{};
+    RenderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    RenderPassBeginInfo.renderPass = RenderPass;
+    RenderPassBeginInfo.framebuffer = FrameBuffer;
+    RenderPassBeginInfo.renderArea.offset = {0, 0};
+    RenderPassBeginInfo.renderArea.extent = {Width, Height};
+    VkClearValue ClearValue{};
+    RenderPassBeginInfo.clearValueCount = 1;
+    RenderPassBeginInfo.pClearValues = &ClearValue;
+    vkCmdBeginRenderPass(Cmd, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), Cmd);
+    vkCmdEndRenderPass(Cmd);
+    return ETaskNodeResult::Success;
+  }
+};
+
+void GfxContext_Vulkan::DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) {
+  TaskGraph::CreateTask<ImGuiDrawTask>("", {}, Buffer->GetNativeHandleT<VkCommandBuffer>(), FrameBuffer->GetNativeHandleT<VkFramebuffer>(), mImGuiRenderPass, Width, Height);
+}
 
 void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params) {
   VkSubmitInfo SubmitInfo{};
@@ -443,10 +480,11 @@ void GfxContext_Vulkan::CreateImGuiRenderPass() {
   RenderPassInfo.pSubpasses = &Subpass;
   RenderPassInfo.dependencyCount = 1;
   RenderPassInfo.pDependencies = &Dependency;
-
-  if (auto Result = vkCreateRenderPass(mDevice, &RenderPassInfo, nullptr, &mImGuiRenderPass) != VK_SUCCESS) {
+  VkRenderPass MyRenderPass;
+  if (auto Result = vkCreateRenderPass(mDevice, &RenderPassInfo, nullptr, &MyRenderPass) != VK_SUCCESS) {
     LOG_CRITICAL_TAG("RHI.Vulkan.Imgui", "创建ImGui RenderPass失败, 错误码={}", Result);
   }
+  mImGuiRenderPass = MakeUnique<RHIRenderPass_Vulkan>(MyRenderPass);
 }
 
 void GfxContext_Vulkan::CreateImGuiDescriptorPool() {
@@ -467,7 +505,7 @@ void GfxContext_Vulkan::CreateImGuiDescriptorPool() {
   VkDescriptorPoolCreateInfo PoolInfo{};
   PoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
   PoolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; // ImGui 需要能够释放单个 set
-  PoolInfo.maxSets = 1000 * IM_ARRAYSIZE(PoolSizes);                 // 最大 descriptor set 数量
+  PoolInfo.maxSets = 1000 * IM_ARRAYSIZE(PoolSizes);                  // 最大 descriptor set 数量
   PoolInfo.poolSizeCount = static_cast<uint32_t>(IM_ARRAYSIZE(PoolSizes));
   PoolInfo.pPoolSizes = PoolSizes;
 
