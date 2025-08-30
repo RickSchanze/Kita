@@ -49,12 +49,22 @@ public:
   [[nodiscard]] VkQueue GetQueue(ERHIQueueFamilyType Family) const;
 
 private:
+#if KITA_EDITOR
+  void StartUpImGui();
+  void ShutDownImGui();
+  void CreateImGuiRenderPass();
+  void CreateImGuiDescriptorPool();
+
+  VkRenderPass mImGuiRenderPass = nullptr;
+  VkDescriptorPool mImGuiDescriptorPool = nullptr;
+#endif
+
   static bool IsLayerSupported(const char* LayerName);
   static void OnPostGfxContextCreated(GfxContext* Context);
   void CreateInstance();
   void SetupDebugMessenger();
   void SelectPhysicalDevice(RHISurfaceWindow& TempWindow);
-  [[nodiscard]] bool IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow) const;
+  [[nodiscard]] bool IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow, QueueFamilyIndices& OutFamilyIndicies) const;
   [[nodiscard]] bool CheckDeviceExtensionSupport(VkPhysicalDevice Device) const;
   void CreateLogicalDevice(RHISurfaceWindow& TempWindow);
 

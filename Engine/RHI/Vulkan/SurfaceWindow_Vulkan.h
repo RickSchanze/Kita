@@ -10,7 +10,7 @@ void GetVulkanGLFWSurfaceWindowExtensions(Array<const char*>& OutExtensions);
 
 class RHISurfaceWindow_Vulkan : public RHISurfaceWindow {
 public:
-  explicit RHISurfaceWindow_Vulkan(int32_t Width = -1, int32_t Height = -1, bool InternalUse = false);
+  explicit RHISurfaceWindow_Vulkan(Int32 Width = -1, Int32 Height = -1, bool HideWindow = false, bool CreateImGuiContext = true);
   virtual ~RHISurfaceWindow_Vulkan() override;
 
   virtual void* GetNativeSurfaceObject() override { return mSurface; }
@@ -27,18 +27,27 @@ public:
 
   virtual bool ShouldClose() override;
 
-protected:
+  virtual void TickInput() override;
+
   static VkSurfaceFormatKHR ChooseSwapchainFormat(const PhysicalDeviceSwapchainFeatures& Features);
   static VkPresentModeKHR ChoosePresentMode(const PhysicalDeviceSwapchainFeatures& Features);
   [[nodiscard]] VkExtent2D ChooseSwapchainExtent(const PhysicalDeviceSwapchainFeatures& Features) const;
+
+#if KITA_EDITOR
+  void StartUpImGui();
+  void ShutDownImGui();
+#endif
 
 private:
   VkSurfaceKHR mSurface{};
   VkSwapchainKHR mSwapchain{};
   struct GLFWwindow* mWindow{};
-  uint32_t mSwapchainImageCount{};
+  UInt32 mSwapchainImageCount{};
   Vector2i mSwapchainImageSize{};
   VkFormat mSwapchainImageFormat{};
   Array<VkImage> mSwapchainImages{};
   Array<SharedPtr<class RHIImageView>> mSwapchainImageViews{};
+#if KITA_EDITOR
+  bool mInitImGui = true;
+#endif
 };

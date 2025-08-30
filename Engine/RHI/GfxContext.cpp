@@ -14,6 +14,13 @@
 void GfxContext::StartUp() {
   Evt_PreGfxContextCreated.Invoke();
   auto& Config = ConfigManager::GetConfigRef<RHIConfig>();
+  switch (Config.GetSurfaceWindowType()) {
+  case ERHISurfaceWindowType::GLFW:
+    glfwInit();
+    break;
+  default:
+    std::unreachable();
+  }
   switch (Config.GetGraphicsBackend()) {
   case ERHIBackend::Vulkan:
     mContext = New<GfxContext_Vulkan>();
@@ -27,6 +34,14 @@ void GfxContext::StartUp() {
 void GfxContext::ShutDown() {
   Evt_PreGfxContextDestroyed.Invoke(mContext);
   Delete(mContext);
+  auto& Config = ConfigManager::GetConfigRef<RHIConfig>();
+  switch (Config.GetSurfaceWindowType()) {
+  case ERHISurfaceWindowType::GLFW:
+    glfwTerminate();
+    break;
+  default:
+    std::unreachable();
+  }
   Evt_PostGfxContextDestroyed.Invoke();
 }
 

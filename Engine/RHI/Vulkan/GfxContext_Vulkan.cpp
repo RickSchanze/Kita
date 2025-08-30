@@ -19,16 +19,24 @@
 #include "SurfaceWindow_Vulkan.h"
 #include "Sync_Vulkan.h"
 
+#if KITA_EDITOR
+#include "imgui.h"
+#include "imgui_impl_vulkan.h"
+#endif
+
 auto VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validation";
 
 void GfxContext_Vulkan::OnPostGfxContextCreated(GfxContext* Context) {
   const auto Ctx = static_cast<GfxContext_Vulkan*>(Context);
-  RHISurfaceWindow_Vulkan TempWindow{-1, -1, true};
+  RHISurfaceWindow_Vulkan TempWindow{-1, -1, true, false};
   TempWindow.CreateSurface(Ctx->mInstance);
   Ctx->SetupDebugMessenger();
   Ctx->SelectPhysicalDevice(TempWindow);
   Ctx->CreateLogicalDevice(TempWindow);
   TempWindow.DestroySurface(Ctx->mInstance);
+#if KITA_EDITOR
+  Ctx->StartUpImGui();
+#endif
 }
 
 GfxContext_Vulkan::GfxContext_Vulkan() {
@@ -39,6 +47,7 @@ GfxContext_Vulkan::GfxContext_Vulkan() {
 }
 
 GfxContext_Vulkan::~GfxContext_Vulkan() {
+  ShutDownImGui();
   Dyn_DestroyDebugUtilsMessengerEXT(mDebugMessenger, nullptr);
   vkDestroyInstance(mInstance, nullptr);
 }
@@ -221,7 +230,7 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
   vkEnumeratePhysicalDevices(mInstance, &DeviceCount, devices.Data());
 
   for (const auto& Device : devices) {
-    if (IsDeviceSuitable(Device, TempWindow)) {
+    if (IsDeviceSuitable(Device, TempWindow, mQueueFamilies)) {
       mPhysicalDevice = Device;
       break;
     }
@@ -235,7 +244,7 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
   }
 }
 
-bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow) const {
+bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWindow& TempWindow, QueueFamilyIndices& OutFamilyIndicies) const {
   bool ExtensionsSupported = CheckDeviceExtensionSupport(Device);
 
   PhysicalDeviceSwapchainFeatures SwapchainFeatures = QueryPhysicalDeviceSwapchainFeatures(Device, TempWindow);
@@ -244,9 +253,9 @@ bool GfxContext_Vulkan::IsDeviceSuitable(VkPhysicalDevice Device, RHISurfaceWind
   VkPhysicalDeviceFeatures SupportedFeatures{};
   vkGetPhysicalDeviceFeatures(Device, &SupportedFeatures);
 
-  QueueFamilyIndices Indices = FindQueueFamilies(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()));
+  OutFamilyIndicies = FindQueueFamilies(Device, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()));
 
-  return ExtensionsSupported && SupportedFeatures.samplerAnisotropy && SwapchainAvailable && Indices.IsComplete();
+  return ExtensionsSupported && SupportedFeatures.samplerAnisotropy && SwapchainAvailable && OutFamilyIndicies.IsComplete();
 }
 
 bool GfxContext_Vulkan::CheckDeviceExtensionSupport(const VkPhysicalDevice Device) const {
@@ -268,8 +277,7 @@ bool GfxContext_Vulkan::CheckDeviceExtensionSupport(const VkPhysicalDevice Devic
 void GfxContext_Vulkan::CreateLogicalDevice(RHISurfaceWindow& TempWindow) {
   Array<VkDeviceQueueCreateInfo> QueueInfos{};
   float QueuePriority = 1.0f;
-  const QueueFamilyIndices Indices = FindQueueFamilies(mPhysicalDevice, static_cast<VkSurfaceKHR>(TempWindow.GetNativeSurfaceObject()));
-  Set<UInt32> UniqueQueueFamilies = {*Indices.GraphicsFamily, *Indices.PresentFamily};
+  Set<UInt32> UniqueQueueFamilies = {*mQueueFamilies.GraphicsFamily, *mQueueFamilies.PresentFamily};
   for (UInt32 QueueFamily : UniqueQueueFamilies) {
     VkDeviceQueueCreateInfo QueueInfo{};
     QueueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -297,6 +305,8 @@ void GfxContext_Vulkan::CreateLogicalDevice(RHISurfaceWindow& TempWindow) {
   if (VkResult Code = vkCreateDevice(mPhysicalDevice, &DeviceInfo, nullptr, &mDevice); Code != VK_SUCCESS) {
     LOG_CRITICAL_TAG("RHI.Vulkan", "初始化Vulkan上下文失败, Code={}", Code);
   }
+  vkGetDeviceQueue(mDevice, *mQueueFamilies.GraphicsFamily, 0, &mGraphicsQueue);
+  vkGetDeviceQueue(mDevice, *mQueueFamilies.PresentFamily, 0, &mPresentQueue);
 }
 
 QueueFamilyIndices GfxContext_Vulkan::FindQueueFamilies(const VkPhysicalDevice Device, const VkSurfaceKHR Surface) {
@@ -330,7 +340,7 @@ QueueFamilyIndices GfxContext_Vulkan::FindQueueFamilies(const VkPhysicalDevice D
   return Indices;
 }
 
-QueueFamilyIndices GfxContext_Vulkan::GetQueueFamilies(const VkSurfaceKHR Surface) const { return FindQueueFamilies(mPhysicalDevice, Surface); }
+QueueFamilyIndices GfxContext_Vulkan::GetQueueFamilies(const VkSurfaceKHR Surface) const { return mQueueFamilies; }
 
 UInt32 GfxContext_Vulkan::GetQueueFamilyIndex(const ERHIQueueFamilyType Family) const {
   switch (Family) {
@@ -359,6 +369,114 @@ VkQueue GfxContext_Vulkan::GetQueue(const ERHIQueueFamilyType Family) const {
   }
   return VK_NULL_HANDLE;
 }
+
+#if KITA_EDITOR
+
+void GfxContext_Vulkan::StartUpImGui() {
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& IO = ImGui::GetIO();
+  IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  IO.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+  IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  ImGui_ImplVulkan_InitInfo InitInfo{};
+  InitInfo.Instance = mInstance;
+  InitInfo.PhysicalDevice = mPhysicalDevice;
+  InitInfo.Device = mDevice;
+  InitInfo.QueueFamily = GetQueueFamilyIndex(ERHIQueueFamilyType::Graphics);
+  InitInfo.Queue = mGraphicsQueue;
+  InitInfo.PipelineCache = nullptr;
+  CreateImGuiRenderPass();
+  InitInfo.RenderPass = mImGuiRenderPass;
+  CreateImGuiDescriptorPool();
+  InitInfo.DescriptorPool = mImGuiDescriptorPool;
+  InitInfo.Subpass = 0;
+  // TODO: 交换链图像选择, 现在先写死为2
+  InitInfo.ImageCount = 2;
+  InitInfo.MinImageCount = 2;
+  InitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+  ImGui_ImplVulkan_Init(&InitInfo);
+}
+
+void GfxContext_Vulkan::ShutDownImGui() {
+  ImGui_ImplVulkan_Shutdown();
+  ImGui::DestroyContext();
+}
+
+void GfxContext_Vulkan::CreateImGuiRenderPass() {
+  // 颜色附件描述
+  VkAttachmentDescription ColorAttachment = {};
+  ColorAttachment.format = RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(mPhysicalDeviceSwapchainFeatures).format;
+  ColorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+  ColorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; // 如果你想保留之前绘制的内容
+  ColorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+  ColorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+  ColorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+  ColorAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+  ColorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+  VkAttachmentReference ColorAttachmentRef = {};
+  ColorAttachmentRef.attachment = 0;
+  ColorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+  // 子通道（只有一个颜色附件）
+  VkSubpassDescription Subpass = {};
+  Subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+  Subpass.colorAttachmentCount = 1;
+  Subpass.pColorAttachments = &ColorAttachmentRef;
+
+  // 子通道依赖
+  VkSubpassDependency Dependency = {};
+  Dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+  Dependency.dstSubpass = 0;
+  Dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  Dependency.srcAccessMask = 0; // 这里可以放 COLOR_ATTACHMENT_WRITE_BIT，如果前面有写操作
+  Dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  Dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+  // 创建 RenderPass
+  VkRenderPassCreateInfo RenderPassInfo = {};
+  RenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+  RenderPassInfo.attachmentCount = 1;
+  RenderPassInfo.pAttachments = &ColorAttachment;
+  RenderPassInfo.subpassCount = 1;
+  RenderPassInfo.pSubpasses = &Subpass;
+  RenderPassInfo.dependencyCount = 1;
+  RenderPassInfo.pDependencies = &Dependency;
+
+  if (auto Result = vkCreateRenderPass(mDevice, &RenderPassInfo, nullptr, &mImGuiRenderPass) != VK_SUCCESS) {
+    LOG_CRITICAL_TAG("RHI.Vulkan.Imgui", "创建ImGui RenderPass失败, 错误码={}", Result);
+  }
+}
+
+void GfxContext_Vulkan::CreateImGuiDescriptorPool() {
+  // 列出 ImGui 可能会用到的所有 descriptor 类型
+  VkDescriptorPoolSize PoolSizes[] = //
+      {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+       {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+       {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+       {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+       {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+       {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+       {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+
+  VkDescriptorPoolCreateInfo PoolInfo{};
+  PoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+  PoolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; // ImGui 需要能够释放单个 set
+  PoolInfo.maxSets = 1000 * IM_ARRAYSIZE(PoolSizes);                 // 最大 descriptor set 数量
+  PoolInfo.poolSizeCount = static_cast<uint32_t>(IM_ARRAYSIZE(PoolSizes));
+  PoolInfo.pPoolSizes = PoolSizes;
+
+  if (auto Result = vkCreateDescriptorPool(mDevice, &PoolInfo, nullptr, &mImGuiDescriptorPool) != VK_SUCCESS) {
+    LOG_CRITICAL_TAG("RHI.Vulkan.ImGui", "创建ImGui Descriptor Pool失败, 错误码={}", Result);
+  }
+}
+
+#endif
 
 void GfxContext_Vulkan::FindPhysicalDeviceFeatures() {
   VkPhysicalDeviceProperties PhysicalDeviceProperties;

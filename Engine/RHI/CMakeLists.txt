@@ -45,6 +45,7 @@ add_library(KitaRHI
         Vulkan/SurfaceWindow_Vulkan.h
         Vulkan/CommandBuffer_Vulkan.cpp
         Vulkan/CommandBuffer_Vulkan.h
+        SurfaceWindow.cpp
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)
@@ -57,3 +58,6 @@ target_include_directories(KitaRHI PUBLIC ../)
 
 target_include_directories(KitaRHI PUBLIC ${Vulkan_INCLUDE_DIRS})
 target_link_libraries(KitaRHI PRIVATE ${Vulkan_LIBRARIES})
+
+find_package(imgui CONFIG REQUIRED)
+target_link_libraries(KitaRHI PRIVATE imgui::imgui)

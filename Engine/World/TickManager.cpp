@@ -33,18 +33,18 @@ void TickManager::UnRegisterTickInstanceM(ITick* Instance) {
   }
 }
 
-void TickManager::TickAllObjectsM(float DeltaSeconds) {
+void TickManager::TickAllObjectsM(double DeltaSeconds) {
   ASSERT_MSG(mInputTickInstance != nullptr, "需要设置InputTick实例")
   ASSERT_MSG(mRenderTickInstance != nullptr, "需要设置RenderTick实例")
   CPU_NAMED_PROFILING_SCOPE("TickAllTickInstances");
-  {
+  if (mInputTickInstance != nullptr) {
     CPU_NAMED_PROFILING_SCOPE("TickInput");
     mInputTickInstance->Tick(DeltaSeconds);
   }
   for (const auto TickInstance : mTickObjects) {
     TickInstance->Tick(DeltaSeconds);
   }
-  {
+  if (mRenderTickInstance != nullptr) {
     CPU_NAMED_PROFILING_SCOPE("TickRender");
     mRenderTickInstance->Tick(DeltaSeconds);
   }

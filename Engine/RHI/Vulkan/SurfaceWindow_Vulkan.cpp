@@ -13,6 +13,10 @@
 
 #include <GLFW/glfw3.h>
 
+#if KITA_EDITOR
+#include "imgui_impl_glfw.h"
+#endif
+
 void GetVulkanGLFWSurfaceWindowExtensions(Array<const char*>& OutExtensions) {
   uint32_t glfwExtensionCount = 0;
   const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -21,26 +25,33 @@ void GetVulkanGLFWSurfaceWindowExtensions(Array<const char*>& OutExtensions) {
   }
 }
 
-RHISurfaceWindow_Vulkan::RHISurfaceWindow_Vulkan(int32_t Width, int32_t Height, bool InternalUse) {
+RHISurfaceWindow_Vulkan::RHISurfaceWindow_Vulkan(int32_t Width, int32_t Height, bool HideWindow, bool CreateImGuiContext) {
   CPU_PROFILING_SCOPE;
+  mInitImGui = CreateImGuiContext;
   const RHIConfig& Cfg = ConfigManager::GetConfigRef<RHIConfig>();
   Width = Width <= 0 ? Cfg.GetDefaultWindowSize().X() : Width;
   Height = Height <= 0 ? Cfg.GetDefaultWindowSize().Y() : Height;
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  if (InternalUse) {
+  if (HideWindow) {
     glfwWindowHint(GLFW_VISIBLE, false);
   }
   mWindow = glfwCreateWindow(Width, Height, "KitaEngine", nullptr, nullptr);
-  if (InternalUse) // 内部使用则直接返回
+  if (HideWindow) // 内部使用则直接返回
     return;
   // 非内部使用则自动创建Surface与Swapchain
   const auto& Ctx = GetVulkanGfxContexRef();
   CreateSurface(Ctx.GetInstance());
+  if (CreateImGuiContext) {
+    StartUpImGui();
+  }
 }
 
 RHISurfaceWindow_Vulkan::~RHISurfaceWindow_Vulkan() {
   const auto& Ctx = GetVulkanGfxContexRef();
   DestroySurface(Ctx.GetInstance());
+  if (mInitImGui) {
+    ImGui_ImplGlfw_Shutdown();
+  }
   glfwDestroyWindow(mWindow);
   mWindow = nullptr;
 }
@@ -67,10 +78,11 @@ void RHISurfaceWindow_Vulkan::CreateSwapchain() {
   const VkSurfaceFormatKHR SurfaceFormat = ChooseSwapchainFormat(Features);
   const VkPresentModeKHR PresentMode = ChoosePresentMode(Features);
   const VkExtent2D Extent = ChooseSwapchainExtent(Features);
-  mSwapchainImageCount = Features.Capabilities.MinImageCount + 1;
-  if (Features.Capabilities.MaxImageCount > 0 && mSwapchainImageCount > Features.Capabilities.MaxImageCount) {
-    mSwapchainImageCount = Features.Capabilities.MaxImageCount;
-  }
+  // TODO: 交换链图像数量选择 现在先写死为2
+  mSwapchainImageCount = 2;
+  // if (Features.Capabilities.MaxImageCount > 0 && mSwapchainImageCount > Features.Capabilities.MaxImageCount) {
+  //   mSwapchainImageCount = Features.Capabilities.MaxImageCount;
+  // }
 
   VkSwapchainCreateInfoKHR CreateInfo{};
   CreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -135,6 +147,8 @@ Vector2i RHISurfaceWindow_Vulkan::GetSize() {
 
 bool RHISurfaceWindow_Vulkan::ShouldClose() { return glfwWindowShouldClose(mWindow); }
 
+void RHISurfaceWindow_Vulkan::TickInput() { glfwPollEvents(); }
+
 VkSurfaceFormatKHR RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(const PhysicalDeviceSwapchainFeatures& Features) {
   const auto& Cfg = ConfigManager::GetConfigRef<RHIConfig>();
   VkSurfaceFormatKHR Result{};
@@ -184,3 +198,11 @@ VkExtent2D RHISurfaceWindow_Vulkan::ChooseSwapchainExtent(const PhysicalDeviceSw
 
   return ActualExtent;
 }
+
+#if KITA_EDITOR
+
+void RHISurfaceWindow_Vulkan::StartUpImGui() { ImGui_ImplGlfw_InitForVulkan(mWindow, true); }
+
+void RHISurfaceWindow_Vulkan::ShutDownImGui() { ImGui_ImplGlfw_Shutdown(); }
+
+#endif

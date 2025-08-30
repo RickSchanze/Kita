@@ -21,8 +21,8 @@ public:
   void UnRegisterTickInstanceM(ITick* Instance);
 
   /// 运行所有Tick对象
-  static void TickAllObjects(float DeltaSeconds) { GetRef().TickAllObjectsM(DeltaSeconds); }
-  void TickAllObjectsM(float DeltaSeconds);
+  static void TickAllObjects(double DeltaSeconds) { GetRef().TickAllObjectsM(DeltaSeconds); }
+  void TickAllObjectsM(double DeltaSeconds);
 
   ITick* GetRenderTickInstance(ITick* Instance) const { return mRenderTickInstance; }
   void SetRenderTickInstance(ITick* Instance) { mRenderTickInstance = Instance; }

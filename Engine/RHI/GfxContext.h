@@ -21,8 +21,6 @@ class RHIFence;
 struct RHIImageDesc;
 class RHIImage;
 
-
-
 struct GfxDeviceFeatures {
   ERHISampleCount MaxSampleCount = ERHISampleCount::SC_1;
 
@@ -51,8 +49,8 @@ struct PhysicalDeviceSwapchainFeatures {
     ERHISurfaceTransformBits CurrentTransform;
   };
 
-  Array<SurfaceFormat > Formats;
-  Array<ERHIPresentMode > PresentModes;
+  Array<SurfaceFormat> Formats;
+  Array<ERHIPresentMode> PresentModes;
   MyCapabilities Capabilities;
 };
 

@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/Singleton/Singleton.h"
 
+class InputTicker;
+class RHISurfaceWindow;
 struct EngineData {
   /// 当前帧号
   UInt32 FrameIndex;
@@ -19,5 +21,8 @@ private:
   void ShutDownSystemsM();
   void RunM();
 
-  ::EngineData mEngineData{};
+  EngineData mEngineData{};
+  /// 引擎主窗口
+  RHISurfaceWindow* mSurfaceWindow = nullptr;
+  InputTicker* mInputTicker = nullptr;
 };

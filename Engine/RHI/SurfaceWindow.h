@@ -22,4 +22,9 @@ public:
   virtual void DestroySwapchain() = 0;
   virtual Vector2i GetSize() = 0;
   virtual bool ShouldClose() = 0;
+  virtual void TickInput() = 0;
 };
+
+/// 使用RHIConfig里的设置创建一个SurfaceWindow
+/// 需要自己调用Delete
+RHISurfaceWindow* CreateSurfaceWindow();
