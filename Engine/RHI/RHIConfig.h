@@ -34,7 +34,7 @@ private:
   bool EnableVulkanValidationLayer = true;
 
   KPROPERTY()
-  ERHIFormat DesiredSwapchainFormat = ERHIFormat::B8G8R8A8_SRGB;
+  ERHIFormat DesiredSwapchainFormat = ERHIFormat::B8G8R8A8_UNorm;
 
   KPROPERTY()
   ERHIColorSpace DesiredSwapchainColorSpace = ERHIColorSpace::sRGB;
