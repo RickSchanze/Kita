@@ -109,5 +109,8 @@ public:
   KPROPERTY()
   ImGuiColorTheme Theme;
 
+  KPROPERTY()
+  String IconFontPath = "Assets/Font/IconFont.ttf";
+
   void ApplyImGuiSettings();
 };

@@ -5,6 +5,7 @@
 
 #include "Core/FileSystem/File.h"
 #include "Core/FileSystem/Path.h"
+#include "IconFontHeader.h"
 
 #include <imgui.h>
 
@@ -29,6 +30,13 @@ void ImGuiConfig::ApplyImGuiSettings() {
     Builder.AddRanges(IO.Fonts->GetGlyphRangesDefault());
     Builder.BuildRanges(&Ranges);
     IO.Fonts->AddFontFromFileTTF(FontPath.Data(), FontSize, nullptr, Ranges.Data);
+    IO.Fonts->Build();
+
+    ImFontConfig config;
+    config.MergeMode = true;
+    config.GlyphOffset.y = 4.f;
+    static constexpr ImWchar IconFontRages[] = {ICON_MIN_MS, ICON_MAX_MS, 0};
+    IO.Fonts->AddFontFromFileTTF(IconFontPath.Data(), FontSize, &config, IconFontRages);
     IO.Fonts->Build();
   }
   Theme.ApplyTheme();

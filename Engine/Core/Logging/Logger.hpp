@@ -17,7 +17,6 @@ struct Log {
   StringView Tag;
   String Message;
   ELogLevel Level;
-  String Source;
 };
 
 class Logger {

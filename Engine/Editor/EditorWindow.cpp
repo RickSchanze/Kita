@@ -10,8 +10,12 @@
 
 void EditorWindow::Render() {
   if (mShowWindow) {
-    EditorUI::Begin(mWindowTitle, &mShowWindow, mFlags);
+    if (!mBeginEndWindowSelf)
+      EditorUI::Begin(mWindowTitle, &mShowWindow, mFlags);
     Draw();
-    EditorUI::End();
+    if (!mBeginEndWindowSelf)
+      EditorUI::End();
   }
 }
+
+float EditorWindow::GetAvailableContentWidth() { return EditorUI::GetContentRegionAvail().X(); }

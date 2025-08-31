@@ -72,6 +72,7 @@ void MenuActionManager::RegisterMenuActionItem(const Type* InType) const {
       NewNode->Path = Path.ToString();
       CurrentNode->Children.Add(NewNode);
       CurrentNode = NewNode;
+      break;
     }
   }
   CurrentNode->Action = InType->CreateInstanceT<MenuAction>();

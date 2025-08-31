@@ -48,6 +48,7 @@ add_library(KitaRHI
         SurfaceWindow.cpp
         ImGuiConfig.h
         ImGuiConfig.cpp
+        IconFontHeader.h
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)

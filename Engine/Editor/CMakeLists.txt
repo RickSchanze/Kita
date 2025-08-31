@@ -16,6 +16,8 @@ add_library(KitaEditor
         Windows/LoggingWindow.h
         EditorWindowManager.cpp
         EditorWindowManager.h
+        Windows/ImGuiDemoWindow.cpp
+        Windows/ImGuiDemoWindow.h
 )
 
 target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender)

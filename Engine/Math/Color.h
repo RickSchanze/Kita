@@ -3,6 +3,8 @@
 #include "Vector.h"
 
 struct Color {
+  Color(const float R = 0, const float G = 0, const float B = 0, const float A = 1) : Data(R, G, B, A) {}
+
   float& R() { return Data.X(); }
   [[nodiscard]] const float& R() const { return Data.X(); }
   float& G() { return Data.Y(); }

@@ -10,14 +10,17 @@ class LoggingWindow : public EditorWindow {
   GENERATED_BODY(LoggingWindow)
 public:
   LoggingWindow();
-  ~LoggingWindow();
+  virtual ~LoggingWindow() override;
   virtual void Draw() override;
 
   static void RecordLog(const Log& Log);
+  bool ShouldLogDraw(const Log& Log);
 
-  Int32 MaxLoggingRecordCount = 1000;
-  Deque<Log> LoggingRecords;
-  Logger::CallbackHandle LoggingCallbackHandle;
+private:
+  Int32 mMaxLoggingRecordCount = 1000;
+  Deque<Log> mLoggingRecords;
+  Logger::CallbackHandle mLoggingCallbackHandle;
+  Map<StringView, bool> mLoggingRecordTagFilter;
 };
 
 KCLASS(MenuActionItem = "工具/日志")

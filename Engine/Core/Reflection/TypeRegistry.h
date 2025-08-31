@@ -29,6 +29,15 @@ public:
 
   const auto& GetAllTypes() const { return mRegisteredTypes; }
 
+  [[nodiscard]] bool IsTypeExists(SizeType HashCode) {
+    for (auto& Type : mRegisteredTypes) {
+      if (Type->GetHashCode() == HashCode) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 private:
   Array<const Type*> mRegisteredTypes;
   Map<const Type*, Constructor> mConstructors;
@@ -56,6 +65,10 @@ template <typename T> const Type* TypeOf() {
 
 struct TypeBuilder {
   template <typename T> TypeBuilder& CreateType(const StringView Name) {
+    if (GetTypeRegistry().IsTypeExists(GetTypeStaticHashCode<T>())) {
+      OperatingType = nullptr;
+      return *this;
+    }
     OperatingType = ::CreateType<T>(Name);
     return *this;
   }
@@ -63,6 +76,9 @@ struct TypeBuilder {
   /// 添加一个反射字段
   /// @warning 不做任何验证, 请保证OperatingType不为空且不会重复添加
   template <typename ClassType, typename FieldType> TypeBuilder& AddField(const StringView Name, FieldType ClassType::* FieldPtr) {
+    if (!OperatingType) {
+      return *this;
+    }
     Int32 FieldOffset = static_cast<Int32>(reinterpret_cast<SizeType>(&(static_cast<ClassType*>(nullptr)->*FieldPtr)));
     Int32 FieldSize = sizeof(FieldType);
     const Type* DeclaringType = nullptr;
@@ -82,6 +98,9 @@ struct TypeBuilder {
   }
 
   TypeBuilder& AddField(const Field* NewField) {
+    if (!OperatingType) {
+      return *this;
+    }
     OperatingType->RegisterField(NewField);
     return *this;
   }
@@ -89,6 +108,9 @@ struct TypeBuilder {
   /// 添加一个枚举字段
   /// @warning 不做任何验证, 请保证OperatingType不为空, 为枚举类型且不会重复添加
   template <Traits::IsEnum ClassType> TypeBuilder& AddField(const StringView Name, ClassType EnumValue) {
+    if (!OperatingType) {
+      return *this;
+    }
     Int32 FieldOffset = -1;
     Int32 FieldSize = static_cast<Int32>(EnumValue);
     // TODO: 这里先暂时认定所有注册的反射Enum都是Int32类型, 之后再支持其他类型
@@ -101,6 +123,9 @@ struct TypeBuilder {
   }
 
   TypeBuilder& SetFieldAttribute(const StringView Key, const StringView Value) {
+    if (!OperatingType) {
+      return *this;
+    }
     if (LastOperatingField) {
       LastOperatingField->SetAttribute(Key, Value);
     }
@@ -108,6 +133,9 @@ struct TypeBuilder {
   }
 
   TypeBuilder& SetTypeAttribute(const StringView Key, const StringView Value) {
+    if (!OperatingType) {
+      return *this;
+    }
     if (OperatingType) {
       OperatingType->SetAttribute(Key, Value);
     }
@@ -115,11 +143,17 @@ struct TypeBuilder {
   }
 
   void Register() const {
+    if (!OperatingType) {
+      return;
+    }
     GetTypeRegistry().RegisterType(OperatingType);
     GetTypeRegistry().RegisterCtorAndDtor(OperatingType, Ctor, Dtor);
   }
 
   template <typename T> void AddParent() const {
+    if (!OperatingType) {
+      return;
+    }
     if constexpr (Traits::IsReflected<T>) {
       const Type* Base = TypeOf<T>();
       OperatingType->AddParent(Base);
@@ -127,11 +161,17 @@ struct TypeBuilder {
   }
 
   TypeBuilder& SetConstructor(Constructor InCtor) {
+    if (!OperatingType) {
+      return *this;
+    }
     Ctor = InCtor;
     return *this;
   }
 
   TypeBuilder& SetDestructor(Destructor InDtor) {
+    if (!OperatingType) {
+      return *this;
+    }
     Dtor = InDtor;
     return *this;
   }

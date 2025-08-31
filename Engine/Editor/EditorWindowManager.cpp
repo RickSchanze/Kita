@@ -6,6 +6,7 @@
 
 #include "EditorWindow.h"
 #include "Windows/LoggingWindow.h"
+#include "Windows/ImGuiDemoWindow.h" // 防止变量被优化而无法注册
 
 EditorWindow* EditorWindowManager::Open(const Type* InType) {
   auto& Self = GetRef();
@@ -16,6 +17,7 @@ EditorWindow* EditorWindowManager::Open(const Type* InType) {
   if (EditorWindow* NewWindow = InType->CreateInstanceT<EditorWindow>()) {
     Self.mEditorWindows.Add(InType, NewWindow);
     NewWindow->Show();
+    gLogger.Info("Editor", "创建窗口'{}'.", NewWindow->GetWindowTitle());
     return NewWindow;
   }
   return nullptr;
@@ -25,6 +27,7 @@ void EditorWindowManager::Close(const Type* InType) {
   auto& Self = GetRef();
   if (Self.mEditorWindows.Contains(InType)) {
     Self.mEditorWindows[InType]->Hide();
+    gLogger.Info("Editor", "销毁窗口'{}'.", Self.mEditorWindows[InType]->GetWindowTitle());
     Delete(Self.mEditorWindows[InType]);
     Self.mEditorWindows.Remove(InType);
   }
