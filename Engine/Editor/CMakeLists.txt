@@ -14,6 +14,8 @@ add_library(KitaEditor
         MenuActionManager.h
         Windows/LoggingWindow.cpp
         Windows/LoggingWindow.h
+        EditorWindowManager.cpp
+        EditorWindowManager.h
 )
 
 target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender)

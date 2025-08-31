@@ -5,6 +5,7 @@
 #include "SurfaceWindow.h"
 
 #include "Core/Assert.h"
+#include "Core/TaskGraph/TaskHandle.h"
 #include "GfxContext.generated.h"
 
 class RHICommandBuffer;
@@ -126,7 +127,7 @@ public:
   virtual bool Present(const RHIPresentParams& Params) = 0;
 
 #if KITA_EDITOR
-  virtual void DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) = 0;
+  virtual TaskHandle DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) = 0;
   RHIRenderPass* GetImGuiRenderPass() const { return mImGuiRenderPass.Get(); }
 
 protected:

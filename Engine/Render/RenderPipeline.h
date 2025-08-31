@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Reflection/MetaMark.h"
 
+#include "Core/TaskGraph/TaskHandle.h"
 #include "RenderPipeline.generated.h"
 
 class RHIFrameBuffer;
@@ -20,9 +21,10 @@ class RenderPipeline {
 public:
   virtual ~RenderPipeline() = default;
   virtual void Draw(const RenderPipelineDrawParams& Params);
+  void DrawImGui(const RenderPipelineDrawParams& Params);
 
 #if KITA_EDITOR
 protected:
-  void RecordImGuiCommands(const RenderPipelineDrawParams& Params);
+  TaskHandle RecordImGuiCommands(const RenderPipelineDrawParams& Params);
 #endif
 };

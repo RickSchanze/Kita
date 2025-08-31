@@ -3,6 +3,7 @@
 #include "Object/Object.h"
 
 #include "EditorWindow.generated.h"
+#include "EditorWindowManager.h"
 
 KCLASS()
 class EditorWindow : public Object {
@@ -17,6 +18,10 @@ public:
 
   void Show() { mShowWindow = true; }
   void Hide() { mShowWindow = false; }
+
+  bool IsVisible() const { return mShowWindow; }
+
+  template <typename T> static void Open() { EditorWindowManager::Open(T::GetStaticType()); }
 
 protected:
   bool mShowWindow = true;

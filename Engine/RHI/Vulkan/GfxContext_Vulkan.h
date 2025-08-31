@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/TaskGraph/TaskHandle.h"
 #include "RHI/GfxContext.h"
 #include "RHI/ImageView.h"
 #include "vulkan/vulkan.h"
@@ -40,7 +41,7 @@ public:
   virtual PhysicalDeviceSwapchainFeatures GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const override;
 
 #if KITA_EDITOR
-  virtual void DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) override;
+  virtual TaskHandle DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) override;
   void StartUpImGui();
   void ShutDownImGui();
   void CreateImGuiRenderPass();

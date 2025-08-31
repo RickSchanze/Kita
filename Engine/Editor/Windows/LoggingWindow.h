@@ -7,11 +7,13 @@
 KCLASS()
 class LoggingWindow : public EditorWindow {
   GENERATED_BODY(LoggingWindow)
+public:
+  virtual void Draw() override;
 };
 
 KCLASS(MenuActionItem = "工具/日志")
 class MenuAction_OpenLoggingWindow : public MenuAction {
   GENERATED_BODY(MenuAction_OpenLoggingWindow)
 public:
-  virtual void Execute() override { LOG_INFO("Test", "打开日志！"); }
+  virtual void Execute() override { EditorWindowManager::Open<LoggingWindow>(); }
 };

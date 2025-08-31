@@ -158,8 +158,8 @@ public:
   }
 };
 
-void GfxContext_Vulkan::DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) {
-  TaskGraph::CreateTask<ImGuiDrawTask>( //
+TaskHandle GfxContext_Vulkan::DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) {
+  return TaskGraph::CreateTask<ImGuiDrawTask>( //
       "", {}, Buffer->GetNativeHandleT<VkCommandBuffer>(), FrameBuffer->GetNativeHandleT<VkFramebuffer>(), mImGuiRenderPass->GetNativeHandleT<VkRenderPass>(), Width, Height);
 }
 

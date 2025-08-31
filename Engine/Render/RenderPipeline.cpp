@@ -9,8 +9,9 @@
 #include "RHI/GfxContext.h"
 
 #include <imgui.h>
+#include <imgui_impl_vulkan.h>
 
-static void DrawImGui() {
+static void StaticDrawImGui() {
   CPU_PROFILING_SCOPE;
   ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
   const ImGuiViewport* Viewport = ImGui::GetMainViewport();
@@ -35,11 +36,20 @@ static void DrawImGui() {
 
 void RenderPipeline::Draw(const RenderPipelineDrawParams& Params) {
   CPU_PROFILING_SCOPE;
-  DrawImGui();
-  RecordImGuiCommands(Params);
+  DrawImGui(Params);
 }
 
-void RenderPipeline::RecordImGuiCommands(const RenderPipelineDrawParams& Params) {
+void RenderPipeline::DrawImGui(const RenderPipelineDrawParams& Params) {
+  static TaskHandle Handle{};
+  Handle.WaitSync();
+  ImGui_ImplVulkan_NewFrame();
+  ImGui::NewFrame();
+  StaticDrawImGui();
+  EditorWindowManager::Render();
+  Handle = RecordImGuiCommands(Params);
+}
+
+TaskHandle RenderPipeline::RecordImGuiCommands(const RenderPipelineDrawParams& Params) {
   CPU_PROFILING_SCOPE;
-  GfxContext::GetRef().DrawImGui(Params.Cmd, Params.TargetFramebuffer, Params.Width, Params.Height);
+  return GfxContext::GetRef().DrawImGui(Params.Cmd, Params.TargetFramebuffer, Params.Width, Params.Height);
 }

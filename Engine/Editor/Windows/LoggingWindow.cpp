@@ -3,3 +3,5 @@
 //
 
 #include "LoggingWindow.h"
+
+void LoggingWindow::Draw() { Super::Draw(); }

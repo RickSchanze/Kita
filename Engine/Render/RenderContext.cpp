@@ -81,10 +81,6 @@ void RenderContext::Render(double Time) {
   // 一开始记录就开始Execute一次 避免与ImGui冲突
   mCommandBuffers[FrameIndex]->Execute("");
 
-#if KITA_EDITOR
-  ImGui_ImplVulkan_NewFrame();
-  ImGui::NewFrame();
-#endif
   RenderPipelineDrawParams Params = {};
   Params.DeltaSeconds = Time;
   Params.Cmd = mCommandBuffers[FrameIndex].Get();

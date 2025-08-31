@@ -63,10 +63,13 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
 
   // MenuAction
   MenuActionManager::StartUp();
-  mEngineData = {};
+
+  // EditorWindowManager
 }
 
 void EngineLoop::ShutDownSystemsM() {
+  // EditorWindowManager
+  EditorWindowManager::ShutDown();
   // MenuAction
   MenuActionManager::ShutDown();
   // 清理Ticker
