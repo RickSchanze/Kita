@@ -24,6 +24,9 @@ public:
 
   [[nodiscard]] FORCE_INLINE bool IsSaveDirty() const { return mSaveDirty; }
 
+  /// 这个出发的时机是在Archive写入完成但是还未实际写入文件时
+  virtual void PostSave() {}
+
 protected:
   bool mSaveDirty = false;
 #endif

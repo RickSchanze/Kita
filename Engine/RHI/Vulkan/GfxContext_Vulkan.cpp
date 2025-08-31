@@ -14,6 +14,7 @@
 #include "ImageView_Vulkan.h"
 #include "Image_Vulkan.h"
 #include "Pipeline_Vulkan.h"
+#include "RHI/ImGuiConfig.h"
 #include "RHI/RHIConfig.h"
 #include "RHIEnums_Vulkan.h"
 #include "RenderPass_Vulkan.h"
@@ -463,6 +464,7 @@ void GfxContext_Vulkan::StartUpImGui() {
   InitInfo.MinImageCount = 2;
   InitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
   ImGui_ImplVulkan_Init(&InitInfo);
+  ConfigManager::GetConfigRef<ImGuiConfig>().ApplyImGuiSettings();
 }
 
 void GfxContext_Vulkan::ShutDownImGui() {

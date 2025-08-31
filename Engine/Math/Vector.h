@@ -252,6 +252,20 @@ template <typename T> struct Vector4 {
   }
 
   [[nodiscard]] String ToString() const { return Format("[{}, {}, {}, {}]", X(), Y(), Z(), W()); }
+
+  void WriteArchive(OutputArchive& Archive) const {
+    Archive.WriteType("X", X());
+    Archive.WriteType("Y", Y());
+    Archive.WriteType("Z", Z());
+    Archive.WriteType("W", W());
+  }
+
+  void ReadArchive(InputArchive& Archive) {
+    Archive.ReadType("X", X());
+    Archive.ReadType("Y", Y());
+    Archive.ReadType("Z", Z());
+    Archive.ReadType("W", W());
+  }
 };
 
 #define VECTOR4_DECL(Type, Name)                                                                                               \

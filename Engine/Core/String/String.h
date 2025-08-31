@@ -31,6 +31,8 @@ public:
   auto begin() { return mStr.begin(); }
   auto end() { return mStr.end(); }
 
+  const char* Data() const { return mStr.c_str(); }
+
 private:
   std::string mStr;
 };

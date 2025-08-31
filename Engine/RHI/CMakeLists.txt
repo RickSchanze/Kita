@@ -46,6 +46,8 @@ add_library(KitaRHI
         Vulkan/CommandBuffer_Vulkan.cpp
         Vulkan/CommandBuffer_Vulkan.h
         SurfaceWindow.cpp
+        ImGuiConfig.h
+        ImGuiConfig.cpp
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)

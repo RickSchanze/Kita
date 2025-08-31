@@ -85,7 +85,7 @@ ESerializationError TOMLInputArchive::BeginObject(const StringView ScopeName) {
   toml::node* Current = mImpl->CurrentNode();
   toml::node* Child = TOMLInputArchive::Impl::GetKeyNode(Current, ScopeName);
   if (!Child) {
-    LOG_ERROR_TAG("Serialization", "BeginObject: KeyNotFound. Key=\"{}\"", ScopeName);
+    LOG_WARN_TAG("Serialization", "BeginObject: KeyNotFound. Key=\"{}\"", ScopeName);
     return ESerializationError::KeyNotFound;
   }
   if (!Child->is_table()) {
@@ -157,7 +157,7 @@ template <typename T> static ESerializationError ReadValueImpl(TOMLInputArchive:
   }
 
   if (!Child) {
-    LOG_ERROR_TAG("Serialization", "Read: KeyNotFound. Key=[{}]", Key);
+    LOG_WARN_TAG("Serialization", "Read: KeyNotFound. Key=[{}]", Key);
     return ESerializationError::TypeMismatch;
   }
   if (!Child->is_value()) {

@@ -32,6 +32,7 @@ void ConfigManager::SaveAllDirtyConfigsM() {
     ASSERT_MSG(FileArchives.Contains(ConfigPath), "FileArchives不包含ConfigPath:{}", ConfigPath);
     auto& Archive = FileArchives[ConfigPath];
     Archive.WriteType(Config->GetCategory(), *Config);
+    Config->PostSave();
   }
   // 写入文件
   for (auto& [ConfigPath, Archive] : FileArchives) {

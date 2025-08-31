@@ -85,6 +85,8 @@ void RenderContext::Render(double Time) {
   ImGui_ImplVulkan_NewFrame();
   ImGui::NewFrame();
 #endif
+  ImGui::Begin("你好");
+  ImGui::End();
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
 

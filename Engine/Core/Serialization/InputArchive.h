@@ -76,8 +76,10 @@ template <typename T> void InputArchive::ReadType(StringView Key, T& Value) {
       ReadArchive(*this, Value);
       EndObject();
     } else if constexpr (Traits::HasMemberOutputArchiveFunc<T>) {
-      BeginObject(Key);
-      Value.ReadArchive(*this);
+      ESerializationError Error = BeginObject(Key);
+      if (Error == ESerializationError::Ok) {
+        Value.ReadArchive(*this);
+      }
       EndObject();
     } else {
       static_assert(false, "TOMLOutputArchive does not support this type. Implement WriteArchive(OutputArchive& Archive) for this type.");
