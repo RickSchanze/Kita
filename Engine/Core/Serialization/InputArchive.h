@@ -57,7 +57,7 @@ template <typename T> void InputArchive::ReadType(StringView Key, T& Value) {
   } else if constexpr (Traits::IsArray<T>) {
     BeginArray(Key);
     if (SizeType S = GetCurrentArraySize(); S == INVALID_SIZE) {
-      LOG_ERROR_TAG("Serialization", "数组具有异常大小. Key=[{}]", Key);
+      gLogger.Error("Serialization", "数组具有异常大小. Key=[{}]", Key);
     } else {
       Value.Resize(S);
       for (SizeType I = 0; I < S; ++I) {

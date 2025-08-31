@@ -99,7 +99,7 @@ RHIRenderPass_Vulkan::RHIRenderPass_Vulkan(const RHIRenderPassDesc& Desc) {
     RenderPassInfo.pDependencies = Dependencies.Data();
   }
   if (VkResult Result = vkCreateRenderPass(Ctx.GetDevice(), &RenderPassInfo, nullptr, &mRenderPass); Result != VK_SUCCESS) {
-    LOG_ERROR_TAG("RHI.Vulkan", "创建RenderPass失败, Code={}", Result);
+    gLogger.Error("RHI.Vulkan", "创建RenderPass失败, Code={}", Result);
     mRenderPass = nullptr;
   }
 }

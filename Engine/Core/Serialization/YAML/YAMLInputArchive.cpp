@@ -40,16 +40,16 @@ ESerializationError YAMLInputArchive::BeginObject(StringView ScopeName) {
   }
   YAML::Node& Current = mImpl->NodeStack.Top();
   if (!Current.IsMap()) {
-    LOG_ERROR_TAG("Serialization", "试图从Array读取一个键. Key=\"{}\"", ScopeName);
+    gLogger.Error("Serialization", "试图从Array读取一个键. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
   }
   const YAML::Node Child = Current[ScopeName.Data()];
   if (!Child.IsDefined()) {
-    LOG_ERROR_TAG("Serialization", "找不到键. Key=\"{}\"", ScopeName);
+    gLogger.Error("Serialization", "找不到键. Key=\"{}\"", ScopeName);
     return ESerializationError::KeyNotFound;
   }
   if (!Child.IsMap()) {
-    LOG_ERROR_TAG("Serialization", "键对应的值不是一个Object. Key=\"{}\"", ScopeName);
+    gLogger.Error("Serialization", "键对应的值不是一个Object. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
   }
   mImpl->NodeStack.Push(Child);
@@ -62,7 +62,7 @@ ESerializationError YAMLInputArchive::EndObject() {
     return ESerializationError::TargetInvalid;
   }
   if (mStateStack.Top() != ReadingObject) {
-    LOG_ERROR_TAG("Serialization", "试图以EndObject结束一个Array.");
+    gLogger.Error("Serialization", "试图以EndObject结束一个Array.");
     return ESerializationError::TypeMismatch;
   }
   mImpl->NodeStack.Pop();
@@ -76,16 +76,16 @@ ESerializationError YAMLInputArchive::BeginArray(StringView ScopeName) {
   }
   YAML::Node& Current = mImpl->NodeStack.Top();
   if (!Current.IsMap()) {
-    LOG_ERROR_TAG("Serialization", "试图从Array读取一个键. Key=\"{}\"", ScopeName);
+    gLogger.Error("Serialization", "试图从Array读取一个键. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
   }
   const YAML::Node Child = Current[ScopeName.Data()];
   if (!Child.IsDefined()) {
-    LOG_ERROR_TAG("Serialization", "找不到键. Key=\"{}\"", ScopeName);
+    gLogger.Error("Serialization", "找不到键. Key=\"{}\"", ScopeName);
     return ESerializationError::KeyNotFound;
   }
   if (!Child.IsSequence()) {
-    LOG_ERROR_TAG("Serialization", "键对应的值不是一个Array. Key=\"{}\"", ScopeName);
+    gLogger.Error("Serialization", "键对应的值不是一个Array. Key=\"{}\"", ScopeName);
     return ESerializationError::TypeMismatch;
   }
   mImpl->NodeStack.Push(Child);
@@ -99,7 +99,7 @@ ESerializationError YAMLInputArchive::EndArray() {
     return ESerializationError::TargetInvalid;
   }
   if (mStateStack.Top() != ReadingArray) {
-    LOG_ERROR_TAG("Serialization", "试图以EndArray结束一个Object.");
+    gLogger.Error("Serialization", "试图以EndArray结束一个Object.");
     return ESerializationError::TypeMismatch;
   }
   mImpl->NodeStack.Pop();
@@ -124,12 +124,12 @@ template <typename T> static ESerializationError ReadValueImpl(YAMLInputArchive:
     return ESerializationError::TargetInvalid;
   if (IsReadingArray) {
     if (!Key.Empty()) {
-      LOG_WARN_TAG("Serialization", "读取数组时Key必须为空.");
+      gLogger.Warn("Serialization", "读取数组时Key必须为空.");
       return ESerializationError::KeyInvalid;
     }
     const YAML::Node Current = impl->GetCurrentArrayElement();
     if (!Current.IsDefined()) {
-      LOG_ERROR_TAG("Serialization", "读取数组元素失败.");
+      gLogger.Error("Serialization", "读取数组元素失败.");
       return ESerializationError::Unknown;
     }
     Value = Current.as<T>();
@@ -137,7 +137,7 @@ template <typename T> static ESerializationError ReadValueImpl(YAMLInputArchive:
   } else {
     const auto Node = impl->NodeStack.Top()[Key.Data()];
     if (!Node.IsDefined()) {
-      LOG_ERROR_TAG("Serialization", "找不到键. Key=\"{}\"", Key);
+      gLogger.Error("Serialization", "找不到键. Key=\"{}\"", Key);
       return ESerializationError::KeyInvalid;
     }
     Value = Node.as<T>();
@@ -170,18 +170,18 @@ static Result<YAML::Node, ESerializationError> ParseYAMLFile(StringView Filename
     YAML::Node Root = YAML::LoadFile(Filename.Data());
     return Root;
   } catch (const std::exception& e) {
-    LOG_ERROR_TAG("Serialization", "解析YAML文件{}失败: {}", Filename, e.what());
+    gLogger.Error("Serialization", "解析YAML文件{}失败: {}", Filename, e.what());
     return ESerializationError::ParseError;
   }
 }
 
 ESerializationError YAMLInputArchive::ParseFile(StringView Filename) {
   if (!Path::IsExists(Filename)) {
-    LOG_ERROR_TAG("Serialization", "YAML文件{}不存在", Filename);
+    gLogger.Error("Serialization", "YAML文件{}不存在", Filename);
     return ESerializationError::TargetInvalid;
   }
   if (Path::IsDirectory(Filename)) {
-    LOG_ERROR_TAG("Serialization", "YAML路径{}为目录", Filename);
+    gLogger.Error("Serialization", "YAML路径{}为目录", Filename);
     return ESerializationError::TargetInvalid;
   }
   auto Result = ParseYAMLFile(Filename);

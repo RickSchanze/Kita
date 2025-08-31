@@ -49,7 +49,7 @@ bool Type::IsParentOf(const Type* Child) const {
 void Type::RegisterField(const Field* Field) { mFields.Add(Field); }
 
 void Type::SetAttribute(const StringView Key, const StringView Value) {
-  DEBUG_ASSERT_MSG(!mAttributes.Contains(Key), ::Format("TypeAttribute {} already registered", Key));
+  DEBUG_ASSERT_MSG(!mAttributes.Contains(Key), "TypeAttribute {} already registered", Key);
   mAttributes[Key] = Value;
 }
 

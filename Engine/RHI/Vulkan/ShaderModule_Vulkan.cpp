@@ -13,7 +13,7 @@ RHIShaderModule_Vulkan::RHIShaderModule_Vulkan(const RHIShaderModuleDesc& Desc) 
   CreateInfo.pCode = Desc.Code;
   if (VkResult Result = vkCreateShaderModule(GetVulkanGfxContex()->GetDevice(), &CreateInfo, nullptr, &mModule); Result != VK_SUCCESS) {
     mModule = VK_NULL_HANDLE;
-    LOG_ERROR_TAG("RHI.Vulkan", "创建ShaderModule失败, Code={}", Result);
+    gLogger.Error("RHI.Vulkan", "创建ShaderModule失败, Code={}", Result);
   }
 }
 

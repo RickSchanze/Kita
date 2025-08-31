@@ -45,7 +45,7 @@ void YAMLOutputArchive::EndArray() {
 template <typename T> static void Write(StringView Key, T Value, YAMLOutputArchive::State State, YAMLOutputArchive::Impl* Impl) {
   if (State == YAMLOutputArchive::WritingArray) {
     if (!Key.Empty()) {
-      LOG_WARN_TAG("Serialization", "数组元素不能有Key, 将被忽略.");
+      gLogger.Warn("Serialization", "数组元素不能有Key, 将被忽略.");
     }
     Impl->Emitter << Value;
   } else {
@@ -79,7 +79,7 @@ void YAMLOutputArchive::Write(StringView Key, bool Value) { ::Write(Key, Value, 
 
 ESerializationError YAMLOutputArchive::WriteFile(StringView Path) {
   if (Path::IsDirectory(Path)) {
-    LOG_ERROR_TAG("Serialization", "写入文件路径不能是目录.");
+    gLogger.Error("Serialization", "写入文件路径不能是目录.");
     return ESerializationError::TargetInvalid;
   }
   File::WriteAllText(Path, mImpl->Emitter.c_str());

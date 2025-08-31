@@ -25,6 +25,7 @@
 #if KITA_EDITOR
 #include "imgui.h"
 #include "imgui_impl_vulkan.h"
+#include "imgui_internal.h"
 #endif
 
 auto VALIDATION_LAYER_NAME = "VK_LAYER_KHRONOS_validation";
@@ -79,7 +80,7 @@ UInt32 GfxContext_Vulkan::GetNextImage(RHISurfaceWindow* Window, RHISemaphore* W
     NeedRecreation = true;
   } else if (Result == VK_SUCCESS) {
   } else {
-    LOG_CRITICAL_TAG("RHI.Vulkan", "无法获取下一个交换链图像!Code={}", Result);
+    gLogger.Critical("RHI.Vulkan", "无法获取下一个交换链图像!Code={}", Result);
   }
   return Return;
 }
@@ -119,7 +120,7 @@ bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) {
     return false;
   }
   if (Result != VK_SUCCESS) {
-    LOG_CRITICAL_TAG("RHI.Vulkan", "呈现(Present)图像失败! Code={}", Result);
+    gLogger.Critical("RHI.Vulkan", "呈现(Present)图像失败! Code={}", Result);
   }
   return true;
 }
@@ -128,6 +129,78 @@ void GfxContext_Vulkan::WaitDeviceIdle() { vkDeviceWaitIdle(mDevice); }
 
 PhysicalDeviceSwapchainFeatures GfxContext_Vulkan::GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const { return QueryPhysicalDeviceSwapchainFeatures(mPhysicalDevice, Window); }
 
+/// ============================ IMGUI 多线程版本的Helper =================
+struct ImDrawDataSnapshotEntry {
+  ImDrawList* SrcCopy = NULL; // Drawlist owned by main context
+  ImDrawList* OurCopy = NULL; // Our copy
+  double LastUsedTime = 0.0;
+};
+
+struct ImDrawDataSnapshot {
+  // Members
+  ImDrawData DrawData;
+  ImPool<ImDrawDataSnapshotEntry> Cache;
+  float MemoryCompactTimer = 20.0f; // Discard unused data after 20 seconds
+
+  // Functions
+  ~ImDrawDataSnapshot() { Clear(); }
+  void Clear();
+  void SnapUsingSwap(ImDrawData* src, double current_time); // Efficient snapshot by swapping data, meaning "src_list" is unusable.
+  // void                          SnapUsingCopy(ImDrawData* src, double current_time); // Deep-copy snapshop
+
+  // Internals
+  ImGuiID GetDrawListID(ImDrawList* src_list) { return ImHashData(&src_list, sizeof(src_list)); } // Hash pointer
+  ImDrawDataSnapshotEntry* GetOrAddEntry(ImDrawList* src_list) { return Cache.GetOrAddByKey(GetDrawListID(src_list)); }
+};
+
+void ImDrawDataSnapshot::Clear() {
+  for (int n = 0; n < Cache.GetMapSize(); n++)
+    if (ImDrawDataSnapshotEntry* entry = Cache.TryGetMapData(n))
+      IM_DELETE(entry->OurCopy);
+  Cache.Clear();
+  DrawData.Clear();
+}
+
+void ImDrawDataSnapshot::SnapUsingSwap(ImDrawData* src, double current_time) {
+  ImDrawData* dst = &DrawData;
+  IM_ASSERT(src != dst && src->Valid);
+
+  // Copy all fields except CmdLists[]
+  ImVector<ImDrawList*> backup_draw_list;
+  backup_draw_list.swap(src->CmdLists);
+  IM_ASSERT(src->CmdLists.Data == NULL);
+  *dst = *src;
+  backup_draw_list.swap(src->CmdLists);
+
+  // Swap and mark as used
+  for (ImDrawList* src_list : src->CmdLists) {
+    ImDrawDataSnapshotEntry* entry = GetOrAddEntry(src_list);
+    if (entry->OurCopy == NULL) {
+      entry->SrcCopy = src_list;
+      entry->OurCopy = IM_NEW(ImDrawList)(src_list->_Data);
+    }
+    IM_ASSERT(entry->SrcCopy == src_list);
+    entry->SrcCopy->CmdBuffer.swap(entry->OurCopy->CmdBuffer); // Cheap swap
+    entry->SrcCopy->IdxBuffer.swap(entry->OurCopy->IdxBuffer);
+    entry->SrcCopy->VtxBuffer.swap(entry->OurCopy->VtxBuffer);
+    entry->SrcCopy->CmdBuffer.reserve(entry->OurCopy->CmdBuffer.Capacity); // Preserve bigger size to avoid reallocs for two consecutive frames
+    entry->SrcCopy->IdxBuffer.reserve(entry->OurCopy->IdxBuffer.Capacity);
+    entry->SrcCopy->VtxBuffer.reserve(entry->OurCopy->VtxBuffer.Capacity);
+    entry->LastUsedTime = current_time;
+    dst->CmdLists.push_back(entry->OurCopy);
+  }
+
+  // Cleanup unused data
+  const double gc_threshold = current_time - MemoryCompactTimer;
+  for (int n = 0; n < Cache.GetMapSize(); n++)
+    if (ImDrawDataSnapshotEntry* entry = Cache.TryGetMapData(n)) {
+      if (entry->LastUsedTime > gc_threshold)
+        continue;
+      IM_DELETE(entry->OurCopy);
+      Cache.Remove(GetDrawListID(entry->SrcCopy), entry);
+    }
+};
+
 class ImGuiDrawTask : public TaskNode {
 public:
   VkCommandBuffer Cmd;
@@ -135,9 +208,10 @@ public:
   VkRenderPass RenderPass;
   UInt32 Width;
   UInt32 Height;
+  UniquePtr<ImDrawDataSnapshot> DrawData;
 
-  explicit ImGuiDrawTask(VkCommandBuffer Cmd, VkFramebuffer FrameBuffer, VkRenderPass RenderPass, UInt32 Width, UInt32 Height)
-      : Cmd(Cmd), FrameBuffer(FrameBuffer), RenderPass(RenderPass), Width(Width), Height(Height) {}
+  explicit ImGuiDrawTask(VkCommandBuffer Cmd, VkFramebuffer FrameBuffer, VkRenderPass RenderPass, UInt32 Width, UInt32 Height, UniquePtr<ImDrawDataSnapshot>&& Snapshot)
+      : Cmd(Cmd), FrameBuffer(FrameBuffer), RenderPass(RenderPass), Width(Width), Height(Height), DrawData(std::move(Snapshot)) {}
 
   virtual ENamedThread GetDesiredThread() const override { return ENamedThread::Render; }
   virtual ETaskNodeResult Run() override {
@@ -152,15 +226,18 @@ public:
     RenderPassBeginInfo.clearValueCount = 1;
     RenderPassBeginInfo.pClearValues = &ClearValue;
     vkCmdBeginRenderPass(Cmd, &RenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), Cmd);
+    ImGui_ImplVulkan_RenderDrawData(&DrawData->DrawData, Cmd);
     vkCmdEndRenderPass(Cmd);
     return ETaskNodeResult::Success;
   }
 };
 
 TaskHandle GfxContext_Vulkan::DrawImGui(RHICommandBuffer* Buffer, RHIFrameBuffer* FrameBuffer, UInt32 Width, UInt32 Height) {
+  UniquePtr<ImDrawDataSnapshot> Snapshot = MakeUnique<ImDrawDataSnapshot>();
+  ImDrawData* DrawData = ImGui::GetDrawData();
+  Snapshot->SnapUsingSwap(DrawData, ImGui::GetTime());
   return TaskGraph::CreateTask<ImGuiDrawTask>( //
-      "", {}, Buffer->GetNativeHandleT<VkCommandBuffer>(), FrameBuffer->GetNativeHandleT<VkFramebuffer>(), mImGuiRenderPass->GetNativeHandleT<VkRenderPass>(), Width, Height);
+      "", {}, Buffer->GetNativeHandleT<VkCommandBuffer>(), FrameBuffer->GetNativeHandleT<VkFramebuffer>(), mImGuiRenderPass->GetNativeHandleT<VkRenderPass>(), Width, Height, std::move(Snapshot));
 }
 
 void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params) {
@@ -187,7 +264,7 @@ void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params) {
   const VkQueue Queue = GetQueue(Params.TargetQueueFamily);
   VkResult Result = vkQueueSubmit(Queue, 1, &SubmitInfo, WaitFence);
   if (Result != VK_SUCCESS) {
-    LOG_ERROR_TAG("RHI.Vulkan", "提交渲染指令失败!Code={}", Result);
+    gLogger.Error("RHI.Vulkan", "提交渲染指令失败!Code={}", Result);
   }
 }
 
@@ -210,11 +287,11 @@ bool GfxContext_Vulkan::IsLayerSupported(const char* LayerName) {
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(const VkDebugUtilsMessageSeverityFlagBitsEXT MessageSeverity, VkDebugUtilsMessageTypeFlagsEXT MessageType,
                                                     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
   if (MessageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-    LOG_ERROR_TAG("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
+    gLogger.Error("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
   } else if (MessageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    LOG_WARN_TAG("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
+    gLogger.Warn("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
   } else {
-    LOG_INFO_TAG("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
+    gLogger.Info("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
   }
   return VK_FALSE;
 }
@@ -258,7 +335,7 @@ void GfxContext_Vulkan::CreateInstance() {
       PopulateDebugMessengerCreateInfo(MessengerCreateInfo);
       mEnabledValidationLayer = true;
     } else {
-      LOG_WARN_TAG("RHI.Vulkan", "Vulkan验证层不支持!将自动关闭.");
+      gLogger.Warn("RHI.Vulkan", "Vulkan验证层不支持!将自动关闭.");
     }
   }
   InstanceInfo.enabledExtensionCount = static_cast<UInt32>(Extensions.Count());
@@ -267,14 +344,14 @@ void GfxContext_Vulkan::CreateInstance() {
   InstanceInfo.ppEnabledLayerNames = Layers.Data();
   InstanceInfo.pNext = &MessengerCreateInfo;
   ASSERT_MSG(vkCreateInstance(&InstanceInfo, nullptr, &mInstance) == VK_SUCCESS, "创建Vulkan实例失败");
-  LOG_INFO_TAG("RHI.Vulkan", "创建Vulkan Instance成功!");
-  LOG_INFO_TAG("RHI.Vulkan", "开启的扩展:");
+  gLogger.Info("RHI.Vulkan", "创建Vulkan Instance成功!");
+  gLogger.Info("RHI.Vulkan", "开启的扩展:");
   for (const auto& Extension : Extensions) {
-    LOG_INFO_TAG("RHI.Vulkan", "  {}", Extension);
+    gLogger.Info("RHI.Vulkan", "  {}", Extension);
   }
-  LOG_INFO_TAG("RHI.Vulkan", "开启的Layer:");
+  gLogger.Info("RHI.Vulkan", "开启的Layer:");
   for (const auto& Layer : Layers) {
-    LOG_INFO_TAG("RHI.Vulkan", "  {}", Layer);
+    gLogger.Info("RHI.Vulkan", "  {}", Layer);
   }
 }
 
@@ -291,7 +368,7 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
   vkEnumeratePhysicalDevices(mInstance, &DeviceCount, nullptr);
 
   if (DeviceCount == 0) {
-    LOG_CRITICAL_TAG("RHI.Vulkan", "没有可用的Vulkan设备!");
+    gLogger.Critical("RHI.Vulkan", "没有可用的Vulkan设备!");
   }
 
   Array<VkPhysicalDevice> devices(DeviceCount);
@@ -305,7 +382,7 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
   }
 
   if (mPhysicalDevice == VK_NULL_HANDLE) {
-    LOG_CRITICAL_TAG("RHI.Vulkan", "没有可用的Vulkan设备!");
+    gLogger.Critical("RHI.Vulkan", "没有可用的Vulkan设备!");
   } else {
     FindPhysicalDeviceFeatures();
   }
@@ -371,7 +448,7 @@ void GfxContext_Vulkan::CreateLogicalDevice(RHISurfaceWindow& TempWindow) {
     DeviceInfo.ppEnabledLayerNames = ValidationLayerNames.Data();
   }
   if (VkResult Code = vkCreateDevice(mPhysicalDevice, &DeviceInfo, nullptr, &mDevice); Code != VK_SUCCESS) {
-    LOG_CRITICAL_TAG("RHI.Vulkan", "初始化Vulkan上下文失败, Code={}", Code);
+    gLogger.Critical("RHI.Vulkan", "初始化Vulkan上下文失败, Code={}", Code);
   }
   vkGetDeviceQueue(mDevice, *mQueueFamilies.GraphicsFamily, 0, &mGraphicsQueue);
   vkGetDeviceQueue(mDevice, *mQueueFamilies.PresentFamily, 0, &mPresentQueue);
@@ -516,7 +593,7 @@ void GfxContext_Vulkan::CreateImGuiRenderPass() {
   RenderPassInfo.pDependencies = &Dependency;
   VkRenderPass MyRenderPass;
   if (auto Result = vkCreateRenderPass(mDevice, &RenderPassInfo, nullptr, &MyRenderPass) != VK_SUCCESS) {
-    LOG_CRITICAL_TAG("RHI.Vulkan.Imgui", "创建ImGui RenderPass失败, 错误码={}", Result);
+    gLogger.Critical("RHI.Vulkan.Imgui", "创建ImGui RenderPass失败, 错误码={}", Result);
   }
   mImGuiRenderPass = MakeUnique<RHIRenderPass_Vulkan>(MyRenderPass);
 }
@@ -544,7 +621,7 @@ void GfxContext_Vulkan::CreateImGuiDescriptorPool() {
   PoolInfo.pPoolSizes = PoolSizes;
 
   if (auto Result = vkCreateDescriptorPool(mDevice, &PoolInfo, nullptr, &mImGuiDescriptorPool) != VK_SUCCESS) {
-    LOG_CRITICAL_TAG("RHI.Vulkan.ImGui", "创建ImGui Descriptor Pool失败, 错误码={}", Result);
+    gLogger.Critical("RHI.Vulkan.ImGui", "创建ImGui Descriptor Pool失败, 错误码={}", Result);
   }
 }
 
@@ -575,7 +652,7 @@ void GfxContext_Vulkan::FindPhysicalDeviceFeatures() {
   }
 
   mGfxDeviceFeatures.SamplerAnisotropy = PhysicalDeviceFeatures.samplerAnisotropy;
-  LOG_INFO_TAG("RHI.Vulkan", "选用设备{}", PhysicalDeviceProperties.deviceName);
+  gLogger.Info("RHI.Vulkan", "选用设备{}", PhysicalDeviceProperties.deviceName);
 }
 
 PhysicalDeviceSwapchainFeatures GfxContext_Vulkan::QueryPhysicalDeviceSwapchainFeatures(const VkPhysicalDevice Device, RHISurfaceWindow& TempWindow) {
@@ -621,7 +698,7 @@ VkResult GfxContext_Vulkan::Dyn_CreateDebugUtilsMessengerEXT(const VkDebugUtilsM
   if (Func != nullptr) {
     return Func(mInstance, pCreateInfo, pAllocator, pDebugMessenger);
   } else {
-    LOG_WARN_TAG("RHI.Vulkan", "未找到函数vkCreateDebugUtilsMessengerEXT");
+    gLogger.Warn("RHI.Vulkan", "未找到函数vkCreateDebugUtilsMessengerEXT");
     return VK_ERROR_EXTENSION_NOT_PRESENT;
   }
 }
@@ -631,6 +708,6 @@ void GfxContext_Vulkan::Dyn_DestroyDebugUtilsMessengerEXT(const VkDebugUtilsMess
   if (Func != nullptr) {
     Func(mInstance, DebugMessenger, pAllocator);
   } else {
-    LOG_WARN_TAG("RHI.Vulkan", "未找到函数vkDestroyDebugUtilsMessengerEXT");
+    gLogger.Warn("RHI.Vulkan", "未找到函数vkDestroyDebugUtilsMessengerEXT");
   }
 }

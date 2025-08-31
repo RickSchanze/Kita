@@ -24,7 +24,7 @@ RHIDescriptorSetLayout_Vulkan::RHIDescriptorSetLayout_Vulkan(const RHIDescriptor
   CreateInfo.pBindings = Bindings.Data();
   if (const auto Result = vkCreateDescriptorSetLayout(GetVulkanGfxContexRef().GetDevice(), &CreateInfo, nullptr, &mLayout); Result != VK_SUCCESS) {
     mLayout = VK_NULL_HANDLE;
-    LOG_ERROR_TAG("RHI.Vulkan", "创建DescriptorSetLayout失败, Code={}", Result);
+    gLogger.Error("RHI.Vulkan", "创建DescriptorSetLayout失败, Code={}", Result);
   }
 }
 
@@ -51,7 +51,7 @@ RHIDescriptorPool_Vulkan::RHIDescriptorPool_Vulkan(const RHIDescriptorPoolDesc& 
   CreateInfo.poolSizeCount = PoolSizes.Count();
   if (const auto Result = vkCreateDescriptorPool(GetVulkanGfxContexRef().GetDevice(), &CreateInfo, nullptr, &mPool); Result != VK_SUCCESS) {
     mPool = VK_NULL_HANDLE;
-    LOG_ERROR_TAG("RHI.Vulkan", "创建DescriptorPool失败, 错误码={}", Result);
+    gLogger.Error("RHI.Vulkan", "创建DescriptorPool失败, 错误码={}", Result);
   }
 }
 
@@ -73,7 +73,7 @@ Array<UniquePtr<RHIDescriptorSet>> RHIDescriptorPool_Vulkan::CreateDescriptorSet
   AllocateInfo.descriptorSetCount = Layouts.Count();
   AllocateInfo.pSetLayouts = Layouts.Data();
   if (const auto Result = vkAllocateDescriptorSets(GetVulkanGfxContexRef().GetDevice(), &AllocateInfo, RawSets.Data()); Result != VK_SUCCESS) {
-    LOG_ERROR_TAG("RHI.Vulkan", "创建DescriptorSet失败, 错误码={}", Result);
+    gLogger.Error("RHI.Vulkan", "创建DescriptorSet失败, 错误码={}", Result);
     return {};
   }
 

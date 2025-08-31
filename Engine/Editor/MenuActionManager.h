@@ -2,9 +2,6 @@
 #include "Core/Container/Map.h"
 #include "Core/Singleton/Singleton.h"
 
-// 防止编译期优化
-#include "Windows/LoggingWindow.h"
-
 struct Type;
 class MenuAction;
 

@@ -88,8 +88,6 @@ void RenderContext::Render(double Time) {
   Params.Width = mSurfaceWindow->GetSize().X();
   Params.Height = mSurfaceWindow->GetSize().Y();
   mRenderPipeline->Draw(Params);
-  ImGui::Render();
-
 
   mCommandBuffers[FrameIndex]->EndRecord();
   // TODO: 提交也应该异步

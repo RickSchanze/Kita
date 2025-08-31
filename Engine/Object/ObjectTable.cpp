@@ -9,7 +9,7 @@ bool ObjectTable::RegisterObject(Object* Object) {
     return false;
   Int32 ObjectHandle = Object->GetObjectHandle();
   if (IsObjectAlive(ObjectHandle)) {
-    LOG_ERROR_TAG("Object", "重复向ObjectTable添加同一ID的Object, Id = {}", ObjectHandle);
+    gLogger.Error("Object", "重复向ObjectTable添加同一ID的Object, Id = {}", ObjectHandle);
     return false;
   }
   mObjectTable.Add(ObjectHandle, Object);

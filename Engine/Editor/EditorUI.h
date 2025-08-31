@@ -48,4 +48,9 @@ public:
   static void EndMenu() { ImGui::EndMenu(); }
 
   static bool MenuItem(StringView Name) { return ImGui::MenuItem(Name.Data()); }
+
+  template <typename... Args> static inline void Text(const char* fmt, Args&&... args) {
+    // 先处理你自己的逻辑，比如颜色/前缀
+    ImGui::Text(fmt, std::forward<Args>(args)...);
+  }
 };

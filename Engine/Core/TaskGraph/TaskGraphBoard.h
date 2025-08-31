@@ -25,7 +25,7 @@ public:
     requires Traits::IsTrivial<T>
   bool PutM(const TaskGraphBoardDataId DataId, const T& Data) {
     if (mData.Contains(DataId)) {
-      LOG_ERROR_TAG("TaskGraph", "重复ID的数据设置.");
+      gLogger.Error("TaskGraph", "重复ID的数据设置.");
       return false;
     }
     void* Ptr = Malloc(sizeof(T));

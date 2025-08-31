@@ -5,6 +5,7 @@
 #include "EditorWindowManager.h"
 
 #include "EditorWindow.h"
+#include "Windows/LoggingWindow.h"
 
 EditorWindow* EditorWindowManager::Open(const Type* InType) {
   auto& Self = GetRef();
@@ -29,6 +30,8 @@ void EditorWindowManager::Close(const Type* InType) {
   }
 }
 
+void EditorWindowManager::StartUp() { Open<LoggingWindow>(); }
+
 void EditorWindowManager::ShutDown() {
   for (auto& [Type, Window] : GetRef().mEditorWindows) {
     Delete(Window);
@@ -42,10 +45,18 @@ void EditorWindowManager::Render() {
     if (Window->IsVisible()) {
       Window->Render();
     } else {
-      RemovedWindows.Add(Window->GetType());
+      if (Window->ShouldDeleteWhenUnVisible())
+        RemovedWindows.Add(Window->GetType());
     }
   }
   for (auto& Window : RemovedWindows) {
     Close(Window);
   }
+}
+
+EditorWindow* EditorWindowManager::GetWindow(const Type* WindowType) {
+  if (GetRef().mEditorWindows.Contains(WindowType)) {
+    return GetRef().mEditorWindows[WindowType];
+  }
+  return nullptr;
 }

@@ -9,7 +9,7 @@
 
 Field::~Field() = default;
 void Field::SetAttribute(StringView Key, const StringView Value) {
-  DEBUG_ASSERT_MSG(!mAttributes.Contains(Key), Format("TypeAttribute {} already registered", Key));
+  DEBUG_ASSERT_MSG(!mAttributes.Contains(Key), "TypeAttribute {} already registered", Key);
   mAttributes[Key] = Value;
 }
 

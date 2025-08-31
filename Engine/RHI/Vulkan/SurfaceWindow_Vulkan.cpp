@@ -116,7 +116,7 @@ void RHISurfaceWindow_Vulkan::CreateSwapchain() {
   CreateInfo.clipped = VK_TRUE;
 
   if (const VkResult CreateResult = vkCreateSwapchainKHR(Ctx.GetDevice(), &CreateInfo, nullptr, &mSwapchain); CreateResult != VK_SUCCESS) {
-    LOG_ERROR_TAG("RHI.Vulkan", "创建交换链失败, 错误码={}", CreateResult);
+    gLogger.Error("RHI.Vulkan", "创建交换链失败, 错误码={}", CreateResult);
     mSwapchain = nullptr;
   }
 
@@ -179,7 +179,7 @@ VkSurfaceFormatKHR RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(const Physical
       return Result;
     }
   }
-  LOG_ERROR_TAG("RHI.Vulkan", "创建窗口表面时期望格式不支持, 回滚至VK_FORMAT_B8G8R8A8SRGB以及VK_COLOR_SPACE_SRGB_NONLINEAR_KHR");
+  gLogger.Error("RHI.Vulkan", "创建窗口表面时期望格式不支持, 回滚至VK_FORMAT_B8G8R8A8SRGB以及VK_COLOR_SPACE_SRGB_NONLINEAR_KHR");
   for (const auto& Format : Features.Formats) {
     if (Format.Format == ERHIFormat::B8G8R8A8_SRGB && Format.ColorSpace == ERHIColorSpace::sRGB) {
       Result.format = RHIFormatToVkFormat(ERHIFormat::B8G8R8A8_SRGB);
@@ -187,7 +187,7 @@ VkSurfaceFormatKHR RHISurfaceWindow_Vulkan::ChooseSwapchainFormat(const Physical
       return Result;
     }
   }
-  LOG_ERROR_TAG("RHI.Vulkan", "没有找到此窗口表明支持的格式");
+  gLogger.Error("RHI.Vulkan", "没有找到此窗口表明支持的格式");
   return {};
 }
 
@@ -198,7 +198,7 @@ VkPresentModeKHR RHISurfaceWindow_Vulkan::ChoosePresentMode(const PhysicalDevice
       return RHIPresentModeToVkPresentMode(Mode);
     }
   }
-  LOG_ERROR_TAG("RHI.Vulkan", "创建窗口表面时期望模式不支持, 回滚至VK_PRESENT_MODE_FIFO_KHR");
+  gLogger.Error("RHI.Vulkan", "创建窗口表面时期望模式不支持, 回滚至VK_PRESENT_MODE_FIFO_KHR");
   return VK_PRESENT_MODE_FIFO_KHR;
 }
 

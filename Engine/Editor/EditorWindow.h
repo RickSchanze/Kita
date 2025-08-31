@@ -20,6 +20,7 @@ public:
   void Hide() { mShowWindow = false; }
 
   bool IsVisible() const { return mShowWindow; }
+  bool ShouldDeleteWhenUnVisible() const { return mShouldDeleteWhenUnVisible; }
 
   template <typename T> static void Open() { EditorWindowManager::Open(T::GetStaticType()); }
 
@@ -27,4 +28,5 @@ protected:
   bool mShowWindow = true;
   EditorUI::EWindowFlags mFlags = EditorUI::WFB_None;
   String mWindowTitle = "窗口";
+  bool mShouldDeleteWhenUnVisible = true;
 };

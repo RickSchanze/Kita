@@ -5,64 +5,73 @@
 #include "Core/String/StringTraits.h"
 #include "Core/String/StringView.h"
 // ReSharper disable once CppUnusedIncludeDirective
+#include "Core/Event/Callback.h"
 #include "Core/Memory/SharedPtr.h"
 #include "Core/Trace.h" // for Error and Fatal log stack trace
 
 #include "fmt/ostream.h"
 #include "spdlog/spdlog.h"
+enum class ELogLevel { Info, Warn, Error, Critical };
+
+struct Log {
+  StringView Tag;
+  String Message;
+  ELogLevel Level;
+  String Source;
+};
+
 class Logger {
 public:
+  using CallbackHandle = Callback<void, const Log&>::Handle;
+  Callback<void, const Log&> Evt_Log;
+
   Logger();
 
   spdlog::logger& GetLogger() { return mLogger; }
+
+  template <typename... Args> void Info(StringView Tag, fmt::format_string<Args...> FormatString, Args&&... InArgs) {
+    Log NewLog{};
+    NewLog.Message = fmt::format(FormatString, std::forward<Args>(InArgs)...);
+    NewLog.Tag = Tag;
+    NewLog.Level = ELogLevel::Info;
+    mLogger.info("[{}] {}", Tag, NewLog.Message);
+    Evt_Log.Invoke(NewLog);
+  }
+
+  template <typename... Args> void Warn(StringView Tag, fmt::format_string<Args...> FormatString, Args&&... InArgs) {
+    Log NewLog{};
+    NewLog.Message = fmt::format(FormatString, std::forward<Args>(InArgs)...);
+    NewLog.Tag = Tag;
+    NewLog.Level = ELogLevel::Warn;
+    mLogger.warn("[{}] {}", Tag, NewLog.Message);
+    Evt_Log.Invoke(NewLog);
+  }
+
+  template <typename... Args> void Error(StringView Tag, fmt::format_string<Args...> FormatString, Args&&... InArgs) {
+    Log NewLog{};
+    NewLog.Message = fmt::format(FormatString, std::forward<Args>(InArgs)...);
+    NewLog.Tag = Tag;
+    NewLog.Level = ELogLevel::Error;
+    mLogger.error("[{}] {}", Tag, NewLog.Message);
+    Evt_Log.Invoke(NewLog);
+  }
+
+  template <typename... Args> void Critical(StringView Tag, fmt::format_string<Args...> FormatString, Args&&... InArgs) {
+    Log NewLog{};
+    NewLog.Message = fmt::format(FormatString, std::forward<Args>(InArgs)...);
+    NewLog.Tag = Tag;
+    NewLog.Level = ELogLevel::Critical;
+    mLogger.critical("[{}] {}", Tag, NewLog.Message);
+    Evt_Log.Invoke(NewLog);
+    DEBUG_BREAK();
+    std::abort();
+  }
 
 private:
   spdlog::logger mLogger;
 };
 
 inline Logger gLogger = {};
-
-#define LOG_INFO(...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::info, __VA_ARGS__)
-#define LOG_INFO_TAG(Tag, ...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::info, "[" Tag "] " __VA_ARGS__)
-
-#define LOG_WARN(...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::warn, __VA_ARGS__)
-#define LOG_WARN_TAG(Tag, ...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::warn, "[" Tag "] " __VA_ARGS__)
-
-#ifdef KITA_DEBUG
-#define LOG_ERROR(...)                                                                                                \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                      \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, __VA_ARGS__);  \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_); \
-  DEBUG_BREAK()
-
-#define LOG_ERROR_TAG(Tag, ...)                                                                                                   \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "[" Tag "] " __VA_ARGS__); \
-  {                                                                                                                               \
-    String Trace_ = Trace::GenerateTraceString(0);                                                                                \
-    gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "{}", Trace_);           \
-  }                                                                                                                               \
-  DEBUG_BREAK()
-
-#define LOG_CRITICAL(...)                                                                                                  \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                           \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, __VA_ARGS__);  \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "{}", Trace_); \
-  DEBUG_BREAK();                                                                                                           \
-  std::abort()
-
-#define LOG_CRITICAL_TAG(Tag, ...)                                                                                                     \
-  String Trace_ = Trace::GenerateTraceString(0);                                                                                       \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "[" Tag "] " __VA_ARGS__); \
-  gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "{}", Trace_);             \
-  DEBUG_BREAK();                                                                                                                       \
-  std::abort()
-
-#else
-#define LOG_ERROR(...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, __VA_ARGS__)
-#define LOG_ERROR_TAG(Tag, ...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::err, "[" Tag "] " __VA_ARGS__)
-#define LOG_CRITICAL(...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, __VA_ARGS__)
-#define LOG_CRITICAL_TAG(Tag, ...) gLogger.GetLogger().log(spdlog::source_loc{__FILE__, __LINE__, SPDLOG_FUNCTION}, spdlog::level::critical, "[" Tag "] " __VA_ARGS__)
-#endif
 
 inline std::ostream& operator<<(std::ostream& OS, const String& Str) {
   OS << Str.GetStdString();

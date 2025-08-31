@@ -19,11 +19,11 @@ void ImGuiConfig::ApplyImGuiSettings() {
         GlyphText = *Text;
         Builder.AddText(GlyphText.Data());
       } else {
-        LOG_WARN_TAG("RHI.ImGui", "读取Charset文件{}失败, 默认使SimplifiedChineseCommon", CharsetPath);
+        gLogger.Warn("RHI.ImGui", "读取Charset文件{}失败, 默认使SimplifiedChineseCommon", CharsetPath);
         Builder.AddRanges(IO.Fonts->GetGlyphRangesChineseSimplifiedCommon());
       }
     } else {
-      LOG_WARN_TAG("RHI.ImGui", "字体charset文件{}不存在, 默认使SimplifiedChineseCommon", FontPath);
+      gLogger.Warn("RHI.ImGui", "字体charset文件{}不存在, 默认使SimplifiedChineseCommon", FontPath);
       Builder.AddRanges(IO.Fonts->GetGlyphRangesChineseSimplifiedCommon());
     }
     Builder.AddRanges(IO.Fonts->GetGlyphRangesDefault());

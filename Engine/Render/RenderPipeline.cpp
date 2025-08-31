@@ -5,6 +5,7 @@
 #include "RenderPipeline.h"
 
 #include "Core/Performance/ProfilerMark.h"
+#include "Editor/EditorWindowManager.h"
 #include "Editor/MenuActionManager.h"
 #include "RHI/GfxContext.h"
 
@@ -40,13 +41,12 @@ void RenderPipeline::Draw(const RenderPipelineDrawParams& Params) {
 }
 
 void RenderPipeline::DrawImGui(const RenderPipelineDrawParams& Params) {
-  static TaskHandle Handle{};
-  Handle.WaitSync();
   ImGui_ImplVulkan_NewFrame();
   ImGui::NewFrame();
   StaticDrawImGui();
   EditorWindowManager::Render();
-  Handle = RecordImGuiCommands(Params);
+  ImGui::Render();
+  RecordImGuiCommands(Params);
 }
 
 TaskHandle RenderPipeline::RecordImGuiCommands(const RenderPipelineDrawParams& Params) {

@@ -95,7 +95,7 @@ void TOMLOutputArchive::Write(const StringView Key, bool Value) { SetValue(mImpl
 
 ESerializationError TOMLOutputArchive::WriteFile(const StringView Path) {
   if (Path::IsDirectory(Path)) {
-    LOG_ERROR_TAG("Serialization", "Path must not be a directory.");
+    gLogger.Error("Serialization", "Path must not be a directory.");
     return ESerializationError::TargetInvalid;
   }
   OutputFileStream FS(Path.Data(), std::ios::out);

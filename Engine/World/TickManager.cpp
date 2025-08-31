@@ -12,12 +12,12 @@
 void TickManager::ShutDown() {
   auto& Self = GetRef();
   if (!Self.mTickObjects.Empty()) {
-    LOG_WARN_TAG("Tick", "TickManager销毁时, 还有{}个Tick实例未被销毁:", Self.mTickObjects.Count());
+    gLogger.Warn("Tick", "TickManager销毁时, 还有{}个Tick实例未被销毁:", Self.mTickObjects.Count());
     for (auto& Object : Self.mTickObjects) {
 #ifdef KITA_DEBUG
-      LOG_WARN_TAG("Tick", "'{}': {:p}", Object->GetTickDebugName(), Ptr(Object));
+      gLogger.Warn("Tick", "'{}': {:p}", Object->GetTickDebugName(), Ptr(Object));
 #else
-      LOG_WARN_TAG("Tick", "{:p}", Ptr(Object));
+      gLogger.Warn("Tick", "{:p}", Ptr(Object));
 #endif
     }
   }

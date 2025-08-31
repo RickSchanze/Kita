@@ -7,6 +7,7 @@
 #include "Core/Config/ConfigManager.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskGraph.h"
+#include "Editor/EditorWindowManager.h"
 #include "Editor/MenuActionManager.h"
 #include "Input/Input.h"
 #include "Input/InputTicker.h"
@@ -28,7 +29,7 @@ static void StartUpProject(const char** ArgV, int ArgC) {
     Program.parse_args(ArgC, ArgV);
   } catch (const std::exception& Err) {
     const std::string Help = Program.help().str();
-    LOG_CRITICAL_TAG("Engine", "初始化失败: {}", Err.what());
+    gLogger.Critical("Engine", "初始化失败: {}", Err.what());
   }
 
   {
@@ -65,6 +66,7 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   MenuActionManager::StartUp();
 
   // EditorWindowManager
+  EditorWindowManager::StartUp();
 }
 
 void EngineLoop::ShutDownSystemsM() {

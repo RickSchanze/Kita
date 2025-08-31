@@ -87,6 +87,7 @@ add_library(KitaCore
         Reflection/ReflUtils.h
         String/StringUtils.cpp
         String/StringUtils.h
+        Container/Deque.h
 )
 
 find_package(spdlog CONFIG REQUIRED)

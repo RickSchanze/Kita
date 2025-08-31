@@ -20,7 +20,7 @@ RHICommandPool_Vulkan::RHICommandPool_Vulkan(ERHIQueueFamilyType Family, bool Al
     PoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   }
   if (const VkResult Result = vkCreateCommandPool(Ctx.GetDevice(), &PoolInfo, nullptr, &mPool); Result != VK_SUCCESS) {
-    LOG_ERROR_TAG("RHI.Vulkan", "创建CommandPool失败, 错误码={}", Result);
+    gLogger.Error("RHI.Vulkan", "创建CommandPool失败, 错误码={}", Result);
   }
   mFamily = Family;
 }
@@ -38,7 +38,7 @@ UniquePtr<RHICommandBuffer> RHICommandPool_Vulkan::CreateCommandBuffer() {
   AllocInfo.commandPool = mPool;
   AllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   if (const VkResult Result = vkAllocateCommandBuffers(GetVulkanGfxContexRef().GetDevice(), &AllocInfo, &CmdBuffer->mBuffer); Result != VK_SUCCESS) {
-    LOG_ERROR_TAG("RHI.Vulkan", "创建CommandBuffer失败, 错误码={}", Result);
+    gLogger.Error("RHI.Vulkan", "创建CommandBuffer失败, 错误码={}", Result);
   }
   CmdBuffer->mParentPool = this;
   return CmdBuffer;

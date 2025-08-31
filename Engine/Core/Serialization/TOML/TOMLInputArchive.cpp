@@ -18,11 +18,11 @@ struct TOMLInputArchive::Impl {
   Impl() = default;
   ESerializationError ParseFile(const StringView Path) {
     if (Path::IsDirectory(Path)) {
-      LOG_ERROR_TAG("Serialization", "Path must not be a directory.");
+      gLogger.Error("Serialization", "Path must not be a directory.");
       return ESerializationError::TargetInvalid;
     }
     if (!Path::IsExists(Path)) {
-      LOG_ERROR_TAG("Serialization", "Path must exists.");
+      gLogger.Error("Serialization", "Path must exists.");
       return ESerializationError::TargetInvalid;
     }
     try {
@@ -31,7 +31,7 @@ struct TOMLInputArchive::Impl {
       NodeStack.Push(&Root);
       return ESerializationError::Ok;
     } catch (toml::parse_error& e) {
-      LOG_ERROR_TAG("Serialization", "Parse toml file error: {}", e.what());
+      gLogger.Error("Serialization", "Parse toml file error: {}", e.what());
       return ESerializationError::ParseError;
     }
   }
@@ -85,11 +85,11 @@ ESerializationError TOMLInputArchive::BeginObject(const StringView ScopeName) {
   toml::node* Current = mImpl->CurrentNode();
   toml::node* Child = TOMLInputArchive::Impl::GetKeyNode(Current, ScopeName);
   if (!Child) {
-    LOG_WARN_TAG("Serialization", "BeginObject: KeyNotFound. Key=\"{}\"", ScopeName);
+    gLogger.Warn("Serialization", "BeginObject: KeyNotFound. Key=\"{}\"", ScopeName);
     return ESerializationError::KeyNotFound;
   }
   if (!Child->is_table()) {
-    LOG_ERROR_TAG("Serialization", "BeginObject: TypeMismatch. Key \"{}\" is not a table.", ScopeName);
+    gLogger.Error("Serialization", "BeginObject: TypeMismatch. Key \"{}\" is not a table.", ScopeName);
     return ESerializationError::TypeMismatch;
   }
 
@@ -100,7 +100,7 @@ ESerializationError TOMLInputArchive::BeginObject(const StringView ScopeName) {
 
 ESerializationError TOMLInputArchive::EndObject() {
   if (!mImpl->IsTargetValid() || mStateStack.Top() != ReadingObject) {
-    LOG_ERROR_TAG("Serialization", "非法的EndObject");
+    gLogger.Error("Serialization", "非法的EndObject");
     return ESerializationError::TargetInvalid;
   }
 
@@ -116,11 +116,11 @@ ESerializationError TOMLInputArchive::BeginArray(StringView ScopeName) {
   toml::node* current = mImpl->CurrentNode();
   toml::node* child = TOMLInputArchive::Impl::GetKeyNode(current, ScopeName);
   if (!child) {
-    LOG_ERROR_TAG("Serialization", "BeginArray: KeyNotFound. Key=\"{}\"", ScopeName);
+    gLogger.Error("Serialization", "BeginArray: KeyNotFound. Key=\"{}\"", ScopeName);
     return ESerializationError::KeyNotFound;
   }
   if (!child->is_array()) {
-    LOG_ERROR_TAG("Serialization", "BeginArray: TypeMismatch. Key=\"{}\", not a array.", ScopeName);
+    gLogger.Error("Serialization", "BeginArray: TypeMismatch. Key=\"{}\", not a array.", ScopeName);
     return ESerializationError::TypeMismatch;
   }
 
@@ -132,7 +132,7 @@ ESerializationError TOMLInputArchive::BeginArray(StringView ScopeName) {
 
 ESerializationError TOMLInputArchive::EndArray() {
   if (!mImpl->IsTargetValid() || mStateStack.Top() != ReadingArray) {
-    LOG_ERROR_TAG("Serialization", "非法的EndArray");
+    gLogger.Error("Serialization", "非法的EndArray");
     return ESerializationError::TargetInvalid;
   }
 
@@ -148,7 +148,7 @@ template <typename T> static ESerializationError ReadValueImpl(TOMLInputArchive:
   toml::node* Child = nullptr;
   if (IsReadingArray) {
     if (!Key.Empty()) {
-      LOG_ERROR_TAG("Serialization", "读取数组时Key必须为空");
+      gLogger.Error("Serialization", "读取数组时Key必须为空");
       return ESerializationError::KeyInvalid;
     }
     Child = impl->GetCurrentArrayElement();
@@ -157,11 +157,11 @@ template <typename T> static ESerializationError ReadValueImpl(TOMLInputArchive:
   }
 
   if (!Child) {
-    LOG_WARN_TAG("Serialization", "Read: KeyNotFound. Key=[{}]", Key);
+    gLogger.Warn("Serialization", "Read: KeyNotFound. Key=[{}]", Key);
     return ESerializationError::TypeMismatch;
   }
   if (!Child->is_value()) {
-    LOG_ERROR_TAG("Serialization", "Read: TypeMismatch. Key=[{}], not a value.", Key);
+    gLogger.Error("Serialization", "Read: TypeMismatch. Key=[{}], not a value.", Key);
     return ESerializationError::TypeMismatch;
   }
 
@@ -248,7 +248,7 @@ ESerializationError TOMLInputArchive::Read(StringView Key, String& Value) {
   toml::node* Child = nullptr;
   if (mStateStack.Top() == ReadingArray) {
     if (!Key.Empty()) {
-      LOG_ERROR_TAG("Serialization", "读取数组时Key必须为空");
+      gLogger.Error("Serialization", "读取数组时Key必须为空");
       return ESerializationError::KeyInvalid;
     }
     Child = mImpl->GetCurrentArrayElement();

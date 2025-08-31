@@ -30,7 +30,7 @@ void Project::EnsureLibraryExists() {
   StringView Path = GetLibraryPath();
   if (!Path::IsExists(Path)) {
     if (!Path::CreateDirectory(Path)) {
-      LOG_CRITICAL_TAG("Project", "创建项目库路径失败.");
+      gLogger.Critical("Project", "创建项目库路径失败.");
     }
   }
 }
@@ -39,7 +39,7 @@ void Project::EnsureIntermediateExists() {
   StringView Path = GetIntermediatePath();
   if (!Path::IsExists(Path)) {
     if (!Path::CreateDirectory(Path)) {
-      LOG_CRITICAL_TAG("Project", "创建项目中间文件路径失败.");
+      gLogger.Critical("Project", "创建项目中间文件路径失败.");
     }
   }
 }
@@ -59,7 +59,7 @@ void Project::EnsureProjectPathExists() {
   auto& Self = GetRef();
   if (Path::IsExists(Self.mProjectPath)) {
     if (!Path::IsDirectory(Self.mProjectPath)) {
-      LOG_CRITICAL_TAG("Project", "Project的根路径一定要是一个文件夹.");
+      gLogger.Critical("Project", "Project的根路径一定要是一个文件夹.");
     }
   }
 }
@@ -104,7 +104,7 @@ void Project::ReadProjectFile() {
   YAMLInputArchive Archive;
   ESerializationError Error = Archive.ParseFile(Path);
   if (Error != ESerializationError::Ok) {
-    LOG_CRITICAL_TAG("Project", "解析项目文件失败.");
+    gLogger.Critical("Project", "解析项目文件失败.");
   }
   Archive.ReadType("Project", GetRef());
 }

@@ -26,7 +26,7 @@ void GfxContext::StartUp() {
     mContext = New<GfxContext_Vulkan>();
     break;
   default:
-    LOG_CRITICAL_TAG("RHI", "未知的渲染后端: {}.", EnumToString(Config.GetGraphicsBackend()));
+    gLogger.Critical("RHI", "未知的渲染后端: {}.", EnumToString(Config.GetGraphicsBackend()));
   }
   Evt_PostGfxContextCreated.Invoke(mContext);
 }
@@ -52,7 +52,7 @@ void WindowBackendSupport::InitializeWindowBackend() {
     glfwInit();
     SurfaceWindowBackendType = ERHISurfaceWindowType::GLFW;
   } else {
-    LOG_CRITICAL_TAG("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindow));
+    gLogger.Critical("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindow));
   }
 }
 
@@ -60,7 +60,7 @@ void WindowBackendSupport::CleanWindowBackend() {
   if (SurfaceWindowBackendType == ERHISurfaceWindowType::GLFW) {
     glfwTerminate();
   } else {
-    LOG_CRITICAL_TAG("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindowBackendType));
+    gLogger.Critical("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindowBackendType));
   }
 }
 
@@ -69,7 +69,7 @@ void WindowBackendSupport::TickFrameInputData() {
   if (SurfaceWindowBackendType == ERHISurfaceWindowType::GLFW) {
     glfwPollEvents();
   } else {
-    LOG_CRITICAL_TAG("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindowBackendType));
+    gLogger.Critical("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindowBackendType));
   }
 }
 
@@ -78,6 +78,6 @@ void WindowBackendSupport::ShouldWindowClose(RHISurfaceWindow* MyWindow, bool& O
   if (SurfaceWindowBackendType == ERHISurfaceWindowType::GLFW) {
     OutResult = MyWindow->ShouldClose();
   } else {
-    LOG_CRITICAL_TAG("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindowBackendType));
+    gLogger.Critical("RHI", "未知的窗口后端: {}.", EnumToString(SurfaceWindowBackendType));
   }
 }

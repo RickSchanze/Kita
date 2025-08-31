@@ -18,21 +18,21 @@ ETaskState TaskInstance::GetState(const bool InLock) const {
 
 void TaskGraph::StartUp() {
   ThreadUtils::SetCurrentThreadMain();
-  LOG_INFO_TAG("TaskGraph", "启动Game线程于{}.", ThreadUtils::GetCurrentThreadId());
+  gLogger.Info("TaskGraph", "启动Game线程于{}.", ThreadUtils::GetCurrentThreadId());
   auto& Self = GetRef();
   Self.mRenderExecutor.StartUp("Render");
-  LOG_INFO_TAG("TaskGraph", "启动Render线程于{}.", Self.mRenderExecutor.GetThreadId());
+  gLogger.Info("TaskGraph", "启动Render线程于{}.", Self.mRenderExecutor.GetThreadId());
   SizeType IOPoolThreadCount = 4;
   Self.mIOExecutor.StartUp("IO", 4);
-  LOG_INFO_TAG("TaskGraph", "启动IO线程池于{}个线程.", IOPoolThreadCount);
+  gLogger.Info("TaskGraph", "启动IO线程池于{}个线程.", IOPoolThreadCount);
 }
 
 void TaskGraph::ShutDown() {
   auto& Self = GetRef();
   Self.mRenderExecutor.ShutDown();
-  LOG_INFO_TAG("TaskGraph", "Render线程已关闭.");
+  gLogger.Info("TaskGraph", "Render线程已关闭.");
   Self.mIOExecutor.ShutDown();
-  LOG_INFO_TAG("TaskGraph", "IO线程池已关闭.");
+  gLogger.Info("TaskGraph", "IO线程池已关闭.");
 }
 
 void TaskGraph::NotifyTaskCompleted(SharedPtr<TaskInstance>& InInstance) {
@@ -50,7 +50,7 @@ void TaskGraph::NotifyTaskCompleted(SharedPtr<TaskInstance>& InInstance) {
         // Pending则加入其DesiredThread进行执行
         ScheduleTask(DependentInstance);
       } else {
-        LOG_ERROR_TAG("TaskGraph", "任务\"{}\"状态错误, ptr={}.", InInstance->DebugName, Ptr(InInstance));
+        gLogger.Error("TaskGraph", "任务\"{}\"状态错误, ptr={}.", InInstance->DebugName, Ptr(InInstance));
       }
     }
   }
@@ -78,11 +78,11 @@ void TaskGraph::StartLazyTask(SharedPtr<TaskInstance>& InInstance) {
     return;
   }
   if UNLIKELY (!IsTaskExists(InInstance)) {
-    LOG_ERROR_TAG("TaskGraph", "任务\"{}\"({})不存在", InInstance->DebugName, Ptr(InInstance));
+    gLogger.Error("TaskGraph", "任务\"{}\"({})不存在", InInstance->DebugName, Ptr(InInstance));
     return;
   }
   if (InInstance->GetState() != ETaskState::Lazy) {
-    LOG_ERROR_TAG("TaskGraph", "任务\"{}\"({})状态错误(不为Lazy), 不能启动", InInstance->DebugName, Ptr(InInstance));
+    gLogger.Error("TaskGraph", "任务\"{}\"({})状态错误(不为Lazy), 不能启动", InInstance->DebugName, Ptr(InInstance));
     return;
   }
   TaskInstanceLock Lock(InInstance);
