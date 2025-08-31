@@ -4,6 +4,7 @@
 
 #include "TickManager.h"
 
+#include "Core/Assert.h"
 #include "Core/Performance/ProfilerMark.h"
 
 #include <imgui.h>

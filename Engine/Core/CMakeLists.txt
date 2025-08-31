@@ -83,6 +83,10 @@ add_library(KitaCore
         FileSystem/OutputFileStream.h
         Container/Queue.h
         Performance/ProfilerMark.h
+        Reflection/ReflUtils.cpp
+        Reflection/ReflUtils.h
+        String/StringUtils.cpp
+        String/StringUtils.h
 )
 
 find_package(spdlog CONFIG REQUIRED)

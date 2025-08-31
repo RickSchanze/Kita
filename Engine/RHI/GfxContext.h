@@ -4,6 +4,7 @@
 #include "RHIEnums.h"
 #include "SurfaceWindow.h"
 
+#include "Core/Assert.h"
 #include "GfxContext.generated.h"
 
 class RHICommandBuffer;

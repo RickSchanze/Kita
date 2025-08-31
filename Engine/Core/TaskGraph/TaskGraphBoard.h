@@ -2,6 +2,7 @@
 #include "Core/Container/Array.h"
 #include "Core/Container/Map.h"
 #include "Core/Container/Optional.h"
+#include "Core/Logging/Logger.hpp"
 #include "Core/Singleton/Singleton.h"
 #include "Core/TypeDefs.h"
 #include "TaskGraph.h"

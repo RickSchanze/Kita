@@ -23,6 +23,7 @@ kita_add_subdirectory(World)
 kita_add_subdirectory(Input)
 kita_add_subdirectory(Render)
 kita_add_subdirectory(Project)
+kita_add_subdirectory(Editor)
 
 include_directories(Generated)
 

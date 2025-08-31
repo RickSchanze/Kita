@@ -7,6 +7,7 @@
 #include "Core/Config/ConfigManager.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskGraph.h"
+#include "Editor/MenuActionManager.h"
 #include "Input/Input.h"
 #include "Input/InputTicker.h"
 #include "Project/Project.h"
@@ -59,10 +60,15 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   auto& Ref = TickManager::GetRef();
   Ref.SetRenderTickInstance(RenderContext::GetRef().GetRenderTicker());
   Ref.SetTickInstance(mInputTicker);
+
+  // MenuAction
+  MenuActionManager::StartUp();
   mEngineData = {};
 }
 
 void EngineLoop::ShutDownSystemsM() {
+  // MenuAction
+  MenuActionManager::ShutDown();
   // 清理Ticker
   auto& TickManagerRef = TickManager::GetRef();
   TickManagerRef.SetTickInstance(nullptr);

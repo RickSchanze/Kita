@@ -4,6 +4,8 @@
 
 #include "IConfig.h"
 
+#include "Core/Assert.h"
+
 String IConfig::GetFilePath() {
   String ConfigPath;
   auto FilePath = GetType()->GetAttribute("File");

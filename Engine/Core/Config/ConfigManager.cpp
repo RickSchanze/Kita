@@ -4,6 +4,7 @@
 
 #include "ConfigManager.h"
 
+#include "Core/Assert.h"
 #include "Core/Reflection/Type.h"
 #include "Core/Serialization/TOML/TOMLInputArchive.h"
 #include "Core/Serialization/TOML/TOMLOutputArchive.h"

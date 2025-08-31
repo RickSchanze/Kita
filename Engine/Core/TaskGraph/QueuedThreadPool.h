@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Concurrency/ConcurrentQueue.h"
 #include "Core/Container/Array.h"
+#include "Core/Memory/SharedPtr.h"
 
 struct TaskInstance;
 class QueuedThreadPool : public NonCopyMovable {

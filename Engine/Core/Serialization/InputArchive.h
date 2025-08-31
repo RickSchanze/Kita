@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Container/Array.h"
 #include "Core/Container/Map.h"
+#include "Core/Logging/Logger.hpp"
 #include "Core/Reflection/EnumString.h"
 #include "Core/Traits.h"
 #include "OutputArchive.h"

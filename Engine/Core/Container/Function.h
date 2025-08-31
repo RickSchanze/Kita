@@ -3,7 +3,7 @@
 
 template <typename Func> class Function {
 public:
-  template <typename... Args> auto&& operator()(Args&&... args) { return mFunc(std::forward<Args>(args)...); }
+  template <typename... Args> auto operator()(Args&&... args) { return mFunc(std::forward<Args>(args)...); }
   template <typename OtherFunc> Function(OtherFunc&& InFunc) : mFunc(std::forward<OtherFunc>(InFunc)) {}
   Function() = default;
   Function(const Function&) = default;

@@ -82,19 +82,21 @@ template <typename T> struct Vector2 {
   }
 };
 
-#define VECTOR2_DECL(Type, Name)                                                                                               \
-  struct Z_Reflection_Vector2_Register_##Type {                                                                                \
-    Z_Reflection_Vector2_Register_##Type() {                                                                                   \
-      TypeBuilder Builder{};                                                                                                   \
-      Builder.CreateType<Vector2<##Type>>(Name);                                                                               \
-      const Field* XField = New<Field>("X", OffsetOf(&glm::vec2::x), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(XField);                                                                                                \
-      const Field* YField = New<Field>("Y", OffsetOf(&glm::vec2::y), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(YField);                                                                                                \
-      Builder.Register();                                                                                                      \
-    }                                                                                                                          \
-  };                                                                                                                           \
-  static inline Z_Reflection_Vector2_Register_##Type Z_Reflection_Vector2_Register___##Type {}
+#define VECTOR2_DECL(Type, Name)                                                                                                 \
+  class Z_Vector2_REFL_REGISTER_WRAPPER_##Type {                                                                                 \
+    struct Z_Reflection_Vector2_Register_##Type {                                                                                \
+      Z_Reflection_Vector2_Register_##Type() {                                                                                   \
+        TypeBuilder Builder{};                                                                                                   \
+        Builder.CreateType<Vector2<##Type>>(Name);                                                                               \
+        const Field* XField = New<Field>("X", OffsetOf(&glm::vec2::x), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(XField);                                                                                                \
+        const Field* YField = New<Field>("Y", OffsetOf(&glm::vec2::y), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(YField);                                                                                                \
+        Builder.Register();                                                                                                      \
+      }                                                                                                                          \
+    };                                                                                                                           \
+    static inline Z_Reflection_Vector2_Register_##Type Z_Reflection_Vector2_Register___##Type{};                                 \
+  };
 
 VECTOR2_DECL(float, "Vector2f");
 typedef Vector2<float> Vector2f;
@@ -166,21 +168,23 @@ template <typename T> struct Vector3 {
   [[nodiscard]] String ToString() const { return Format("[{}, {}, {}]", X(), Y(), Z()); }
 };
 
-#define VECTOR3_DECL(Type, Name)                                                                                               \
-  struct Z_Reflection_Vector3_Register_##Type {                                                                                \
-    Z_Reflection_Vector3_Register_##Type() {                                                                                   \
-      TypeBuilder Builder{};                                                                                                   \
-      Builder.CreateType<Vector3<##Type>>(Name);                                                                               \
-      const Field* XField = New<Field>("X", OffsetOf(&glm::vec3::x), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(XField);                                                                                                \
-      const Field* YField = New<Field>("Y", OffsetOf(&glm::vec3::y), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(YField);                                                                                                \
-      const Field* ZField = New<Field>("Z", OffsetOf(&glm::vec3::z), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(ZField);                                                                                                \
-      Builder.Register();                                                                                                      \
-    }                                                                                                                          \
-  };                                                                                                                           \
-  static inline Z_Reflection_Vector3_Register_##Type Z_Reflection_Vector3_Register___##Type {}
+#define VECTOR3_DECL(Type, Name)                                                                                                 \
+  class Z_Vector3_Refl_Register_Wrapper_##Type {                                                                                 \
+    struct Z_Reflection_Vector3_Register_##Type {                                                                                \
+      Z_Reflection_Vector3_Register_##Type() {                                                                                   \
+        TypeBuilder Builder{};                                                                                                   \
+        Builder.CreateType<Vector3<##Type>>(Name);                                                                               \
+        const Field* XField = New<Field>("X", OffsetOf(&glm::vec3::x), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(XField);                                                                                                \
+        const Field* YField = New<Field>("Y", OffsetOf(&glm::vec3::y), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(YField);                                                                                                \
+        const Field* ZField = New<Field>("Z", OffsetOf(&glm::vec3::z), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(ZField);                                                                                                \
+        Builder.Register();                                                                                                      \
+      }                                                                                                                          \
+    };                                                                                                                           \
+    static inline Z_Reflection_Vector3_Register_##Type Z_Reflection_Vector3_Register___##Type{};                                 \
+  };
 
 VECTOR3_DECL(float, "Vector3f");
 typedef Vector3<float> Vector3f;
@@ -268,23 +272,25 @@ template <typename T> struct Vector4 {
   }
 };
 
-#define VECTOR4_DECL(Type, Name)                                                                                               \
-  struct Z_Reflection_Vector4_Register_##Type {                                                                                \
-    Z_Reflection_Vector4_Register_##Type() {                                                                                   \
-      TypeBuilder Builder{};                                                                                                   \
-      Builder.CreateType<Vector4<##Type>>(Name);                                                                               \
-      const Field* XField = New<Field>("X", OffsetOf(&glm::vec4::x), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(XField);                                                                                                \
-      const Field* YField = New<Field>("Y", OffsetOf(&glm::vec4::y), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(YField);                                                                                                \
-      const Field* ZField = New<Field>("Z", OffsetOf(&glm::vec4::z), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(ZField);                                                                                                \
-      const Field* WField = New<Field>("W", OffsetOf(&glm::vec4::w), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
-      Builder.AddField(WField);                                                                                                \
-      Builder.Register();                                                                                                      \
-    }                                                                                                                          \
-  };                                                                                                                           \
-  static inline Z_Reflection_Vector4_Register_##Type Z_Reflection_Vector4_Register___##Type {}
+#define VECTOR4_DECL(Type, Name)                                                                                                 \
+  class Z_Vector4_REFL_REGISTER_WRAPPER_##Type {                                                                                 \
+    struct Z_Reflection_Vector4_Register_##Type {                                                                                \
+      Z_Reflection_Vector4_Register_##Type() {                                                                                   \
+        TypeBuilder Builder{};                                                                                                   \
+        Builder.CreateType<Vector4<##Type>>(Name);                                                                               \
+        const Field* XField = New<Field>("X", OffsetOf(&glm::vec4::x), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(XField);                                                                                                \
+        const Field* YField = New<Field>("Y", OffsetOf(&glm::vec4::y), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(YField);                                                                                                \
+        const Field* ZField = New<Field>("Z", OffsetOf(&glm::vec4::z), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(ZField);                                                                                                \
+        const Field* WField = New<Field>("W", OffsetOf(&glm::vec4::w), sizeof(##Type), TypeOf<##Type>(), Builder.OperatingType); \
+        Builder.AddField(WField);                                                                                                \
+        Builder.Register();                                                                                                      \
+      }                                                                                                                          \
+    };                                                                                                                           \
+    static inline Z_Reflection_Vector4_Register_##Type Z_Reflection_Vector4_Register___##Type{};                                 \
+  };
 
 VECTOR4_DECL(float, "Vector4f");
 typedef Vector4<float> Vector4f;

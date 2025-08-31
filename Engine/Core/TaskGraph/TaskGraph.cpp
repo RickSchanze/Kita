@@ -4,6 +4,8 @@
 
 #include "TaskGraph.h"
 
+#include "Core/Assert.h"
+#include "Core/Logging/Logger.hpp"
 #include "ThreadUtils.h"
 
 ETaskState TaskInstance::GetState(const bool InLock) const {

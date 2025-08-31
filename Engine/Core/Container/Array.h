@@ -1,6 +1,4 @@
 #pragma once
-#include "Core/Assert.h" // for assert
-#include "Core/Logging/Logger.hpp"
 #include "Core/Memory/Malloc.h"
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
@@ -66,10 +64,7 @@ public:
   auto& Last() { return mData.back(); }
   const auto& Last() const { return mData.back(); }
 
-  auto&& operator[](this auto&& Self, SizeType Index) {
-    DEBUG_ASSERT_MSG(Index < Self.Count(), "Index out of range");
-    return Self.mData[Index];
-  }
+  auto&& operator[](this auto&& Self, SizeType Index) { return Self.mData[Index]; }
 
   template <typename U> void Add(U&& InValue) { mData.push_back(std::forward<U>(InValue)); }
   template <typename... Args> auto Emplace(Args&&... InArgs) { return mData.emplace_back(std::forward<Args>(InArgs)...); }

@@ -23,6 +23,6 @@ public:
 
 #if KITA_EDITOR
 protected:
-  void DrawImGui(const RenderPipelineDrawParams& Params);
+  void RecordImGuiCommands(const RenderPipelineDrawParams& Params);
 #endif
 };

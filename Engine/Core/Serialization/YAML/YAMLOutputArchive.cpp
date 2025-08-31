@@ -6,6 +6,7 @@
 
 #include "Core/FileSystem/File.h"
 #include "Core/FileSystem/Path.h"
+#include "Core/Logging/Logger.hpp"
 #include "yaml-cpp/yaml.h"
 
 struct YAMLOutputArchive::Impl {

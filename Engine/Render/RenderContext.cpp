@@ -49,34 +49,6 @@ void RenderContext::ShutDown() {
   Self.mSurfaceWindow = nullptr;
 }
 
-static void DrawImGui() {
-  ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-  const ImGuiViewport* Viewport = ImGui::GetMainViewport();
-  ImGui::SetNextWindowPos(Viewport->WorkPos);
-  ImGui::SetNextWindowSize(Viewport->WorkSize);
-  ImGui::SetNextWindowViewport(Viewport->ID);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-  WindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-  WindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-  WindowFlags |= ImGuiWindowFlags_NoBackground;
-  static ImGuiDockNodeFlags DockSpaceFlags = ImGuiDockNodeFlags_None;
-  ImGuiID DockspaceId = ImGui::GetID("MyDockSpace");
-  bool pOpen;
-  ImGui::Begin("DockSpace Demo", &pOpen, WindowFlags);
-  ImGui::DockSpace(DockspaceId, ImVec2(0.0f, 0.0f), DockSpaceFlags);
-  ImGui::PopStyleVar(2);
-
-  if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("Options")) {
-      ImGui::MenuItem("Test");
-      ImGui::EndMenu();
-    }
-    ImGui::EndMenuBar();
-  }
-  ImGui::End();
-}
-
 void RenderContext::Render(double Time) {
   CPU_PROFILING_SCOPE;
   if (IsWindowResized()) {
@@ -112,20 +84,16 @@ void RenderContext::Render(double Time) {
 #if KITA_EDITOR
   ImGui_ImplVulkan_NewFrame();
   ImGui::NewFrame();
-  DrawImGui();
 #endif
-
-
-
   RenderPipelineDrawParams Params = {};
   Params.DeltaSeconds = Time;
   Params.Cmd = mCommandBuffers[FrameIndex].Get();
   Params.TargetFramebuffer = mSurfaceWindow->GetImGuiFrameBuffer(ImageIndex);
   Params.Width = mSurfaceWindow->GetSize().X();
   Params.Height = mSurfaceWindow->GetSize().Y();
-
-  ImGui::Render();
   mRenderPipeline->Draw(Params);
+  ImGui::Render();
+
 
   mCommandBuffers[FrameIndex]->EndRecord();
   // TODO: 提交也应该异步

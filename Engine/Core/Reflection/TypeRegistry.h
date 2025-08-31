@@ -27,6 +27,8 @@ public:
   void* CreateTypeInstance(const Type* InType) const;
   void DestroyTypeInstance(const Type* InType, void* Instance) const;
 
+  const auto& GetAllTypes() const { return mRegisteredTypes; }
+
 private:
   Array<const Type*> mRegisteredTypes;
   Map<const Type*, Constructor> mConstructors;

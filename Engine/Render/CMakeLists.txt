@@ -12,7 +12,7 @@ add_library(KitaRender
         RenderPipeline.h
 )
 
-target_link_libraries(KitaRender PRIVATE KitaCore KitaMath KitaRHI KitaWorld )
+target_link_libraries(KitaRender PRIVATE KitaCore KitaMath KitaRHI KitaWorld KitaEditor KitaObject)
 
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(KitaRender PRIVATE glfw)
