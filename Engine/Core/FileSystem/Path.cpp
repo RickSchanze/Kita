@@ -31,3 +31,38 @@ bool Path::IsExists(const StringView Path) { return exists(Path.Data()); }
 bool Path::IsExists() const { return IsExists(mPath); }
 bool Path::IsDirectory(const StringView Path) { return is_directory(Path.Data()); }
 bool Path::IsDirectory() const { return IsDirectory(mPath); }
+
+String Path::Combine(StringView Base, StringView Relative, bool NeedNormalize) {
+  std::string result(Base.begin(), Base.end());
+
+  if (!result.empty() && result.back() != Path::Separator)
+    result.push_back(Path::Separator);
+
+  std::string RelStr(Relative.begin(), Relative.end());
+  if (!RelStr.empty() && RelStr.front() == Path::Separator)
+    RelStr.erase(RelStr.begin());
+
+  result += RelStr;
+  Path Combined(result, /*NeedNormalize*/ NeedNormalize);
+  return Combined.GetStdString();
+}
+
+bool Path::CreateDirectory(StringView Path, bool Recursive) {
+  namespace fs = std::filesystem;
+
+  if (Path.Empty())
+    return false;
+
+  const fs::path FsPath(Path.GetStdStringView());
+
+  std::error_code ER;
+  bool OK = false;
+  if (Recursive) {
+    OK = fs::create_directories(FsPath, ER); // 创建所有父目录
+  } else {
+    OK = fs::create_directory(FsPath, ER); // 只创建一层
+  }
+
+  // 如果目录已经存在，fs::create_* 会返回 false，但是并不算错误
+  return OK || fs::exists(FsPath);
+}

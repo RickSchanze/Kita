@@ -30,6 +30,11 @@ public:
   static bool IsDirectory(StringView Path);
   bool IsDirectory() const;
 
+  // 也可以提供直接 Combine 两个字符串的版本：
+  static String Combine(StringView Base, StringView Relative, bool NeedNormalize = true);
+  static bool CreateDirectory(StringView Path, bool Recursive = true) ;
+
+
 private:
   String mPath;
 };

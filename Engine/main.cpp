@@ -20,9 +20,9 @@
 #include "Windows.h"
 #include "World/EngineLoop.h"
 
-int main() {
+int main(int ArgC, const char** ArgV) {
   SetConsoleOutputCP(CP_UTF8);
-  EngineLoop::StartUpSystems();
+  EngineLoop::StartUpSystems(ArgV, ArgC);
   EngineLoop::Run();
   EngineLoop::ShutDownSystems();
 }

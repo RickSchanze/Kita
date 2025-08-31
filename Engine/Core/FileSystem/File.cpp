@@ -38,3 +38,9 @@ EFileSystemError File::WriteAllText(StringView Path, const StringView Text) {
   FS.close();
   return EFileSystemError::Ok;
 }
+
+void File::Create(StringView Path, EFileContentMode ContentMode) {
+  if (ContentMode == EFileContentMode::Text) {
+    std::ofstream FS(Path.Data());
+  }
+}

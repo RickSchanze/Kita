@@ -3,9 +3,13 @@
 #include "Core/String/String.h"
 #include "FileSystemError.h"
 
-class File
-{
+enum class EFileContentMode {
+  Text,
+};
+
+class File {
 public:
   static Result<String, EFileSystemError> ReadAllText(StringView Path);
   static EFileSystemError WriteAllText(StringView Path, StringView Text);
+  static void Create(StringView Path, EFileContentMode ContentMode);
 };

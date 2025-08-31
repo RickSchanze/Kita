@@ -13,12 +13,12 @@ struct EngineData {
 
 class EngineLoop : public Singleton<EngineLoop> {
 public:
-  static void StartUpSystems() { GetRef().StartUpSystemsM(); }
+  static void StartUpSystems(const char** ArgV, int ArgC) { GetRef().StartUpSystemsM(ArgV, ArgC); }
   static void ShutDownSystems() { GetRef().ShutDownSystemsM(); }
   static void Run() { GetRef().RunM(); }
 
 private:
-  void StartUpSystemsM();
+  void StartUpSystemsM(const char** ArgV, int ArgC);
   void ShutDownSystemsM();
   void RunM();
 

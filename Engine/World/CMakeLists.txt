@@ -12,10 +12,13 @@ add_library(KitaWorld
         TickManager.h
 )
 
-target_link_libraries(KitaWorld PRIVATE KitaCore KitaMath KitaRHI KitaInput KitaRender)
+target_link_libraries(KitaWorld PRIVATE KitaCore KitaMath KitaRHI KitaInput KitaRender KitaProject)
 
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(KitaWorld PRIVATE glfw)
 
 target_include_directories(KitaWorld PUBLIC ${World_GENERATED_DIR})
 target_include_directories(KitaWorld PUBLIC ../)
+
+find_package(argparse CONFIG REQUIRED)
+target_link_libraries(KitaWorld PRIVATE argparse::argparse)
