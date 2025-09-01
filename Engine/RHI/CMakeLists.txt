@@ -49,6 +49,9 @@ add_library(KitaRHI
         ImGuiConfig.h
         ImGuiConfig.cpp
         IconFontHeader.h
+        Buffer.h
+        Vulkan/Buffer_Vulkan.cpp
+        Vulkan/Buffer_Vulkan.h
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)

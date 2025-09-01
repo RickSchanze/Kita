@@ -119,6 +119,7 @@ Builder.AddField("FontPath", &ImGuiConfig::FontPath); \
 Builder.AddField("CharsetPath", &ImGuiConfig::CharsetPath); \
 Builder.AddField("FontSize", &ImGuiConfig::FontSize); \
 Builder.AddField("Theme", &ImGuiConfig::Theme); \
+Builder.AddField("IconFontPath", &ImGuiConfig::IconFontPath); \
 Builder.Register(); \
 } \
 }; \

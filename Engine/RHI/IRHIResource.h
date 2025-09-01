@@ -27,5 +27,7 @@ public:
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const = 0;
   [[nodiscard]] virtual void* GetNativeHandle() const = 0;
 
+  [[nodiscard]] bool IsValid() const { return GetNativeHandle() != nullptr; }
+
   template <typename T> T GetNativeHandleT() const { return static_cast<T>(GetNativeHandle()); }
 };

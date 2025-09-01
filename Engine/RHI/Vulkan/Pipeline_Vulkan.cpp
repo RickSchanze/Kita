@@ -21,7 +21,7 @@ RHIPipelineLayout_Vulkan::RHIPipelineLayout_Vulkan(const RHIPipelineLayoutDesc& 
   CreateInfo.pSetLayouts = Layouts.Data();
   if (const VkResult Result = vkCreatePipelineLayout(GetVulkanGfxContexRef().GetDevice(), &CreateInfo, nullptr, &mLayout); Result != VK_SUCCESS) {
     mLayout = nullptr;
-    gLogger.Error("RHI.Vulkan", "创建管线失败,  Code={}", Result);
+    gLogger.Error("RHI", "创建管线失败,  Code={}", Result);
   }
 }
 
@@ -166,7 +166,7 @@ RHIPipeline_Vulkan::RHIPipeline_Vulkan(const RHIGraphicsPipelineDesc& Desc) {
   PipelineCreateInfo.subpass = Desc.Subpass;
   PipelineCreateInfo.layout = Desc.Layout->GetNativeHandleT<VkPipelineLayout>();
   if (VkResult Result = vkCreateGraphicsPipelines(GetVulkanGfxContex()->GetDevice(), VK_NULL_HANDLE, 1, &PipelineCreateInfo, nullptr, &mPipeline); Result != VK_SUCCESS) {
-    gLogger.Error("RHI.Vulkan", "创建图形管线失败, Code={}", Result);
+    gLogger.Error("RHI", "创建图形管线失败, Code={}", Result);
     mPipeline = VK_NULL_HANDLE;
   }
 }

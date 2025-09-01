@@ -10,7 +10,7 @@ RHIFence_Vulkan::RHIFence_Vulkan() {
   CreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   CreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
   if (VkResult Result = vkCreateFence(GetVulkanGfxContexRef().GetDevice(), &CreateInfo, nullptr, &mFence); Result != VK_SUCCESS) {
-    gLogger.Error("RHI.Vulkan", "创建Fence失败, Code={}", Result);
+    gLogger.Error("RHI", "创建Fence失败, Code={}", Result);
   }
 }
 
@@ -24,7 +24,7 @@ RHISemaphore_Vulkan::RHISemaphore_Vulkan() {
   VkSemaphoreCreateInfo CreateInfo{};
   CreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
   if (VkResult Result = vkCreateSemaphore(GetVulkanGfxContexRef().GetDevice(), &CreateInfo, nullptr, &mSemaphore); Result != VK_SUCCESS) {
-    gLogger.Error("RHI.Vulkan", "创建Semaphore失败, Code={}", Result);
+    gLogger.Error("RHI", "创建Semaphore失败, Code={}", Result);
     mSemaphore = nullptr;
   }
 }

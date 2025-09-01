@@ -4,6 +4,7 @@
 
 #include "GfxContext_Vulkan.h"
 
+#include "Buffer_Vulkan.h"
 #include "CommandBuffer_Vulkan.h"
 #include "Core/Config/ConfigManager.h"
 #include "Core/Performance/ProfilerMark.h"
@@ -80,7 +81,7 @@ UInt32 GfxContext_Vulkan::GetNextImage(RHISurfaceWindow* Window, RHISemaphore* W
     NeedRecreation = true;
   } else if (Result == VK_SUCCESS) {
   } else {
-    gLogger.Critical("RHI.Vulkan", "无法获取下一个交换链图像!Code={}", Result);
+    gLogger.Critical("RHI", "无法获取下一个交换链图像!Code={}", Result);
   }
   return Return;
 }
@@ -99,7 +100,11 @@ UniquePtr<RHIDescriptorPool> GfxContext_Vulkan::CreateDescriptorPoolU(const RHID
 
 UniquePtr<RHIPipelineLayout> GfxContext_Vulkan::CreatePipelineLayoutU(const RHIPipelineLayoutDesc& Desc) { return MakeUnique<RHIPipelineLayout_Vulkan>(Desc); }
 
-UniquePtr<RHIPipeline> GfxContext_Vulkan::CreatePipeline(const RHIGraphicsPipelineDesc& Desc) { return MakeUnique<RHIPipeline_Vulkan>(Desc); }
+UniquePtr<RHIPipeline> GfxContext_Vulkan::CreatePipelineU(const RHIGraphicsPipelineDesc& Desc) { return MakeUnique<RHIPipeline_Vulkan>(Desc); }
+
+UniquePtr<RHIBuffer> GfxContext_Vulkan::CreateBufferU(const struct RHIBufferDesc& Desc) { return MakeUnique<RHIBuffer_Vulkan>(Desc); }
+
+SharedPtr<RHIBuffer> GfxContext_Vulkan::CreateBufferS(const struct RHIBufferDesc& Desc) { return MakeShared<RHIBuffer_Vulkan>(Desc); }
 
 bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) {
   VkPresentInfoKHR PresentInfo{};
@@ -120,12 +125,42 @@ bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) {
     return false;
   }
   if (Result != VK_SUCCESS) {
-    gLogger.Critical("RHI.Vulkan", "呈现(Present)图像失败! Code={}", Result);
+    gLogger.Critical("RHI", "呈现(Present)图像失败! Code={}", Result);
   }
   return true;
 }
 
 void GfxContext_Vulkan::WaitDeviceIdle() { vkDeviceWaitIdle(mDevice); }
+
+VkDeviceMemory GfxContext_Vulkan::AllocateMemory(VkBuffer For, VkDeviceSize Size, VkMemoryPropertyFlags MemoryFlags) const {
+  if (For == VK_NULL_HANDLE || Size == 0)
+    return VK_NULL_HANDLE;
+  VkMemoryRequirements MemReqs;
+  vkGetBufferMemoryRequirements(mDevice, For, &MemReqs);
+  VkMemoryAllocateInfo AllocInfo{};
+  AllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  AllocInfo.allocationSize = MemReqs.size;
+  AllocInfo.memoryTypeIndex = FindMemoryType(MemReqs.memoryTypeBits, MemoryFlags);
+  VkDeviceMemory Memory = VK_NULL_HANDLE;
+  if (auto Result = vkAllocateMemory(mDevice, &AllocInfo, nullptr, &Memory) != VK_SUCCESS) {
+    gLogger.Error("RHI", "为Buffer '{:p}' 分配内存失败! Code={}", Ptr(For), Result);
+    return VK_NULL_HANDLE;
+  }
+  return Memory;
+}
+
+void GfxContext_Vulkan::DeallocateMemory(VkDeviceMemory Memory) const { vkFreeMemory(mDevice, Memory, nullptr); }
+
+UInt32 GfxContext_Vulkan::FindMemoryType(UInt32 TypeFilter, VkMemoryPropertyFlags Properties) const {
+  VkPhysicalDeviceMemoryProperties MemoryProperties;
+  vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &MemoryProperties);
+  for (UInt32 i = 0; i < MemoryProperties.memoryTypeCount; i++) {
+    if ((TypeFilter & (1 << i)) && (MemoryProperties.memoryTypes[i].propertyFlags & Properties) == Properties) {
+      return i;
+    }
+  }
+  return UINT32_MAX;
+}
 
 PhysicalDeviceSwapchainFeatures GfxContext_Vulkan::GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const { return QueryPhysicalDeviceSwapchainFeatures(mPhysicalDevice, Window); }
 
@@ -264,7 +299,7 @@ void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params) {
   const VkQueue Queue = GetQueue(Params.TargetQueueFamily);
   VkResult Result = vkQueueSubmit(Queue, 1, &SubmitInfo, WaitFence);
   if (Result != VK_SUCCESS) {
-    gLogger.Error("RHI.Vulkan", "提交渲染指令失败!Code={}", Result);
+    gLogger.Error("RHI", "提交渲染指令失败!Code={}", Result);
   }
 }
 
@@ -287,11 +322,11 @@ bool GfxContext_Vulkan::IsLayerSupported(const char* LayerName) {
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(const VkDebugUtilsMessageSeverityFlagBitsEXT MessageSeverity, VkDebugUtilsMessageTypeFlagsEXT MessageType,
                                                     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
   if (MessageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-    gLogger.Error("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
+    gLogger.Error("RHI.Validation", "{}", pCallbackData->pMessage);
   } else if (MessageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    gLogger.Warn("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
+    gLogger.Warn("RHI.Validation", "{}", pCallbackData->pMessage);
   } else {
-    gLogger.Info("RHI.Vulkan.Validation", "{}", pCallbackData->pMessage);
+    gLogger.Info("RHI.Validation", "{}", pCallbackData->pMessage);
   }
   return VK_FALSE;
 }
@@ -335,7 +370,7 @@ void GfxContext_Vulkan::CreateInstance() {
       PopulateDebugMessengerCreateInfo(MessengerCreateInfo);
       mEnabledValidationLayer = true;
     } else {
-      gLogger.Warn("RHI.Vulkan", "Vulkan验证层不支持!将自动关闭.");
+      gLogger.Warn("RHI", "Vulkan验证层不支持!将自动关闭.");
     }
   }
   InstanceInfo.enabledExtensionCount = static_cast<UInt32>(Extensions.Count());
@@ -344,14 +379,14 @@ void GfxContext_Vulkan::CreateInstance() {
   InstanceInfo.ppEnabledLayerNames = Layers.Data();
   InstanceInfo.pNext = &MessengerCreateInfo;
   ASSERT_MSG(vkCreateInstance(&InstanceInfo, nullptr, &mInstance) == VK_SUCCESS, "创建Vulkan实例失败");
-  gLogger.Info("RHI.Vulkan", "创建Vulkan Instance成功!");
-  gLogger.Info("RHI.Vulkan", "开启的扩展:");
+  gLogger.Info("RHI", "创建Vulkan Instance成功!");
+  gLogger.Info("RHI", "开启的扩展:");
   for (const auto& Extension : Extensions) {
-    gLogger.Info("RHI.Vulkan", "  {}", Extension);
+    gLogger.Info("RHI", "  {}", Extension);
   }
-  gLogger.Info("RHI.Vulkan", "开启的Layer:");
+  gLogger.Info("RHI", "开启的Layer:");
   for (const auto& Layer : Layers) {
-    gLogger.Info("RHI.Vulkan", "  {}", Layer);
+    gLogger.Info("RHI", "  {}", Layer);
   }
 }
 
@@ -368,7 +403,7 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
   vkEnumeratePhysicalDevices(mInstance, &DeviceCount, nullptr);
 
   if (DeviceCount == 0) {
-    gLogger.Critical("RHI.Vulkan", "没有可用的Vulkan设备!");
+    gLogger.Critical("RHI", "没有可用的Vulkan设备!");
   }
 
   Array<VkPhysicalDevice> devices(DeviceCount);
@@ -382,7 +417,7 @@ void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
   }
 
   if (mPhysicalDevice == VK_NULL_HANDLE) {
-    gLogger.Critical("RHI.Vulkan", "没有可用的Vulkan设备!");
+    gLogger.Critical("RHI", "没有可用的Vulkan设备!");
   } else {
     FindPhysicalDeviceFeatures();
   }
@@ -448,7 +483,7 @@ void GfxContext_Vulkan::CreateLogicalDevice(RHISurfaceWindow& TempWindow) {
     DeviceInfo.ppEnabledLayerNames = ValidationLayerNames.Data();
   }
   if (VkResult Code = vkCreateDevice(mPhysicalDevice, &DeviceInfo, nullptr, &mDevice); Code != VK_SUCCESS) {
-    gLogger.Critical("RHI.Vulkan", "初始化Vulkan上下文失败, Code={}", Code);
+    gLogger.Critical("RHI", "初始化Vulkan上下文失败, Code={}", Code);
   }
   vkGetDeviceQueue(mDevice, *mQueueFamilies.GraphicsFamily, 0, &mGraphicsQueue);
   vkGetDeviceQueue(mDevice, *mQueueFamilies.PresentFamily, 0, &mPresentQueue);
@@ -593,7 +628,7 @@ void GfxContext_Vulkan::CreateImGuiRenderPass() {
   RenderPassInfo.pDependencies = &Dependency;
   VkRenderPass MyRenderPass;
   if (auto Result = vkCreateRenderPass(mDevice, &RenderPassInfo, nullptr, &MyRenderPass) != VK_SUCCESS) {
-    gLogger.Critical("RHI.Vulkan.Imgui", "创建ImGui RenderPass失败, 错误码={}", Result);
+    gLogger.Critical("RHI.Imgui", "创建ImGui RenderPass失败, 错误码={}", Result);
   }
   mImGuiRenderPass = MakeUnique<RHIRenderPass_Vulkan>(MyRenderPass);
 }
@@ -621,7 +656,7 @@ void GfxContext_Vulkan::CreateImGuiDescriptorPool() {
   PoolInfo.pPoolSizes = PoolSizes;
 
   if (auto Result = vkCreateDescriptorPool(mDevice, &PoolInfo, nullptr, &mImGuiDescriptorPool) != VK_SUCCESS) {
-    gLogger.Critical("RHI.Vulkan.ImGui", "创建ImGui Descriptor Pool失败, 错误码={}", Result);
+    gLogger.Critical("RHI.ImGui", "创建ImGui Descriptor Pool失败, 错误码={}", Result);
   }
 }
 
@@ -652,7 +687,7 @@ void GfxContext_Vulkan::FindPhysicalDeviceFeatures() {
   }
 
   mGfxDeviceFeatures.SamplerAnisotropy = PhysicalDeviceFeatures.samplerAnisotropy;
-  gLogger.Info("RHI.Vulkan", "选用设备{}", PhysicalDeviceProperties.deviceName);
+  gLogger.Info("RHI", "选用设备{}", PhysicalDeviceProperties.deviceName);
 }
 
 PhysicalDeviceSwapchainFeatures GfxContext_Vulkan::QueryPhysicalDeviceSwapchainFeatures(const VkPhysicalDevice Device, RHISurfaceWindow& TempWindow) {
@@ -698,7 +733,7 @@ VkResult GfxContext_Vulkan::Dyn_CreateDebugUtilsMessengerEXT(const VkDebugUtilsM
   if (Func != nullptr) {
     return Func(mInstance, pCreateInfo, pAllocator, pDebugMessenger);
   } else {
-    gLogger.Warn("RHI.Vulkan", "未找到函数vkCreateDebugUtilsMessengerEXT");
+    gLogger.Warn("RHI", "未找到函数vkCreateDebugUtilsMessengerEXT");
     return VK_ERROR_EXTENSION_NOT_PRESENT;
   }
 }
@@ -708,6 +743,6 @@ void GfxContext_Vulkan::Dyn_DestroyDebugUtilsMessengerEXT(const VkDebugUtilsMess
   if (Func != nullptr) {
     Func(mInstance, DebugMessenger, pAllocator);
   } else {
-    gLogger.Warn("RHI.Vulkan", "未找到函数vkDestroyDebugUtilsMessengerEXT");
+    gLogger.Warn("RHI", "未找到函数vkDestroyDebugUtilsMessengerEXT");
   }
 }

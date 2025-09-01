@@ -169,6 +169,7 @@ Archive.WriteType("FontPath", FontPath);
 Archive.WriteType("CharsetPath", CharsetPath); 
 Archive.WriteType("FontSize", FontSize); 
 Archive.WriteType("Theme", Theme); 
+Archive.WriteType("IconFontPath", IconFontPath); 
 } 
 void ImGuiConfig::ReadArchive(InputArchive& Archive) { 
 Super::ReadArchive(Archive); 
@@ -176,4 +177,5 @@ Archive.ReadType("FontPath", FontPath);
 Archive.ReadType("CharsetPath", CharsetPath); 
 Archive.ReadType("FontSize", FontSize); 
 Archive.ReadType("Theme", Theme); 
+Archive.ReadType("IconFontPath", IconFontPath); 
 } 

@@ -20,7 +20,7 @@ RHIImageView_Vulkan::RHIImageView_Vulkan(VkImage SwapchainImage, VkFormat Format
   ImageViewInfo.subresourceRange.layerCount = 1;
 
   if (const VkResult Result = vkCreateImageView(GetVulkanGfxContexRef().GetDevice(), &ImageViewInfo, nullptr, &mImageView); Result != VK_SUCCESS) {
-    gLogger.Error("RHI.Vulkan", "创建交换链图像视图失败, 错误码={}", static_cast<Int32>(Result));
+    gLogger.Error("RHI", "创建交换链图像视图失败, 错误码={}", static_cast<Int32>(Result));
   }
   mRelatedImage = nullptr;
 }
@@ -42,7 +42,7 @@ RHIImageView_Vulkan::RHIImageView_Vulkan(const RHIImageViewDesc& Desc) {
   ImageViewInfo.components.b = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping.B);
   ImageViewInfo.components.a = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping.A);
   if (const VkResult Result = vkCreateImageView(GetVulkanGfxContexRef().GetDevice(), &ImageViewInfo, nullptr, &mImageView); Result != VK_SUCCESS) {
-    gLogger.Error("RHI.Vulkan", "创建图像视图失败, 错误码={}", Result);
+    gLogger.Error("RHI", "创建图像视图失败, 错误码={}", Result);
   }
   mRelatedImage = Desc.SourceImage;
 }

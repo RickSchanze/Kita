@@ -8,6 +8,7 @@
 #include "Core/TaskGraph/TaskHandle.h"
 #include "GfxContext.generated.h"
 
+class RHIBuffer;
 class RHICommandBuffer;
 class RHISurfaceWindow;
 class RHIPipelineLayout;
@@ -101,7 +102,9 @@ public:
   virtual UniquePtr<RHIDescriptorSetLayout> CreateDescriptorSetLayoutU(const struct RHIDescriptorSetLayoutDesc& Desc) = 0;
   virtual UniquePtr<RHIDescriptorPool> CreateDescriptorPoolU(const struct RHIDescriptorPoolDesc& Desc) = 0;
   virtual UniquePtr<RHIPipelineLayout> CreatePipelineLayoutU(const struct RHIPipelineLayoutDesc& Desc) = 0;
-  virtual UniquePtr<RHIPipeline> CreatePipeline(const struct RHIGraphicsPipelineDesc& Desc) = 0;
+  virtual UniquePtr<RHIPipeline> CreatePipelineU(const struct RHIGraphicsPipelineDesc& Desc) = 0;
+  virtual UniquePtr<RHIBuffer> CreateBufferU(const struct RHIBufferDesc& Desc) = 0;
+  virtual SharedPtr<RHIBuffer> CreateBufferS(const struct RHIBufferDesc& Desc) = 0;
   virtual void WaitDeviceIdle() = 0;
 
   /**

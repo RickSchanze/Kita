@@ -66,7 +66,7 @@ static void DrawTagFilterCombo(Map<StringView, bool>& TagsFilter) {
   }
 }
 
-void LoggingWindow::Draw() {
+void LoggingWindow::DrawEditorUI() {
   CPU_PROFILING_SCOPE;
   DrawTagFilterCombo(mLoggingRecordTagFilter);
   float ContentWidth = GetAvailableContentWidth();

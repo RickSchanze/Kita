@@ -24,6 +24,7 @@ kita_add_subdirectory(Input)
 kita_add_subdirectory(Render)
 kita_add_subdirectory(Project)
 kita_add_subdirectory(Editor)
+kita_add_subdirectory(Assets)
 
 include_directories(Generated)
 

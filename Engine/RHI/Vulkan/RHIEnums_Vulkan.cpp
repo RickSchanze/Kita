@@ -1032,3 +1032,48 @@ VkColorComponentFlags RHIColorComponentToVkColorComponent(const ERHIColorCompone
     flags |= VK_COLOR_COMPONENT_A_BIT;
   return flags;
 }
+
+VkMemoryPropertyFlags RHIBufferMemoryPropertyToVkMemoryPropertyFlags(ERHIBufferMemoryProperty Props) {
+  VkMemoryPropertyFlags flags = 0;
+
+  if (Props & BMPB_DeviceLocal) {
+    flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+  }
+  if (Props & BMPB_HostVisible) {
+    flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+  }
+  if (Props & BMPB_HostCoherent) {
+    flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  }
+
+  return flags;
+}
+
+ERHIBufferMemoryProperty VkMemoryPropertyFlagsToRHIBufferMemoryProperty(VkMemoryPropertyFlags Props) {
+  ERHIBufferMemoryProperty flags = 0;
+
+  if (Props & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+    flags |= BMPB_DeviceLocal;
+  }
+  if (Props & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+    flags |= BMPB_HostVisible;
+  }
+  if (Props & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
+    flags |= BMPB_HostCoherent;
+  }
+
+  return flags;
+}
+
+VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERHIBufferMemoryPropertyBits Prop) {
+  switch (Prop) {
+  case BMPB_DeviceLocal:
+    return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+  case BMPB_HostVisible:
+    return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+  case BMPB_HostCoherent:
+    return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+  default:
+    return static_cast<VkMemoryPropertyFlagBits>(0); // 未知返回0
+  }
+}

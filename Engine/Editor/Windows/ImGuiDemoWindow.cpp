@@ -9,4 +9,4 @@ ImGuiDemoWindow::ImGuiDemoWindow() {
   mWindowTitle = "ImGui Demo";
 }
 
-void ImGuiDemoWindow::Draw() { ImGui::ShowDemoWindow(&mShowWindow); }
+void ImGuiDemoWindow::DrawEditorUI() { ImGui::ShowDemoWindow(&mShowWindow); }

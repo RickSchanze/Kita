@@ -15,6 +15,7 @@
 #include "imgui_impl_vulkan.h"
 #endif
 
+RenderContext::RenderContext() = default;
 RenderContext::~RenderContext() = default;
 void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
   auto& Self = GetRef();

@@ -501,12 +501,16 @@ class CodeGenerator:
         if len(class_info.bases) != 0:
             f.write(f"Super::WriteArchive(Archive); \n")
         for my_property in class_info.properties:
+            if "Transient" in my_property.attributes:
+                continue
             f.write(f"Archive.WriteType(\"{self._get_true_name(my_property)}\", {my_property.name}); \n")
         f.write(f"}} \n")
         f.write(f"void {class_info.name}::ReadArchive(InputArchive& Archive) {{ \n")
         if len(class_info.bases) != 0:
             f.write(f"Super::ReadArchive(Archive); \n")
         for my_property in class_info.properties:
+            if "Transient" in my_property.attributes:
+                continue
             f.write(f"Archive.ReadType(\"{self._get_true_name(my_property)}\", {my_property.name}); \n")
         f.write(f"}} \n")
 

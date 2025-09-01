@@ -34,9 +34,16 @@ public:
   virtual UniquePtr<RHIDescriptorSetLayout> CreateDescriptorSetLayoutU(const RHIDescriptorSetLayoutDesc& Desc) override;
   virtual UniquePtr<RHIDescriptorPool> CreateDescriptorPoolU(const RHIDescriptorPoolDesc& Desc) override;
   virtual UniquePtr<RHIPipelineLayout> CreatePipelineLayoutU(const RHIPipelineLayoutDesc& Desc) override;
-  virtual UniquePtr<RHIPipeline> CreatePipeline(const RHIGraphicsPipelineDesc& Desc) override;
+  virtual UniquePtr<RHIPipeline> CreatePipelineU(const RHIGraphicsPipelineDesc& Desc) override;
+  virtual UniquePtr<RHIBuffer> CreateBufferU(const struct RHIBufferDesc& Desc) override;
+  virtual SharedPtr<RHIBuffer> CreateBufferS(const struct RHIBufferDesc& Desc) override;
   virtual bool Present(const RHIPresentParams& Params) override;
   virtual void WaitDeviceIdle() override;
+
+  VkDeviceMemory AllocateMemory(VkBuffer For, VkDeviceSize Size, VkMemoryPropertyFlags MemoryFlags) const;
+  void DeallocateMemory(VkDeviceMemory Memory) const;
+
+  UInt32 FindMemoryType(UInt32 TypeFilter, VkMemoryPropertyFlags Properties) const;
 
   virtual PhysicalDeviceSwapchainFeatures GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const override;
 

@@ -21,7 +21,7 @@ public:
   virtual void AfterUnload() {}
 
   virtual void BeforeSave() {}
-  virtual void Save() = 0;
+  virtual void Save() {}
   virtual void AfterSave() {}
 
 protected:

@@ -11,7 +11,7 @@ class LoggingWindow : public EditorWindow {
 public:
   LoggingWindow();
   virtual ~LoggingWindow() override;
-  virtual void Draw() override;
+  virtual void DrawEditorUI() override;
 
   static void RecordLog(const Log& Log);
   bool ShouldLogDraw(const Log& Log);

@@ -94,3 +94,11 @@ VkPrimitiveTopology RHIPrimitiveTopologyToVkPrimitiveTopology(ERHIPrimitiveTopol
 VkLogicOp RHILogicOpToVkLogicOp(ERHILogicOp op);
 
 VkColorComponentFlags RHIColorComponentToVkColorComponent(ERHIColorComponent Component);
+
+// ERHIBufferMemoryProperty -> Vulkan VkMemoryPropertyFlags
+VkMemoryPropertyFlags RHIBufferMemoryPropertyToVkMemoryPropertyFlags(ERHIBufferMemoryProperty Props);
+
+// Vulkan VkMemoryPropertyFlags -> ERHIBufferMemoryProperty
+ERHIBufferMemoryProperty VkMemoryPropertyFlagsToRHIBufferMemoryProperty(VkMemoryPropertyFlags Props) ;
+// 单个 ERHIBufferMemoryPropertyBits -> 单个 VkMemoryPropertyFlagBits
+VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERHIBufferMemoryPropertyBits Prop) ;

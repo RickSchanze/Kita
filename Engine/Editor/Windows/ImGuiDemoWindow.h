@@ -10,7 +10,7 @@ class ImGuiDemoWindow : public EditorWindow {
   GENERATED_BODY(ImGuiDemoWindow)
 public:
   ImGuiDemoWindow();
-  virtual void Draw() override;
+  virtual void DrawEditorUI() override;
 };
 
 KCLASS(MenuActionItem = "工具/ImGui Demo")

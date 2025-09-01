@@ -11,7 +11,7 @@ class EditorWindow : public Object {
 public:
   void Render();
 
-  virtual void Draw() {}
+  virtual void DrawEditorUI() {}
 
   /// 获取窗口标题
   [[nodiscard]] StringView GetWindowTitle() const { return mWindowTitle; }

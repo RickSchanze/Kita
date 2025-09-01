@@ -12,7 +12,7 @@ void EditorWindow::Render() {
   if (mShowWindow) {
     if (!mBeginEndWindowSelf)
       EditorUI::Begin(mWindowTitle, &mShowWindow, mFlags);
-    Draw();
+    DrawEditorUI();
     if (!mBeginEndWindowSelf)
       EditorUI::End();
   }

@@ -32,6 +32,6 @@ RHIFrameBuffer_Vulkan::RHIFrameBuffer_Vulkan(const RHIFrameBufferDesc& Desc) {
   FramebufferInfo.height = Desc.Height;
   FramebufferInfo.layers = Desc.Layers;
   if (VkResult Result = vkCreateFramebuffer(GetVulkanGfxContexRef().GetDevice(), &FramebufferInfo, nullptr, &mFramebuffer); Result != VK_SUCCESS) {
-    gLogger.Error("RHI.Vulkan", "创建FrameBuffer失败, 错误码={}", Result);
+    gLogger.Error("RHI", "创建FrameBuffer失败, 错误码={}", Result);
   }
 }

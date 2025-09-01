@@ -1,15 +1,18 @@
 #pragma once
 #include "Core/Memory/UniquePtr.h"
 #include "Core/Singleton/Singleton.h"
-#include "RHI/CommandBuffer.h"
-#include "RHI/Sync.h"
+#include "Math/Vector.h"
 #include "RenderPipeline.h"
 #include "RenderTicker.h"
 
+class RHIFence;
+class RHISemaphore;
+class RHICommandPool;
 constexpr Int32 MAX_FRAMES_INFLIGHT = 2;
 
 class RenderContext : public Singleton<RenderContext> {
 public:
+  RenderContext();
   ~RenderContext();
   static void StartUp(RHISurfaceWindow* InWindow);
   static void ShutDown();
