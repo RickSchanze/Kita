@@ -23,7 +23,7 @@ struct TOMLOutputArchive::Impl {
 TOMLOutputArchive::~TOMLOutputArchive() = default;
 
 TOMLOutputArchive::TOMLOutputArchive() {
-  mImpl = std::make_unique<Impl>();
+  mImpl = MakeUnique<Impl>();
   mStateStack.Push(WritingObject);
 }
 

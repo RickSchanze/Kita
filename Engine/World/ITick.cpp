@@ -14,4 +14,6 @@ ITick::ITick(bool RegisterSelf) {
 
 ITick::~ITick() { TickManager::UnRegisterTickInstance(this); }
 
+#if KITA_DEBUG
 void ITick::SetTickDebugName(const StringView Name) { mDebugTickName = Name.ToString(); }
+#endif

@@ -12,6 +12,7 @@ public:
   };
   TOMLOutputArchive();
   virtual ~TOMLOutputArchive() override;
+  TOMLOutputArchive(TOMLOutputArchive&&) noexcept = default;
 
   virtual void BeginObject(StringView ObjectName) override;
   virtual void EndObject() override;
@@ -36,6 +37,6 @@ public:
   ESerializationError WriteFile(StringView Path);
 
 private:
-  std::unique_ptr<Impl> mImpl;
+  UniquePtr<Impl> mImpl;
   Stack<ArchiveState> mStateStack;
 };

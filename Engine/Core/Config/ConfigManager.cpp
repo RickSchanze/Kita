@@ -17,13 +17,12 @@ void ConfigManager::ShutDown() {
 }
 
 void ConfigManager::SaveAllDirtyConfigsM() {
-  Map<String, TOMLOutputArchive> FileArchives;
+  Map<String, UniquePtr<TOMLOutputArchive>> FileArchives;
   Map<String, Array<String>> FileConfigTypes;
   for (const auto& [ConfigType, Config] : mConfigs) {
     String ConfigPath = Config->GetFilePath();
     if (!FileArchives.Contains(ConfigPath)) {
-      // 构造而不赋值
-      FileArchives[ConfigPath];
+      FileArchives[ConfigPath] = MakeUnique<TOMLOutputArchive>();
     }
     FileConfigTypes[ConfigPath].Add(ConfigType->GetName().ToString());
   }
@@ -32,12 +31,12 @@ void ConfigManager::SaveAllDirtyConfigsM() {
     String ConfigPath = Config->GetFilePath();
     ASSERT_MSG(FileArchives.Contains(ConfigPath), "FileArchives不包含ConfigPath:{}", ConfigPath);
     auto& Archive = FileArchives[ConfigPath];
-    Archive.WriteType(Config->GetCategory(), *Config);
+    Archive->WriteType(Config->GetCategory(), *Config);
     Config->PostSave();
   }
   // 写入文件
   for (auto& [ConfigPath, Archive] : FileArchives) {
-    Archive.WriteFile(ConfigPath);
+    Archive->WriteFile(ConfigPath);
   }
 }
 

@@ -15,7 +15,7 @@ public:
 
   virtual void Tick(double DeltaSeconds) {}
 
-#ifdef KITA_DEBUG
+#if KITA_DEBUG
   void SetTickDebugName(StringView Name);
   StringView GetTickDebugName() const { return mDebugTickName; }
 #endif

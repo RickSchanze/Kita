@@ -14,7 +14,7 @@ void TickManager::ShutDown() {
   if (!Self.mTickObjects.Empty()) {
     gLogger.Warn("Tick", "TickManager销毁时, 还有{}个Tick实例未被销毁:", Self.mTickObjects.Count());
     for (auto& Object : Self.mTickObjects) {
-#ifdef KITA_DEBUG
+#if KITA_DEBUG
       gLogger.Warn("Tick", "'{}': {:p}", Object->GetTickDebugName(), Ptr(Object));
 #else
       gLogger.Warn("Tick", "{:p}", Ptr(Object));

@@ -4,7 +4,11 @@
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
 
+#if KITA_DEBUG
 #include <unordered_set>
+#else
+#include "absl/container/flat_hash_set.h"
+#endif
 
 template <typename K, EMemoryLabel Label = EMemoryLabel::Default> class Set {
 public:
