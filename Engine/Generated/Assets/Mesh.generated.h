@@ -5,6 +5,25 @@
 #include "Core/Reflection/TypeRegistry.h"
 #include "Core/Serialization/InputArchive.h"
 #include "Core/Serialization/OutputArchive.h"
+#define GENERATED_HEADER_MeshMeta \
+typedef ThisStruct Super; \
+typedef MeshMeta ThisStruct; \
+static FORCE_INLINE const Type* GetStaticType(); \
+static FORCE_INLINE constexpr bool IsReflected() { return true; } \
+const Type* GetType(); \
+void WriteArchive(OutputArchive& Archive) const;\
+void ReadArchive(InputArchive& Archive);\
+static void ConstructSelf(void* Ptr) { new (Ptr) MeshMeta(); }static void DestructSelf(void* Ptr) { ((MeshMeta*)(Ptr))->~MeshMeta(); }struct Z_TypeRegister_MeshMeta { \
+Z_TypeRegister_MeshMeta() { \
+TypeBuilder Builder{}; \
+Builder.CreateType<MeshMeta>("MeshMeta"); \
+Builder.AddParent<AssetMeta>(); \
+Builder.SetConstructor(MeshMeta::ConstructSelf).SetDestructor(MeshMeta::DestructSelf); \
+Builder.Register(); \
+} \
+}; \
+static inline Z_TypeRegister_MeshMeta __Z_TypeRegister_MeshMeta_Instance; \
+
 #define GENERATED_HEADER_Mesh \
 public: \
 typedef ThisClass Super; \

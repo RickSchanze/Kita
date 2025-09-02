@@ -9,6 +9,14 @@ Mesh::Mesh() = default;
 
 Mesh::~Mesh() = default;
 
-void Mesh::Load() {}
+void Mesh::Load() {
+
+}
 
 void Mesh::Unload() {}
+
+void Mesh::ApplyMeta(const AssetMeta& Meta) {
+  const auto& ThisMeshMeta = static_cast<const MeshMeta&>(Meta);
+  mPath = ThisMeshMeta.Path;
+  mHandle = ThisMeshMeta.ObjectId;
+}

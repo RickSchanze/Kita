@@ -24,6 +24,8 @@ public:
   virtual void Save() {}
   virtual void AfterSave() {}
 
+  [[nodiscard]] StringView GetPath() const { return mPath; }
+
 protected:
   KPROPERTY()
   String mPath;

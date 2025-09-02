@@ -4,6 +4,12 @@
 #include "Mesh.generated.h"
 
 class RHIBuffer;
+
+KSTRUCT()
+struct MeshMeta : AssetMeta {
+  GENERATED_BODY(MeshMeta)
+};
+
 KCLASS()
 class Mesh : public Asset {
   GENERATED_BODY(Mesh)
@@ -16,6 +22,8 @@ public:
   virtual void Load() override;
 
   virtual void Unload() override;
+
+  virtual void ApplyMeta(const AssetMeta& Meta) override;
 
 private:
   KPROPERTY(Transient)

@@ -12,7 +12,17 @@ Builder.AddField("Audio", EAssetType::Audio);
 Builder.AddField("Font", EAssetType::Font);
 Builder.AddField("Prefab", EAssetType::Prefab);
 Builder.Register();
-}const Type* Asset::GetStaticType() { return TypeOf<Asset>(); }
+}const Type* AssetMeta::GetStaticType() { return TypeOf<AssetMeta>(); }
+const Type* AssetMeta::GetType() { return TypeOf<AssetMeta>(); }
+void AssetMeta::WriteArchive(OutputArchive& Archive) const { 
+Archive.WriteType("Path", Path); 
+Archive.WriteType("ObjectId", ObjectId); 
+} 
+void AssetMeta::ReadArchive(InputArchive& Archive) { 
+Archive.ReadType("Path", Path); 
+Archive.ReadType("ObjectId", ObjectId); 
+} 
+const Type* Asset::GetStaticType() { return TypeOf<Asset>(); }
 const Type* Asset::GetType() { return TypeOf<Asset>(); }
 void Asset::WriteArchive(OutputArchive& Archive) const { 
 Super::WriteArchive(Archive); 
