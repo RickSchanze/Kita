@@ -1,6 +1,7 @@
 #pragma once
 #include "Asset.h"
 
+#include "Math/Vector.h"
 #include "Mesh.generated.h"
 
 class RHIBuffer;
@@ -8,6 +9,39 @@ class RHIBuffer;
 KSTRUCT()
 struct MeshMeta : AssetMeta {
   GENERATED_BODY(MeshMeta)
+
+  KPROPERTY()
+  bool FlipUV = true;
+
+  KPROPERTY()
+  bool CalcTangent = true;
+
+  /// 保证所有的面都是三角形
+  KPROPERTY()
+  bool EnsureTriangles = true;
+};
+
+struct Vertex {
+  Vector3f Position;
+  Vector3f Normal;
+  Vector2f UV0;
+};
+
+KSTRUCT()
+struct SubmeshInfo {
+  GENERATED_BODY(SubmeshInfo)
+
+  KPROPERTY(Transient, Label = "顶点偏移")
+  UInt32 VertexOffset;
+
+  KPROPERTY(Transient, Label = "顶点数")
+  UInt32 VertexCount;
+
+  KPROPERTY(Transient, Label = "索引偏移")
+  UInt32 IndexOffset;
+
+  KPROPERTY(Transient, Label = "索引数")
+  UInt32 IndexCount;
 };
 
 KCLASS()
@@ -25,12 +59,30 @@ public:
 
   virtual void ApplyMeta(const AssetMeta& Meta) override;
 
+  [[nodiscard]] const Array<SubmeshInfo>& GetSubmeshes() const { return mSubmeshes; }
+  [[nodiscard]] RHIBuffer* GetVertexBuffer() const { return mVertexBuffer.Get(); }
+  [[nodiscard]] RHIBuffer* GetIndexBuffer() const { return mIndexBuffer.Get(); }
+  [[nodiscard]] Int32 GetVertexCount() const { return mVertexCount; }
+  [[nodiscard]] Int32 GetIndexCount() const { return mIndexCount; }
+  [[nodiscard]] SubmeshInfo GetSubmeshInfo(const Int32 Index) const { return mSubmeshes[Index]; }
+
 private:
-  KPROPERTY(Transient)
+  bool LoadFromPath();
+
+  void ProcessMesh(const struct aiMesh* Mesh, Array<Vertex>& AllVertices, Array<UInt32>& AllIndices);
+  void ProcessNode(const struct aiNode* Node, const struct aiScene* Scene, Array<Vertex>& AllVertices, Array<UInt32>& AllIndices);
+
+  KPROPERTY(Transient, Label = "总顶点数")
   Int32 mVertexCount = 0;
 
-  KPROPERTY(Transient)
+  KPROPERTY(Transient, Label = "总索引数")
   Int32 mIndexCount = 0;
+
+  KPROPERTY(Transient, Label = "子Mesh")
+  Array<SubmeshInfo> mSubmeshes;
+
+  KPROPERTY(Transient, Label = "导入选项")
+  MeshMeta mMeta;
 
   UniquePtr<RHIBuffer> mVertexBuffer;
   UniquePtr<RHIBuffer> mIndexBuffer;

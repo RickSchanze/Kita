@@ -17,8 +17,7 @@
 template <typename T> struct Vector2 {
   glm::vec<2, T> Data;
 
-  constexpr Vector2() = default;
-  FORCE_INLINE constexpr Vector2(T X, T Y) : Data(X, Y) {}
+  FORCE_INLINE constexpr Vector2(T X = {}, T Y = {}) : Data(X, Y) {}
   FORCE_INLINE constexpr Vector2(const glm::vec<2, T>& Vec) : Data(Vec) {}
 
   // Getter
@@ -112,8 +111,7 @@ typedef Vector2<UInt32> Vector2u;
 template <typename T> struct Vector3 {
   glm::vec<3, T> Data;
 
-  constexpr Vector3() = default;
-  FORCE_INLINE constexpr Vector3(T X, T Y, T Z) : Data(X, Y, Z) {}
+  FORCE_INLINE constexpr Vector3(T X = 0, T Y = 0, T Z = 0) : Data(X, Y, Z) {}
   FORCE_INLINE constexpr Vector3(const glm::vec<3, T>& Vec) : Data(Vec) {}
 
   FORCE_INLINE constexpr T& X() { return Data.x; }

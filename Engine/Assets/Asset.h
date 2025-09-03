@@ -3,6 +3,10 @@
 
 #include "Asset.generated.h"
 
+namespace Logcat {
+inline auto Asset = "Asset";
+}
+
 KENUM()
 enum class EAssetType {
   Shader,
@@ -20,11 +24,17 @@ KSTRUCT()
 struct AssetMeta {
   GENERATED_BODY(AssetMeta)
 
+  /// 数据库主键Id
+  KPROPERTY()
+  Int32 Id = 0;
+
+  /// 资产路径
   KPROPERTY()
   String Path;
 
+  /// 对象Handle
   KPROPERTY()
-  Int32 ObjectId = 0;
+  Int32 ObjectHandle = 0;
 };
 
 KCLASS(Abstract)

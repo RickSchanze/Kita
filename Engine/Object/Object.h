@@ -5,6 +5,10 @@
 
 #include "Object.generated.h"
 
+namespace Logcat {
+constexpr auto Object = "Object";
+}
+
 KCLASS()
 class Object {
   GENERATED_BODY(Object)

@@ -2,8 +2,8 @@
 #include "Core/Memory/UniquePtr.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskHandle.h"
-#include "Sync.h"
 
+class RHICommandBuffer;
 class RHICommandPool;
 class RHIBuffer;
 class RHIFence;
@@ -22,28 +22,21 @@ struct GfxCommandSyncHandle {
     return *this;
   }
 
-  void WaitAll() {
-    CPU_PROFILING_SCOPE;
-    CommitHandle.WaitSync();
-    GpuExecuteFence->Wait(UINT64_MAX);
-  }
+  void WaitAll();
 
   void WaitCommitFinished() {
     CPU_PROFILING_SCOPE;
     CommitHandle.WaitSync();
   }
 
-  void WaitGpuFinished() {
-    CPU_PROFILING_SCOPE;
-    GpuExecuteFence->Wait(UINT64_MAX);
-  }
+  void WaitGpuFinished();
 
   TaskHandle CommitHandle;
   UniquePtr<RHIFence> GpuExecuteFence;
   /// 这次调用使用的CommandPool
   UniquePtr<RHICommandPool> CommandPool;
   /// 这次调用使用的CommandBuffer
-  UniquePtr<RHIBuffer> CommandBuffer;
+  UniquePtr<RHICommandBuffer> CommandBuffer;
 };
 
 class GfxCommandHelper {

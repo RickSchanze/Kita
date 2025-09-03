@@ -15,12 +15,14 @@ Builder.Register();
 }const Type* AssetMeta::GetStaticType() { return TypeOf<AssetMeta>(); }
 const Type* AssetMeta::GetType() { return TypeOf<AssetMeta>(); }
 void AssetMeta::WriteArchive(OutputArchive& Archive) const { 
+Archive.WriteType("Id", Id); 
 Archive.WriteType("Path", Path); 
-Archive.WriteType("ObjectId", ObjectId); 
+Archive.WriteType("ObjectHandle", ObjectHandle); 
 } 
 void AssetMeta::ReadArchive(InputArchive& Archive) { 
+Archive.ReadType("Id", Id); 
 Archive.ReadType("Path", Path); 
-Archive.ReadType("ObjectId", ObjectId); 
+Archive.ReadType("ObjectHandle", ObjectHandle); 
 } 
 const Type* Asset::GetStaticType() { return TypeOf<Asset>(); }
 const Type* Asset::GetType() { return TypeOf<Asset>(); }

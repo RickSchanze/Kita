@@ -33,6 +33,8 @@ public:
 
   const char* Data() const { return mStr.c_str(); }
 
+  [[nodiscard]] bool EndsWith(const StringView& Suffix) const;
+
 private:
   std::string mStr;
 };

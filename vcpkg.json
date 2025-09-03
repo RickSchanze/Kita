@@ -42,5 +42,8 @@
   }, {
     "name" : "assimp",
     "version>=" : "6.0.2#1"
+  }, {
+    "name" : "sqlite-orm",
+    "version>=" : "1.9.1"
   } ]
 }

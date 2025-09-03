@@ -19,8 +19,9 @@ Z_TypeRegister_AssetMeta() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<AssetMeta>("AssetMeta"); \
 Builder.SetConstructor(AssetMeta::ConstructSelf).SetDestructor(AssetMeta::DestructSelf); \
+Builder.AddField("Id", &AssetMeta::Id); \
 Builder.AddField("Path", &AssetMeta::Path); \
-Builder.AddField("ObjectId", &AssetMeta::ObjectId); \
+Builder.AddField("ObjectHandle", &AssetMeta::ObjectHandle); \
 Builder.Register(); \
 } \
 }; \
