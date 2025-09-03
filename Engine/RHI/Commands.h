@@ -5,11 +5,14 @@
 #include "RHIEnums.h"
 #include "RenderPass.h"
 
+class RHIBuffer;
+
 enum class ERHICommandType {
   BeginRenderPass,
   EndRenderPass,
   BeginRecord,
   EndRecord,
+  CopyBuffer,
 };
 
 struct IRHICommand {
@@ -43,4 +46,14 @@ struct RHICmd_BeginRenderPass : IRHICommand {
 
 struct RHICmd_EndRenderPass : IRHICommand {
   [[nodiscard]] virtual ERHICommandType GetType() const override { return ERHICommandType::EndRenderPass; }
+};
+
+struct RHICmd_CopyBuffer : IRHICommand {
+  [[nodiscard]] virtual ERHICommandType GetType() const override { return ERHICommandType::CopyBuffer; }
+
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHIBuffer*, Source, nullptr); // necessary
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHIBuffer*, Dest, nullptr);   // necessary
+  RHI_DEFINE_BUILDER_FIELD(UInt64, Size, 0);                 // necessary
+  RHI_DEFINE_BUILDER_FIELD(UInt64, SourceOffset, 0);
+  RHI_DEFINE_BUILDER_FIELD(UInt64, DestOffset, 0)
 };

@@ -52,6 +52,8 @@ add_library(KitaRHI
         Buffer.h
         Vulkan/Buffer_Vulkan.cpp
         Vulkan/Buffer_Vulkan.h
+        GfxCommandHelper.cpp
+        GfxCommandHelper.h
 )
 
 target_link_libraries(KitaRHI PRIVATE KitaCore KitaMath)

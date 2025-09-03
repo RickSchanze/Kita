@@ -8,6 +8,7 @@
 #include "Core/TaskGraph/TaskGraph.h"
 #include "Core/TaskGraph/TaskNode.h"
 #include "GfxContext_Vulkan.h"
+#include "RHI/Buffer.h"
 #include "RHI/Commands.h"
 
 RHICommandPool_Vulkan::RHICommandPool_Vulkan(ERHIQueueFamilyType Family, bool AllowReset) {
@@ -54,21 +55,21 @@ public:
   Queue<UniquePtr<IRHICommand>> Queue;
   VkCommandBuffer CmdBuffer;
 
-  void BeginRecord(IRHICommand* Cmd) {
+  void BeginRecord(IRHICommand* Cmd) const {
     CPU_PROFILING_SCOPE;
     VkCommandBufferBeginInfo BeginInfo{};
     BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     vkBeginCommandBuffer(CmdBuffer, &BeginInfo);
   }
 
-  void EndRecord(IRHICommand* Cmd) {
+  void EndRecord(IRHICommand* Cmd) const {
     CPU_PROFILING_SCOPE;
     vkEndCommandBuffer(CmdBuffer);
   }
 
-  void BeginRenderPass(IRHICommand* Cmd) {
+  void BeginRenderPass(IRHICommand* Cmd) const {
     CPU_PROFILING_SCOPE;
-    RHICmd_BeginRenderPass* CmdBeginRenderPass = static_cast<RHICmd_BeginRenderPass*>(Cmd);
+    const auto CmdBeginRenderPass = static_cast<RHICmd_BeginRenderPass*>(Cmd);
     VkRenderPassBeginInfo BeginInfo{};
     BeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     BeginInfo.renderPass = CmdBeginRenderPass->RenderPass->GetNativeHandleT<VkRenderPass>();
@@ -82,23 +83,32 @@ public:
     }
     if (CmdBeginRenderPass->ClearDepthStencil) {
       // TODO: 加上Stencil
-      float Depth = *CmdBeginRenderPass->ClearDepthStencil;
+      const float Depth = *CmdBeginRenderPass->ClearDepthStencil;
       ClearValue.depthStencil = {.depth = Depth};
     }
     BeginInfo.pClearValues = &ClearValue;
     vkCmdBeginRenderPass(CmdBuffer, &BeginInfo, VK_SUBPASS_CONTENTS_INLINE);
   }
 
-  void EndRenderPass(IRHICommand* Cmd) {
+  void EndRenderPass(IRHICommand* Cmd) const {
     CPU_PROFILING_SCOPE;
     vkCmdEndRenderPass(CmdBuffer);
+  }
+
+  void CopyBuffer(IRHICommand* Cmd) const {
+    CPU_PROFILING_SCOPE;
+    const auto CmdCopyBuffer = static_cast<RHICmd_CopyBuffer*>(Cmd);
+    VkBufferCopy CopyRegion{};
+    CopyRegion.size = CmdCopyBuffer->Size;
+    CopyRegion.srcOffset = CmdCopyBuffer->SourceOffset;
+    CopyRegion.dstOffset = CmdCopyBuffer->DestOffset;
+    vkCmdCopyBuffer(CmdBuffer, CmdCopyBuffer->Source->GetNativeHandleT<VkBuffer>(), CmdCopyBuffer->Dest->GetNativeHandleT<VkBuffer>(), 1, &CopyRegion);
   }
 
   virtual ETaskNodeResult Run() override {
     CPU_PROFILING_SCOPE;
     while (!Queue.Empty()) {
-      UniquePtr<IRHICommand> Cmd = Queue.Dequeue();
-      switch (Cmd->GetType()) {
+      switch (UniquePtr<IRHICommand> Cmd = Queue.Dequeue(); Cmd->GetType()) {
       case ERHICommandType::BeginRecord:
         BeginRecord(Cmd.Get());
         break;
@@ -110,6 +120,9 @@ public:
         break;
       case ERHICommandType::EndRenderPass:
         EndRenderPass(Cmd.Get());
+        break;
+      case ERHICommandType::CopyBuffer:
+        CopyBuffer(Cmd.Get());
         break;
       default:
         break;
