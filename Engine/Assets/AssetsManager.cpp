@@ -4,8 +4,12 @@
 
 #include "AssetsManager.h"
 
+#include "Core/Container/Set.h"
 #include "Core/Performance/ProfilerMark.h"
+#include "Core/TaskGraph/TaskGraph.h"
+#include "Core/TaskGraph/TaskNode.h"
 #include "Mesh.h"
+#include "Object/ObjectTable.h"
 #include "Project/Project.h"
 #include "sqlite_orm/sqlite_orm.h"
 
@@ -21,8 +25,7 @@ void AssetsManager::ShutDown() {}
 constexpr auto ASSET_CENTER_DATABASE_NAME = "AssetCenter.db";
 
 #pragma region AssetType的SqliteOrm适配
-//  also we need transform functions to make string from enum..
-inline std::string AssetTypeToString(const EAssetType AssetType) {
+static std::string AssetTypeToString(const EAssetType AssetType) {
   switch (AssetType) {
   case EAssetType::Shader:
     return "Shader";
@@ -34,17 +37,7 @@ inline std::string AssetTypeToString(const EAssetType AssetType) {
     return "MAXCOUNT";
   }
 }
-
-/**
- *  and enum from string. This function has nullable result cause
- *  string can be neither `male` nor `female`. Of course we
- *  won't allow this to happed but as developers we must have
- *  a scenario for this case.
- *  These functions are just helpers. They will be called from several places
- *  that's why I placed it separatedly. You can use any transformation type/form
- *  (for example BETTER_ENUM https://github.com/aantron/better-enums)
- */
-inline std::unique_ptr<EAssetType> AssetTypeFromString(const std::string& s) {
+static std::unique_ptr<EAssetType> AssetTypeFromString(const std::string& s) {
   if (s == "Shader") {
     return std::make_unique<EAssetType>(EAssetType::Shader);
   }
@@ -54,52 +47,17 @@ inline std::unique_ptr<EAssetType> AssetTypeFromString(const std::string& s) {
   return nullptr;
 }
 
-/**
- *  This is where magic happens. To tell sqlite_orm how to act
- *  with Gender enum we have to create a few service classes
- *  specializations (traits) in sqlite_orm namespace.
- */
 namespace sqlite_orm {
-
-/**
- *  First of all is a type_printer template class.
- *  It is responsible for sqlite type string representation.
- *  We want Gender to be `TEXT` so let's just derive from
- *  text_printer. Also there are other printers: real_printer and
- *  integer_printer. We must use them if we want to map our type to `REAL` (double/float)
- *  or `INTEGER` (int/long/short etc) respectively.
- */
 template <> struct type_printer<EAssetType> : text_printer {};
 
-/**
- *  This is a binder class. It is used to bind c++ values to sqlite queries.
- *  Here we have to create gender string representation and bind it as string.
- *  Any statement_binder specialization must have `int bind(sqlite3_stmt*, int, const T&)` function
- *  which returns bind result. Also you can call any of `sqlite3_bind_*` functions directly.
- *  More here https://www.sqlite.org/c3ref/bind_blob.html
- */
 template <> struct statement_binder<EAssetType> {
-
-  static int bind(sqlite3_stmt* stmt, const int index, const EAssetType& value) {
-    return statement_binder<std::string>().bind(stmt, index, AssetTypeToString(value));
-    //  or return sqlite3_bind_text(stmt, index++, AssetTypeToString(value).c_str(), -1, SQLITE_TRANSIENT);
-  }
+  static int bind(sqlite3_stmt* stmt, const int index, const EAssetType& value) { return statement_binder<std::string>().bind(stmt, index, AssetTypeToString(value)); }
 };
 
-/**
- *  field_printer is used in `dump` and `where` functions. Here we have to create
- *  a string from mapped object.
- */
 template <> struct field_printer<EAssetType> {
   std::string operator()(const EAssetType& t) const { return AssetTypeToString(t); }
 };
 
-/**
- *  This is a reverse operation: here we have to specify a way to transform string received from
- *  database to our Gender object. Here we call `AssetTypeFromString` and throw `std::runtime_error` if it returns
- *  nullptr. Every `row_extractor` specialization must have `extract(const char*)` and `extract(sqlite3_stmt *stmt,
- * int columnIndex)` functions which return a mapped type value.
- */
 template <> struct row_extractor<EAssetType> {
   static EAssetType extract(const char* ColumnText) {
     if (const auto Gender = AssetTypeFromString(ColumnText)) {
@@ -119,6 +77,27 @@ template <> struct row_extractor<EAssetType> {
 #pragma endregion
 
 #pragma region String的SqliteOrm适配
+namespace sqlite_orm {
+template <> struct type_printer<String> : public text_printer {};
+
+template <> struct statement_binder<String> {
+  static int bind(sqlite3_stmt* stmt, const int index, const String& value) { return statement_binder<std::string>().bind(stmt, index, value.GetStdString()); }
+};
+
+template <> struct field_printer<String> {
+  std::string operator()(const String& value) const { return "'" + value.GetStdString() + "'"; }
+};
+
+template <> struct row_extractor<String> {
+  static String extract(const char* row_value) { return {row_value ? row_value : ""}; }
+
+  static String extract(sqlite3_stmt* stmt, const int columnIndex) {
+    auto text = reinterpret_cast<const char*>(sqlite3_column_text(stmt, columnIndex));
+    return {text ? text : ""};
+  }
+};
+} // namespace sqlite_orm
+
 #pragma endregion
 
 static auto MakeAssetIndexTable() {
@@ -134,7 +113,7 @@ static auto MakeMeshMetaTable() {
 static auto MakeStorage() {
   const auto LibPath = Project::GetLibraryPath();
   const auto Path = ::Path::Combine(LibPath, ASSET_CENTER_DATABASE_NAME);
-  return make_storage(LibPath.Data(), MakeAssetIndexTable(), MakeAssetIndexTable(), MakeMeshMetaTable());
+  return make_storage(LibPath.Data(), MakeAssetIndexTable(), MakeMeshMetaTable());
 }
 
 struct AssetsManager::Impl {
@@ -166,22 +145,147 @@ struct AssetsManager::Impl {
     if (Metas.empty()) {
       return {};
     }
-    return *(Metas[0]);
+    return Metas[0];
   }
 
-  template <typename MetaType> Optional<MetaType> QueryMeta(StringView Path) {
+  template <typename MetaType> Optional<MetaType> QueryMeta(const StringView Path) {
     std::lock_guard Lock(mDatabaseMutex);
-    const auto Metas = GetAll<MetaType>(where(c(&MetaType::Path) == Path), limit(1));
+    const auto Metas = GetAll<MetaType>(where(c(&MetaType::Path) == Path.ToString()), limit(1));
     if (Metas.empty()) {
       return {};
     }
-    return *(Metas[0]);
+    return Metas[0];
   }
 
-  decltype(MakeStorage()) mStorage;
+  void MakeObjectLoading(const Int32 ObjectHandle) {
+    AutoLock Lock(mLoadedAssetsMutex, mLoadingAssetsMutex);
+    if (mLoadedAssets.Contains(ObjectHandle)) {
+      gLogger.Error(Logcat::Asset, "MakeObjectLoading: 对象 '{}' 已经被加载, 无法被标记为正在加载", ObjectHandle);
+      return;
+    }
+    mLoadingAssets.Add(ObjectHandle);
+  }
+
+  void MakeObjectLoaded(const Int32 ObjectHandle) {
+    AutoLock Lock(mLoadedAssetsMutex, mLoadingAssetsMutex);
+    if (!mLoadedAssets.Contains(ObjectHandle)) {
+      gLogger.Error(Logcat::Asset, "MakeObjectLoaded: 对象 '{}' 没有被标记为正在加载, 无法被标记为已加载", ObjectHandle);
+      return;
+    }
+    mLoadedAssets.Add(ObjectHandle);
+    mLoadingAssets.Remove(ObjectHandle);
+  }
+
+  bool IsLoaded(const Int32 Handle) {
+    AutoLock Lock(mLoadedAssetsMutex);
+    return mLoadedAssets.Contains(Handle);
+  }
+
+  bool IsLoading(const Int32 Handle) {
+    AutoLock Lock(mLoadingAssetsMutex);
+    return mLoadingAssets.Contains(Handle);
+  }
+
+  /// 数据库对象
   DECL_TRACKABLE_MUREX(std::mutex, mDatabaseMutex);
+  decltype(MakeStorage()) mStorage;
+
+  /// 当前已经加载完成的资产
+  DECL_TRACKABLE_MUREX(std::mutex, mLoadedAssetsMutex);
+  Set<Int32> mLoadedAssets;
+
+  /// 当前正在加载的资产
+  DECL_TRACKABLE_MUREX(std::mutex, mLoadingAssetsMutex);
+  Set<Int32> mLoadingAssets;
 };
 
 Optional<MeshMeta> AssetsManager::QueryMeshMeta(const StringView Path) { return mImpl->QueryMeta<MeshMeta>(Path); }
 
 Optional<MeshMeta> AssetsManager::QueryMeshMeta(const Int32 ObjectHandle) { return mImpl->QueryMeta<MeshMeta>(ObjectHandle); }
+
+bool AssetsManager::IsAssetLoading(Int32 Handle) { return GetRef().mImpl->IsLoading(Handle); }
+
+bool AssetsManager::IsAssetLoaded(Int32 Handle) { return GetRef().mImpl->IsLoaded(Handle); }
+
+class LoadMeshTask : public TaskNode {
+public:
+  LoadMeshTask(Mesh* InMesh) : Mesh(InMesh) {}
+  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }
+
+  virtual ETaskNodeResult Run() override {
+    if (Mesh) {
+      Mesh->Load();
+    }
+    return ETaskNodeResult::Success;
+  }
+
+  Mesh* Mesh;
+};
+
+struct AssetLoadCompletedTask : public TaskNode {
+public:
+  AssetLoadCompletedTask(AssetsManager::Impl* InImpl, Int32 InObjectHandle) : Impl(InImpl), ObjectHandle(InObjectHandle) {}
+
+  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }
+
+  virtual ETaskNodeResult Run() override {
+    if (Impl && ObjectHandle != 0) {
+      Impl->MakeObjectLoaded(ObjectHandle);
+    }
+    return ETaskNodeResult::Success;
+  }
+
+  AssetsManager::Impl* Impl;
+  Int32 ObjectHandle;
+};
+
+AssetLoadTaskHandle AssetsManager::LoadMeshAsync(const MeshMeta& Meta) {
+  CPU_PROFILING_SCOPE;
+  Mesh* MyMesh = CreateObject<Mesh>(Meta.Path);
+  MyMesh->ApplyMeta(Meta);
+  ObjectTable::ModifyObjectHandle(MyMesh, Meta.ObjectHandle);
+  mImpl->MakeObjectLoading(Meta.ObjectHandle);
+  const TaskHandle Handle = TaskGraph::CreateTask<LoadMeshTask>(Format("Task: Load mesh '{}'", Meta.Path), {}, MyMesh);
+  TaskGraph::CreateTask<AssetLoadCompletedTask>("Task: AssetCompleted", {Handle}, mImpl.Get(), Meta.ObjectHandle);
+  return AssetLoadTaskHandle(Handle, MyMesh);
+}
+
+AssetLoadTaskHandle AssetsManager::LoadAsyncM(const StringView Path) {
+  // 首先从AssetIndex里查询
+  CPU_PROFILING_SCOPE;
+  auto OpAssetIndex = mImpl->QueryMeta<AssetIndex>(Path);
+  if (!OpAssetIndex) {
+    return {};
+  }
+  switch (const AssetIndex& AssetIndex = *OpAssetIndex; AssetIndex.Type) {
+  case EAssetType::Mesh: {
+    auto OpMeshMeta = mImpl->QueryMeta<MeshMeta>(Path);
+    if (!OpMeshMeta) {
+      return {};
+    }
+    return LoadMeshAsync(*OpMeshMeta);
+  }
+  default:
+    return {};
+  }
+}
+
+AssetLoadTaskHandle AssetsManager::LoadAsyncM(const Int32 ObjectHandle) {
+  // 首先从AssetIndex里查询
+  CPU_PROFILING_SCOPE;
+  auto OpAssetIndex = mImpl->QueryMeta<AssetIndex>(ObjectHandle);
+  if (!OpAssetIndex) {
+    return {};
+  }
+  switch (const AssetIndex& AssetIndex = *OpAssetIndex; AssetIndex.Type) {
+  case EAssetType::Mesh: {
+    auto OpMeshMeta = mImpl->QueryMeta<MeshMeta>(ObjectHandle);
+    if (!OpMeshMeta) {
+      return {};
+    }
+    return LoadMeshAsync(*OpMeshMeta);
+  }
+  default:
+    return {};
+  }
+}

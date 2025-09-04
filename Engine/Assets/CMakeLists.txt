@@ -11,7 +11,7 @@ add_library(KitaAssets
         AssetsManager.h
 )
 
-target_link_libraries(KitaAssets PRIVATE KitaCore KitaObject KitaRHI)
+target_link_libraries(KitaAssets PRIVATE KitaCore KitaObject KitaRHI KitaProject)
 
 target_include_directories(KitaAssets PUBLIC ${Assets_GENERATED_DIR})
 target_include_directories(KitaAssets PUBLIC ../)

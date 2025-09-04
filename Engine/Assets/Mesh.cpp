@@ -9,6 +9,8 @@
 #include "RHI/Buffer.h"
 #include "RHI/GfxCommandHelper.h"
 #include "RHI/GfxContext.h"
+#include "RHI/CommandBuffer.h"
+#include "RHI/Sync.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>

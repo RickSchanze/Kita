@@ -15,7 +15,8 @@ struct AssetIndex {
 };
 
 struct AssetLoadTaskHandle : TaskHandle {
-  explicit AssetLoadTaskHandle(const TaskHandle& InHandle) : TaskHandle(InHandle) {}
+  AssetLoadTaskHandle() = default;
+  explicit AssetLoadTaskHandle(const TaskHandle& InHandle, Asset* Asset) : TaskHandle(InHandle), mTargetObject(Asset) {}
 
   Asset* GetAssetObject() {
     CPU_PROFILING_SCOPE;
@@ -30,7 +31,7 @@ struct AssetLoadTaskHandle : TaskHandle {
   }
 
 private:
-  Asset* mTargetObject;
+  Asset* mTargetObject = nullptr;
 };
 
 template <typename T> struct AssetMetaType;
@@ -48,18 +49,26 @@ public:
   /// 释放所有资产
   static void ShutDown();
 
-  AssetLoadTaskHandle LoadAsync(StringView Path);
-  AssetLoadTaskHandle LoadAsync(Int32 ObjectHandle);
+  static AssetLoadTaskHandle LoadAsync(const StringView Path) { return GetRef().LoadAsyncM(Path); }
+  AssetLoadTaskHandle LoadAsyncM(StringView Path);
+
+  static AssetLoadTaskHandle LoadAsync(const Int32 ObjectHandle) { return GetRef().LoadAsyncM(ObjectHandle); }
+  AssetLoadTaskHandle LoadAsyncM(Int32 ObjectHandle);
 
   Optional<MeshMeta> QueryMeshMeta(StringView Path);
   Optional<MeshMeta> QueryMeshMeta(Int32 ObjectHandle);
+
+  static bool IsAssetLoading(Int32 Handle);
+  static bool IsAssetLoaded(Int32 Handle);
 
   template <typename T> Optional<AssetMetaType<T>> QueryMeta(StringView Path);
 
   template <typename T> Optional<AssetMetaType<T>> QueryMeta(Int32 ObjectHandle);
 
-private:
   struct Impl;
+
+private:
+  AssetLoadTaskHandle LoadMeshAsync(const MeshMeta& Meta);
   UniquePtr<Impl> mImpl;
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <utility>
+#include <mutex>
 
 using Int8 = std::int8_t;
 using Int16 = std::int16_t;
@@ -59,3 +60,6 @@ template <IGetHashCode T> struct std::hash<T> {
 template <typename ClassType, typename MemberType> constexpr SizeType OffsetOf(MemberType ClassType::* member) {
   return reinterpret_cast<size_t>(&(reinterpret_cast<ClassType const volatile*>(0)->*member));
 }
+
+template <typename ...Args>
+using AutoLock = std::scoped_lock<Args...>;

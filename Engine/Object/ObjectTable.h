@@ -6,7 +6,7 @@
 
 class ObjectTable : public Singleton<ObjectTable> {
 public:
-  [[nodiscard]] bool IsObjectAlive(Int32 Handle) const;
+  [[nodiscard]] bool IsObjectAlive(Int32 Handle);
 
   /// 注册一个Object 如果此Object对应的Handle已存在则Log错误并返回false
   bool RegisterObject(Object* Object);
@@ -48,7 +48,8 @@ public:
   /// @warning 请知道你在调用此函数时在做什么, 调用此函数会导致所有对此对象的引用都失效, 目前只在资产系统中使用
   /// @param Object
   /// @param NewHandle
-  void ModifyObjectHandle(Object* Object, Int32 NewHandle);
+  void ModifyObjectHandleM(Object* Object, Int32 NewHandle);
+  static void ModifyObjectHandle(Object* Object, const Int32 NewHandle) { ObjectTable::GetRef().ModifyObjectHandleM(Object, NewHandle); }
 
 private:
   // TODO: 更换为ConcurrentMap

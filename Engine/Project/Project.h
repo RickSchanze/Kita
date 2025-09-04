@@ -1,7 +1,6 @@
 #pragma once
 #include "Core/FileSystem/Path.h"
 #include "Core/Reflection/MetaMark.h"
-#include "Core/Singleton/Singleton.h"
 #include "Core/String/String.h"
 
 #include "Project.generated.h"

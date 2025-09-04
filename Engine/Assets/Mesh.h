@@ -9,6 +9,17 @@ class RHIBuffer;
 KSTRUCT()
 struct MeshMeta : AssetMeta {
   GENERATED_BODY(MeshMeta)
+  /// 数据库主键Id
+  KPROPERTY()
+  Int32 Id = 0;
+
+  /// 资产路径
+  KPROPERTY()
+  String Path;
+
+  /// 对象Handle
+  KPROPERTY()
+  Int32 ObjectHandle = 0;
 
   KPROPERTY()
   bool FlipUV = true;

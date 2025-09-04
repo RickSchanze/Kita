@@ -7,6 +7,13 @@ namespace Logcat {
 inline auto Asset = "Asset";
 }
 
+/**
+ * 只是为了ApplyMeta可以多态而设置
+ * 因为如果这里有成员, 那么注册sqlite orm时的类型就是AssetMeta而不是具体的类型
+ * 例如注册MeshMeta时, 如果这里有成员 那么注册的类型就是AssetMeta而不是MeshMeta
+ */
+struct AssetMeta {};
+
 KENUM()
 enum class EAssetType {
   Shader,
@@ -18,23 +25,6 @@ enum class EAssetType {
   Audio,
   Font,
   Prefab,
-};
-
-KSTRUCT()
-struct AssetMeta {
-  GENERATED_BODY(AssetMeta)
-
-  /// 数据库主键Id
-  KPROPERTY()
-  Int32 Id = 0;
-
-  /// 资产路径
-  KPROPERTY()
-  String Path;
-
-  /// 对象Handle
-  KPROPERTY()
-  Int32 ObjectHandle = 0;
 };
 
 KCLASS(Abstract)
