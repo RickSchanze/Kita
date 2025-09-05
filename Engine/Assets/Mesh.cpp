@@ -7,10 +7,10 @@
 #include "Core/Assert.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "RHI/Buffer.h"
+#include "RHI/CommandBuffer.h"
 #include "RHI/GfxCommandHelper.h"
 #include "RHI/GfxContext.h"
-#include "RHI/CommandBuffer.h"
-#include "RHI/Sync.h"
+#include "RHI/Sync.h" // 必要
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -37,14 +37,18 @@ void Mesh::Load() {
     return;
   }
   mLoaded = LoadFromPath();
+  if (!mLoaded) {
+    gLogger.Error(Logcat::Asset, "Mesh: {} 加载失败.", mPath);
+  } else {
+    gLogger.Info(Logcat::Asset, "Mesh: {} 加载.", mPath);
+  }
 }
 
-void Mesh::Unload() {}
+void Mesh::Unload() { gLogger.Info(Logcat::Asset, "Mesh: {} 卸载.", mPath); }
 
 void Mesh::ApplyMeta(const AssetMeta& Meta) {
   const auto& ThisMeshMeta = static_cast<const MeshMeta&>(Meta);
   mPath = ThisMeshMeta.Path;
-  mHandle = ThisMeshMeta.ObjectHandle;
   mMeta = ThisMeshMeta;
 }
 

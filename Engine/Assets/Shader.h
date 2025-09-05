@@ -1,0 +1,94 @@
+#pragma once
+#include "Asset.h"
+#include "Core/Reflection/MetaMark.h"
+#include "Core/String/String.h"
+#include "Core/TypeDefs.h"
+
+#include "Core/Container/Byte.h"
+#include "Shader.generated.h"
+
+KSTRUCT()
+struct ShaderMeta : AssetMeta {
+  GENERATED_BODY(ShaderMeta)
+  /// 数据库主键Id
+  KPROPERTY()
+  Int32 Id = 0;
+
+  /// 资产路径
+  KPROPERTY()
+  String Path;
+
+  /// 对象Handle
+  KPROPERTY()
+  Int32 ObjectHandle = 0;
+};
+
+enum class EShaderStage {
+  Vertex,
+  Fragment,
+  Count,
+};
+
+struct ShaderBinaryData {
+  /// Shader的二进制数据
+  /// 第1~4个字节记录一些管线数据
+  ///   第一位: 此Shader是不是图形管线
+  ///   第二位: CullMode是否是Backface
+  /// 第5~8字节: Vertex Shader的二进制数据长度
+  /// 第9~12字节: Fragment Shader的二进制数据长度
+  /// 第12字节往后: Shader的二进制数据
+  Array<Byte> Data;
+
+  [[nodiscard]] bool IsValid() const { return Data.Count() > 12; }
+  [[nodiscard]] bool IsGraphicsShader() const { return Data[0].Test(0); }
+  [[nodiscard]] bool IsCullModeBackface() const { return Data[0].Test(1); }
+
+  [[nodiscard]] UInt32 GetVertexShaderLength() const { return IsGraphicsShader() ? *reinterpret_cast<const UInt32*>(Data.Data() + 4) : 0; }
+  [[nodiscard]] UInt32 GetFragmentShaderLength() const { return IsGraphicsShader() ? *reinterpret_cast<const UInt32*>(Data.Data() + 8) : 0; }
+  [[nodiscard]] const Byte* GetVertexShaderData() const { return IsGraphicsShader() ? Data.Data() + 12 : nullptr; }
+  [[nodiscard]] const Byte* GetFragmentShaderData() const { return IsGraphicsShader() ? Data.Data() + 12 + GetVertexShaderLength() : nullptr; }
+};
+
+KSTRUCT()
+struct ShaderCache {
+  KPROPERTY()
+  UInt64 LastTextModifiedTime;
+
+  KPROPERTY()
+  UInt64 LastBinaryModifiedTime;
+};
+
+/// Shader的功能只有保存Shader的二进制数据
+/// 以及编译Shader
+/// Material会负责持有RHI的ShaderModule
+KCLASS()
+class Shader : public Asset {
+  GENERATED_BODY(Shader)
+public:
+  virtual EAssetType GetAssetType() override { return EAssetType::Shader; }
+
+  virtual void Load() override;
+  virtual void Unload() override;
+  virtual void ApplyMeta(const AssetMeta& Meta) override;
+
+  [[nodiscard]] const ShaderBinaryData& GetBinaryData() const { return mShaderData; }
+
+protected:
+  /// 从路径加载Shader
+  void LoadFromPath();
+  /// 是否需要重新将Shader编译为spirv
+  bool NeedReTranslate();
+
+private:
+  /// Shader编译后的二进制数据
+  /// 如果Shader本身文本文件没变 二进制数据也没变
+  /// 那么会直接从二进制文件读
+  /// 否则重新编译Shader 并写入而二进制
+  ShaderBinaryData mShaderData;
+  const char* mEntryPointNames[std::to_underlying(EShaderStage::Count)] = {"VertexMain", "FragmentMain"};
+
+  static void ReadCache();
+  static void WriteCache();
+
+  static inline Map<String, ShaderCache> sCache;
+};

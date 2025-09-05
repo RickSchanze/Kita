@@ -6,6 +6,7 @@
 #include "Core/Serialization/InputArchive.h"
 #include "Core/Serialization/OutputArchive.h"
 #define GENERATED_HEADER_MeshMeta \
+typedef ThisStruct Super; \
 typedef MeshMeta ThisStruct; \
 static FORCE_INLINE const Type* GetStaticType(); \
 static FORCE_INLINE constexpr bool IsReflected() { return true; } \
@@ -16,6 +17,7 @@ static void ConstructSelf(void* Ptr) { new (Ptr) MeshMeta(); }static void Destru
 Z_TypeRegister_MeshMeta() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<MeshMeta>("MeshMeta"); \
+Builder.AddParent<AssetMeta>(); \
 Builder.SetConstructor(MeshMeta::ConstructSelf).SetDestructor(MeshMeta::DestructSelf); \
 Builder.AddField("Id", &MeshMeta::Id); \
 Builder.AddField("Path", &MeshMeta::Path); \

@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
-#include <utility>
 #include <mutex>
+#include <utility>
 
 using Int8 = std::int8_t;
 using Int16 = std::int16_t;

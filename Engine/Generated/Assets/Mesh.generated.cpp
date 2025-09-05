@@ -4,6 +4,7 @@
 const Type* MeshMeta::GetStaticType() { return TypeOf<MeshMeta>(); }
 const Type* MeshMeta::GetType() { return TypeOf<MeshMeta>(); }
 void MeshMeta::WriteArchive(OutputArchive& Archive) const { 
+Super::WriteArchive(Archive); 
 Archive.WriteType("Id", Id); 
 Archive.WriteType("Path", Path); 
 Archive.WriteType("ObjectHandle", ObjectHandle); 
@@ -12,6 +13,7 @@ Archive.WriteType("CalcTangent", CalcTangent);
 Archive.WriteType("EnsureTriangles", EnsureTriangles); 
 } 
 void MeshMeta::ReadArchive(InputArchive& Archive) { 
+Super::ReadArchive(Archive); 
 Archive.ReadType("Id", Id); 
 Archive.ReadType("Path", Path); 
 Archive.ReadType("ObjectHandle", ObjectHandle); 

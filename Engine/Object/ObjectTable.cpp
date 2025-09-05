@@ -14,7 +14,7 @@ bool ObjectTable::RegisterObject(Object* Object) {
   CPU_PROFILING_SCOPE;
   if (Object == nullptr)
     return false;
-  Int32 ObjectHandle = Object->GetObjectHandle();
+  Int32 ObjectHandle = Object->GetHandle();
   if (IsObjectAlive(ObjectHandle)) {
     gLogger.Error("Object", "重复向ObjectTable添加同一ID的Object, Id = {}", ObjectHandle);
     return false;
@@ -40,7 +40,7 @@ void ObjectTable::UnregisterObject(const Object* Object, bool Delete) {
   CPU_PROFILING_SCOPE;
   AutoLock Lock(mTableMutex);
   if (Object != nullptr)
-    UnregisterObject(Object->GetObjectHandle(), Delete);
+    UnregisterObject(Object->GetHandle(), Delete);
 }
 
 Int32 ObjectTable::AssignHandle(const bool IsPersistent) {
@@ -61,14 +61,14 @@ Object* ObjectTable::CreateObject(const Type* InType, const StringView NewName) 
   Object* NewObject = InType->CreateInstanceT<Object>();
   NewObject->SetObjectName(NewName);
   const Int32 Id = AssignHandle(false);
-  NewObject->InternalSetObjectHandle(Id);
+  NewObject->InternalSetHandle(Id);
   RegisterObject(NewObject);
   return NewObject;
 }
 
 void ObjectTable::ModifyObjectHandleM(Object* Object, Int32 NewHandle) {
   CPU_PROFILING_SCOPE;
-  if (Object == nullptr || Object->GetObjectHandle() == NewHandle) {
+  if (Object == nullptr || Object->GetHandle() == NewHandle) {
     return;
   }
   if (NewHandle == 0) {
@@ -76,6 +76,6 @@ void ObjectTable::ModifyObjectHandleM(Object* Object, Int32 NewHandle) {
     return;
   }
   UnregisterObject(Object, false);
-  Object->InternalSetObjectHandle(NewHandle);
+  Object->InternalSetHandle(NewHandle);
   RegisterObject(Object);
 }

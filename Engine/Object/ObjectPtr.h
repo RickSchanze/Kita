@@ -30,15 +30,15 @@ template <typename T> struct ObjectPtr : ObjectPtrBase, TemplateAdapter {
 };
 
 template <typename T> void ExtractReferencingObjectHandle(const ObjectPtr<T>& Ptr, Array<Int32>& Out) {
-  if (Ptr.GetObjectHandle() != 0) {
-    Out.Add(Ptr.GetObjectHandle());
+  if (Ptr.GetHandle() != 0) {
+    Out.Add(Ptr.GetHandle());
   }
 }
 
 template <typename T> void ExtractReferencingObjectHandle(const Array<ObjectPtr<T>>& PtrArray, Array<Int32>& Out) {
   for (auto& Ptr : PtrArray) {
-    if (Ptr.GetObjectHandle() != 0) {
-      Out.Add(Ptr.GetObjectHandle());
+    if (Ptr.GetHandle() != 0) {
+      Out.Add(Ptr.GetHandle());
     }
   }
 }

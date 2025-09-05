@@ -5,14 +5,16 @@
 
 namespace Logcat {
 inline auto Asset = "Asset";
-}
+} // namespace Logcat
 
 /**
  * 只是为了ApplyMeta可以多态而设置
  * 因为如果这里有成员, 那么注册sqlite orm时的类型就是AssetMeta而不是具体的类型
  * 例如注册MeshMeta时, 如果这里有成员 那么注册的类型就是AssetMeta而不是MeshMeta
  */
-struct AssetMeta {};
+struct AssetMeta {
+  typedef AssetMeta ThisStruct;
+};
 
 KENUM()
 enum class EAssetType {

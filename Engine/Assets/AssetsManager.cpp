@@ -242,8 +242,10 @@ public:
 AssetLoadTaskHandle AssetsManager::LoadMeshAsync(const MeshMeta& Meta) {
   CPU_PROFILING_SCOPE;
   Mesh* MyMesh = CreateObject<Mesh>(Meta.Path);
-  MyMesh->ApplyMeta(Meta);
   ObjectTable::ModifyObjectHandle(MyMesh, Meta.ObjectHandle);
+  // 首先处理Meta
+  MyMesh->ApplyMeta(Meta);
+  // 然后开始加载
   mImpl->MakeObjectLoading(Meta.ObjectHandle);
   const TaskHandle Handle = TaskGraph::CreateTask<LoadMeshTask>(Format("Task: Load mesh '{}'", Meta.Path), {}, MyMesh);
   TaskGraph::CreateTask<AssetLoadCompletedTask>("Task: AssetCompleted", {Handle}, mImpl.Get(), Meta.ObjectHandle);

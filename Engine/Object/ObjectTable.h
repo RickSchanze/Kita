@@ -38,7 +38,7 @@ public:
     CPU_PROFILING_SCOPE;
     Int32 NewId = AssignHandle(false);
     T* NewObject = new T();
-    NewObject->InternalSetObjectHandle(NewId);
+    NewObject->InternalSetHandle(NewId);
     NewObject->SetObjectName(NewName);
     RegisterObject(NewObject);
     return NewObject;

@@ -20,14 +20,15 @@ public:
   [[nodiscard]] StringView GetObjectName() const { return mName; }
 
   /// 供内部使用的设置对象Handle的方法
-  void InternalSetObjectHandle(const Int32 NewHandle) { mHandle = NewHandle; }
-  [[nodiscard]] Int32 GetObjectHandle() const { return mHandle; }
+  void InternalSetHandle(const Int32 NewHandle) { mHandle = NewHandle; }
+  [[nodiscard]] Int32 GetHandle() const { return mHandle; }
 
 protected:
   /// 对象的名字
   KPROPERTY()
   String mName;
 
+private:
   /// 对象句柄(ID) 为0代表无效 >0为持久化对象 <0为实例对象
   KPROPERTY()
   Int32 mHandle = 0;

@@ -88,6 +88,7 @@ add_library(KitaCore
         String/StringUtils.cpp
         String/StringUtils.h
         Container/Deque.h
+        Container/Byte.h
 )
 
 find_package(spdlog CONFIG REQUIRED)

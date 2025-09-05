@@ -45,5 +45,8 @@
   }, {
     "name" : "sqlite-orm",
     "version>=" : "1.9.1"
+  }, {
+    "name" : "shader-slang",
+    "version>=" : "2025.5"
   } ]
 }
