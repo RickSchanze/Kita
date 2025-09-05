@@ -43,6 +43,12 @@ public:
 
   [[nodiscard]] String ToString() const;
 
+  // 输出流操作符 (friend函数)
+  friend std::ostream& operator<<(std::ostream& OS, const StringView& StrView) {
+    OS << StrView.mStr;
+    return OS;
+  }
+
 private:
   std::string_view mStr;
 };

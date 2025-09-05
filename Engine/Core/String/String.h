@@ -35,6 +35,18 @@ public:
 
   [[nodiscard]] bool EndsWith(const StringView& Suffix) const;
 
+  // 输出流操作符 (friend函数)
+  friend std::ostream& operator<<(std::ostream& OS, const String& Str) {
+    OS << Str.mStr;
+    return OS;
+  }
+
+  // 输入流操作符 (friend函数)
+  friend std::istream& operator>>(std::istream& IS, String& Str) {
+    IS >> Str.mStr;
+    return IS;
+  }
+
 private:
   std::string mStr;
 };
