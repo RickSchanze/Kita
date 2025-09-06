@@ -31,7 +31,7 @@ public:
   auto begin() { return mStr.begin(); }
   auto end() { return mStr.end(); }
 
-  const char* Data() const { return mStr.c_str(); }
+  [[nodiscard]] const char* Data() const { return mStr.c_str(); }
 
   [[nodiscard]] bool EndsWith(const StringView& Suffix) const;
 
@@ -46,6 +46,12 @@ public:
     IS >> Str.mStr;
     return IS;
   }
+
+  // 替换所有出现的字符
+  String& Replace(char OldChar, char NewChar);
+
+  // 替换所有出现的子字符串
+  String& Replace(const StringView& OldStr, const StringView& NewStr);
 
 private:
   std::string mStr;

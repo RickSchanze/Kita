@@ -27,6 +27,25 @@ Builder.Register(); \
 }; \
 static inline Z_TypeRegister_ShaderMeta __Z_TypeRegister_ShaderMeta_Instance; \
 
+#define GENERATED_HEADER_ShaderCache \
+typedef ShaderCache ThisStruct; \
+static FORCE_INLINE const Type* GetStaticType(); \
+static FORCE_INLINE constexpr bool IsReflected() { return true; } \
+const Type* GetType(); \
+void WriteArchive(OutputArchive& Archive) const;\
+void ReadArchive(InputArchive& Archive);\
+static void ConstructSelf(void* Ptr) { new (Ptr) ShaderCache(); }static void DestructSelf(void* Ptr) { ((ShaderCache*)(Ptr))->~ShaderCache(); }struct Z_TypeRegister_ShaderCache { \
+Z_TypeRegister_ShaderCache() { \
+TypeBuilder Builder{}; \
+Builder.CreateType<ShaderCache>("ShaderCache"); \
+Builder.SetConstructor(ShaderCache::ConstructSelf).SetDestructor(ShaderCache::DestructSelf); \
+Builder.AddField("LastTextModifiedTime", &ShaderCache::LastTextModifiedTime); \
+Builder.AddField("LastBinaryModifiedTime", &ShaderCache::LastBinaryModifiedTime); \
+Builder.Register(); \
+} \
+}; \
+static inline Z_TypeRegister_ShaderCache __Z_TypeRegister_ShaderCache_Instance; \
+
 #define GENERATED_HEADER_Shader \
 public: \
 typedef ThisClass Super; \

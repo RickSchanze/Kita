@@ -19,7 +19,7 @@ public:
     }
   }
 
-  bool IsOpen() const { return mStream.is_open(); }
+  [[nodiscard]] bool IsOpen() const { return mStream.is_open(); }
 
   std::ofstream& GetStream() { return mStream; }
 

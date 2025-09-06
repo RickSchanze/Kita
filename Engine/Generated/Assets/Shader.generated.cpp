@@ -15,6 +15,16 @@ Archive.ReadType("Id", Id);
 Archive.ReadType("Path", Path); 
 Archive.ReadType("ObjectHandle", ObjectHandle); 
 } 
+const Type* ShaderCache::GetStaticType() { return TypeOf<ShaderCache>(); }
+const Type* ShaderCache::GetType() { return TypeOf<ShaderCache>(); }
+void ShaderCache::WriteArchive(OutputArchive& Archive) const { 
+Archive.WriteType("LastTextModifiedTime", LastTextModifiedTime); 
+Archive.WriteType("LastBinaryModifiedTime", LastBinaryModifiedTime); 
+} 
+void ShaderCache::ReadArchive(InputArchive& Archive) { 
+Archive.ReadType("LastTextModifiedTime", LastTextModifiedTime); 
+Archive.ReadType("LastBinaryModifiedTime", LastBinaryModifiedTime); 
+} 
 const Type* Shader::GetStaticType() { return TypeOf<Shader>(); }
 const Type* Shader::GetType() { return TypeOf<Shader>(); }
 void Shader::WriteArchive(OutputArchive& Archive) const { 

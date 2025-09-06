@@ -11,6 +11,8 @@ add_library(KitaAssets
         AssetsManager.h
         Shader.cpp
         Shader.h
+        AssetsConfig.cpp
+        AssetsConfig.h
 )
 
 target_link_libraries(KitaAssets PRIVATE KitaCore KitaObject KitaRHI KitaProject)

@@ -73,11 +73,18 @@ public:
 
   [[nodiscard]] const ShaderBinaryData& GetBinaryData() const { return mShaderData; }
 
+  String GetBinaryPath();
+
 protected:
-  /// 从路径加载Shader
-  void LoadFromPath();
   /// 是否需要重新将Shader编译为spirv
   bool NeedReTranslate();
+
+  /// 将slang shader编译为spirv二进制数据
+  bool Translate();
+
+  /// 读取Shader的二进制数据
+  bool ReadBinary();
+
 
 private:
   /// Shader编译后的二进制数据
@@ -91,4 +98,5 @@ private:
   static void WriteCache();
 
   static inline Map<String, ShaderCache> sCache;
+  static inline bool sCacheRead = false;
 };

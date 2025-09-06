@@ -13,6 +13,8 @@
       <w>maxcount</w>
       <w>memcpy</w>
       <w>separatedly</w>
+      <w>shaderbin</w>
+      <w>spirv</w>
       <w>swapchain</w>
       <w>texs</w>
     </words>
