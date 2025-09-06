@@ -44,3 +44,8 @@ String operator+(const String& Str1, const char* Str2) {
   String Str3(Str1);
   return Str3 += Str2;
 }
+
+std::istream& operator>>(std::istream& IS, String& Str)  {
+  IS >> Str.mStr;
+  return IS;
+}

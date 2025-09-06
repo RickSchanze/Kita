@@ -72,16 +72,8 @@ private:
 
 inline Logger gLogger = {};
 
-inline std::ostream& operator<<(std::ostream& OS, const String& Str) {
-  OS << Str.GetStdString();
-  return OS;
-}
 template <> struct fmt::formatter<String> : ostream_formatter {};
 
-inline std::ostream& operator<<(std::ostream& OS, const StringView& Str) {
-  OS << Str.GetStdStringView();
-  return OS;
-}
 template <> struct fmt::formatter<StringView> : ostream_formatter {};
 
 template <Traits::IToString T> std::ostream& operator<<(std::ostream& OS, const T& Str) {

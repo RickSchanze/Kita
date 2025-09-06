@@ -14,6 +14,8 @@ inline auto Asset = "Asset";
  */
 struct AssetMeta {
   typedef AssetMeta ThisStruct;
+  static void WriteArchive(OutputArchive& Archive) {}
+  static void ReadArchive(InputArchive& Archive) {}
 };
 
 KENUM()

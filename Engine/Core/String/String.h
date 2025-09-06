@@ -6,6 +6,7 @@
 
 #include <string>
 #include <utility>
+#include <iostream>
 
 class StringView;
 
@@ -42,10 +43,7 @@ public:
   }
 
   // 输入流操作符 (friend函数)
-  friend std::istream& operator>>(std::istream& IS, String& Str) {
-    IS >> Str.mStr;
-    return IS;
-  }
+  friend std::istream& operator>>(std::istream& IS, String& Str);
 
   // 替换所有出现的字符
   String& Replace(char OldChar, char NewChar);

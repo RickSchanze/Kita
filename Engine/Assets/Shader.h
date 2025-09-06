@@ -1,10 +1,10 @@
 #pragma once
 #include "Asset.h"
+#include "Core/Container/Byte.h"
 #include "Core/Reflection/MetaMark.h"
 #include "Core/String/String.h"
 #include "Core/TypeDefs.h"
 
-#include "Core/Container/Byte.h"
 #include "Shader.generated.h"
 
 KSTRUCT()
@@ -49,12 +49,8 @@ struct ShaderBinaryData {
   [[nodiscard]] const Byte* GetFragmentShaderData() const { return IsGraphicsShader() ? Data.Data() + 12 + GetVertexShaderLength() : nullptr; }
 };
 
-KSTRUCT()
 struct ShaderCache {
-  KPROPERTY()
   UInt64 LastTextModifiedTime;
-
-  KPROPERTY()
   UInt64 LastBinaryModifiedTime;
 };
 
@@ -84,7 +80,6 @@ protected:
 
   /// 读取Shader的二进制数据
   bool ReadBinary();
-
 
 private:
   /// Shader编译后的二进制数据

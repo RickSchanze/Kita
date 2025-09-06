@@ -14,7 +14,7 @@ struct ObjectPtrBase {
 
   /// 设置此ObjectHandle
   void SetObjectHandle(Int32 NewHandle);
-  [[nodiscard]] Int32 GetObjectHandle() const { return mObjectHandle; }
+  [[nodiscard]] Int32 GetHandle() const { return mObjectHandle; }
 
   void GetReferencingObject(Array<Int32>& OutArray) { OutArray.Add(mObjectHandle); }
 

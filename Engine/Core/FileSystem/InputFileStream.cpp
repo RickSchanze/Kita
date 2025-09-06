@@ -40,7 +40,7 @@ Result<Array<String>, EFileSystemError> InputFileStream::ReadAllLines() {
 
   while (true) {
     if (auto Line = ReadLine()) {
-      Lines.Add(Line);
+      Lines.Add(*Line);
     } else {
       if (Line.Error() == EFileSystemError::EndOfFile) {
         return Lines;

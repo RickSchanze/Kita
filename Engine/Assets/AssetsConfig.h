@@ -9,7 +9,7 @@ class AssetsConfig : public IConfig {
 public:
   KITA_CONFIG_GETTER_SETTER(Array<String>, ShaderSearchPaths)
 
-  void AddShaderSearchPath(StringView NewPath);
+  void AddShaderSearchPath(const String& NewPath);
 
 private:
   KPROPERTY()

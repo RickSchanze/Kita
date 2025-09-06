@@ -24,7 +24,7 @@ void Mesh::Load() {
   CPU_PROFILING_SCOPE;
   if (mLoaded)
     return;
-  if (mHandle == 0) {
+  if (GetHandle() == 0) {
     gLogger.Error(Logcat::Asset, "Mesh的ObjectHandle为0.");
     return;
   }

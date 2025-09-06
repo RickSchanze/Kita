@@ -112,10 +112,24 @@ bool Shader::NeedReTranslate() {
     return false;                                                                                                                     \
   }
 
-static bool TranslateCompute(Slang::ComPtr<slang::IEntryPoint> ComputeEntry, ShaderBinaryData& OutBinaryData) { return false; }
+static bool TranslateCompute(const Slang::ComPtr<slang::ISession>& Session, slang::IModule* Module, const Slang::ComPtr<slang::IEntryPoint>& ComputeEntry, ShaderBinaryData& OutBinaryData) {
+  return false;
+}
 
-static bool TranslateGraphics(Slang::ComPtr<slang::IEntryPoint> VertexEntry, Slang::ComPtr<slang::IEntryPoint> FragmentEntry, ShaderBinaryData& OutBinaryData) {
-
+static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, slang::IModule* Module, const Slang::ComPtr<slang::IEntryPoint>& VertexEntry,
+                              const Slang::ComPtr<slang::IEntryPoint>& FragmentEntry, ShaderBinaryData& OutBinaryData) {
+  Array<slang::IComponentType*> Components = {Module, VertexEntry, FragmentEntry};
+  Slang::ComPtr<slang::IComponentType> Program;
+  Slang::ComPtr<slang::IBlob> Diagnostics;
+  Session->createCompositeComponentType(Components.Data(), Components.Count(), Program.writeRef(), Diagnostics.writeRef());
+  if (Diagnostics) {
+    return false;
+  }
+  // 反射
+  Byte FirstByte{};
+  FirstByte.Set(0); // 设置图像管线为true
+  OutBinaryData.Data.Add(FirstByte);
+  return true;
 }
 
 bool Shader::Translate() {
@@ -127,7 +141,7 @@ bool Shader::Translate() {
   Module->findEntryPointByName("ComputeMain", ComputeEntryPoint.writeRef());
   if (ComputeEntryPoint) {
     DIAG();
-    return TranslateCompute(ComputeEntryPoint, mShaderData);
+    return TranslateCompute(GetTranslater().GetSession(), Module, ComputeEntryPoint, mShaderData);
   }
   Slang::ComPtr<IEntryPoint> VertexEntryPoint;
   Module->findEntryPointByName("VertexMain", VertexEntryPoint.writeRef());
@@ -135,7 +149,7 @@ bool Shader::Translate() {
   Slang::ComPtr<IEntryPoint> FragmentEntryPoint;
   Module->findEntryPointByName("FragmentMain", FragmentEntryPoint.writeRef());
   DIAG();
-  return TranslateGraphics(VertexEntryPoint, FragmentEntryPoint, mShaderData);
+  return TranslateGraphics(GetTranslater().GetSession(), Module, VertexEntryPoint, FragmentEntryPoint, mShaderData);
 }
 
 bool Shader::ReadBinary() {
