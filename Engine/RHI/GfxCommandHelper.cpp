@@ -14,7 +14,9 @@ GfxCommandSyncHandle GfxCommandHelper::CopyAsync(RHIBuffer* Source, RHIBuffer* D
   GfxCommandSyncHandle Handle;
   Handle.CommandPool = GfxContext::GetRef().CreateCommandPoolU(ERHIQueueFamilyType::Transfer, false);
   Handle.CommandBuffer = Handle.CommandPool->CreateCommandBuffer();
+  Handle.CommandBuffer->BeginRecord();
   Handle.CommandBuffer->Copy(Source, Dest, Size, SourceOffset, DestOffset);
+  Handle.CommandBuffer->EndRecord();
   Handle.GpuExecuteFence = GfxContext::GetRef().CreateFenceU();
   Handle.CommitHandle = Handle.CommandBuffer->Execute("");
   return Handle;

@@ -39,8 +39,8 @@ struct Vertex {
 };
 
 KSTRUCT()
-struct SubmeshInfo {
-  GENERATED_BODY(SubmeshInfo)
+struct SubMeshInfo {
+  GENERATED_BODY(SubMeshInfo)
 
   KPROPERTY(Transient, Label = "顶点偏移")
   UInt32 VertexOffset;
@@ -70,12 +70,12 @@ public:
 
   virtual void ApplyMeta(const AssetMeta& Meta) override;
 
-  [[nodiscard]] const Array<SubmeshInfo>& GetSubmeshes() const { return mSubmeshes; }
+  [[nodiscard]] const Array<SubMeshInfo>& GetSubmeshes() const { return mSubMeshes; }
   [[nodiscard]] RHIBuffer* GetVertexBuffer() const { return mVertexBuffer.Get(); }
   [[nodiscard]] RHIBuffer* GetIndexBuffer() const { return mIndexBuffer.Get(); }
   [[nodiscard]] Int32 GetVertexCount() const { return mVertexCount; }
   [[nodiscard]] Int32 GetIndexCount() const { return mIndexCount; }
-  [[nodiscard]] SubmeshInfo GetSubmeshInfo(const Int32 Index) const { return mSubmeshes[Index]; }
+  [[nodiscard]] SubMeshInfo GetSubmeshInfo(const Int32 Index) const { return mSubMeshes[Index]; }
 
 private:
   bool LoadFromPath();
@@ -90,7 +90,7 @@ private:
   Int32 mIndexCount = 0;
 
   KPROPERTY(Transient, Label = "子Mesh")
-  Array<SubmeshInfo> mSubmeshes;
+  Array<SubMeshInfo> mSubMeshes;
 
   KPROPERTY(Transient, Label = "导入选项")
   MeshMeta mMeta;

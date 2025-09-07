@@ -39,6 +39,13 @@ static void StartUpProject(const char** ArgV, int ArgC) {
   }
 }
 
+void EngineLoop::ShutDownSystems(const bool Tips) {
+  GetRef().ShutDownSystemsM();
+  if (Tips) {
+    system("pause");
+  }
+}
+
 void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   // Project
   StartUpProject(ArgV, ArgC);

@@ -49,6 +49,8 @@ public:
   bool Remove(const K& Key) { return mData.erase(Key) != 0; }
   [[nodiscard]] bool Contains(const K& Key) const { return mData.contains(Key); }
 
+  void Clear() { mData.clear(); }
+
   auto Find(const K& Key) const { return mData.find(Key); }
 
   [[nodiscard]] String ToString() const

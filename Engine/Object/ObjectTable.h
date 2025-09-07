@@ -6,6 +6,9 @@
 
 class ObjectTable : public Singleton<ObjectTable> {
 public:
+  static void StartUp();
+  static void ShutDown();
+
   [[nodiscard]] bool IsObjectAlive(Int32 Handle);
 
   /// 注册一个Object 如果此Object对应的Handle已存在则Log错误并返回false
@@ -14,12 +17,14 @@ public:
   /// 从ObjectTable中删除一个Object, 同时释放内存 TODO: 延迟内存释放
   /// @param ObjectHandle 要删除的Object的Handle
   /// @param Delete 是否要释放内存
-  void UnregisterObject(Int32 ObjectHandle, bool Delete);
+  static void UnregisterObject(const Int32 ObjectHandle, const bool Delete) { GetRef().UnregisterObjectM(ObjectHandle, Delete); }
+  void UnregisterObjectM(Int32 ObjectHandle, bool Delete);
 
   /// 从ObjectTable中删除一个Object
   /// @param Object 要删除的Object
   /// @param Delete 是否要释放内存
-  void UnregisterObject(const Object* Object, bool Delete);
+  static void UnregisterObject(const Object* Object, const bool Delete) { GetRef().UnregisterObjectM(Object, Delete); }
+  void UnregisterObjectM(const Object* Object, bool Delete);
 
   static Int32 AssignHandle(const bool IsPersistent) { return GetRef().AssignHandleM(IsPersistent); }
   Int32 AssignHandleM(bool IsPersistent);

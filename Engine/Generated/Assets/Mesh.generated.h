@@ -30,26 +30,26 @@ Builder.Register(); \
 }; \
 static inline Z_TypeRegister_MeshMeta __Z_TypeRegister_MeshMeta_Instance; \
 
-#define GENERATED_HEADER_SubmeshInfo \
-typedef SubmeshInfo ThisStruct; \
+#define GENERATED_HEADER_SubMeshInfo \
+typedef SubMeshInfo ThisStruct; \
 static FORCE_INLINE const Type* GetStaticType(); \
 static FORCE_INLINE constexpr bool IsReflected() { return true; } \
 const Type* GetType(); \
 void WriteArchive(OutputArchive& Archive) const;\
 void ReadArchive(InputArchive& Archive);\
-static void ConstructSelf(void* Ptr) { new (Ptr) SubmeshInfo(); }static void DestructSelf(void* Ptr) { ((SubmeshInfo*)(Ptr))->~SubmeshInfo(); }struct Z_TypeRegister_SubmeshInfo { \
-Z_TypeRegister_SubmeshInfo() { \
+static void ConstructSelf(void* Ptr) { new (Ptr) SubMeshInfo(); }static void DestructSelf(void* Ptr) { ((SubMeshInfo*)(Ptr))->~SubMeshInfo(); }struct Z_TypeRegister_SubMeshInfo { \
+Z_TypeRegister_SubMeshInfo() { \
 TypeBuilder Builder{}; \
-Builder.CreateType<SubmeshInfo>("SubmeshInfo"); \
-Builder.SetConstructor(SubmeshInfo::ConstructSelf).SetDestructor(SubmeshInfo::DestructSelf); \
-Builder.AddField("VertexOffset", &SubmeshInfo::VertexOffset).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "顶点偏移"); \
-Builder.AddField("VertexCount", &SubmeshInfo::VertexCount).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "顶点数"); \
-Builder.AddField("IndexOffset", &SubmeshInfo::IndexOffset).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "索引偏移"); \
-Builder.AddField("IndexCount", &SubmeshInfo::IndexCount).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "索引数"); \
+Builder.CreateType<SubMeshInfo>("SubMeshInfo"); \
+Builder.SetConstructor(SubMeshInfo::ConstructSelf).SetDestructor(SubMeshInfo::DestructSelf); \
+Builder.AddField("VertexOffset", &SubMeshInfo::VertexOffset).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "顶点偏移"); \
+Builder.AddField("VertexCount", &SubMeshInfo::VertexCount).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "顶点数"); \
+Builder.AddField("IndexOffset", &SubMeshInfo::IndexOffset).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "索引偏移"); \
+Builder.AddField("IndexCount", &SubMeshInfo::IndexCount).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "索引数"); \
 Builder.Register(); \
 } \
 }; \
-static inline Z_TypeRegister_SubmeshInfo __Z_TypeRegister_SubmeshInfo_Instance; \
+static inline Z_TypeRegister_SubMeshInfo __Z_TypeRegister_SubMeshInfo_Instance; \
 
 #define GENERATED_HEADER_Mesh \
 public: \
@@ -68,7 +68,7 @@ Builder.AddParent<Asset>(); \
 Builder.SetConstructor(Mesh::ConstructSelf).SetDestructor(Mesh::DestructSelf); \
 Builder.AddField("mVertexCount", &Mesh::mVertexCount).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "总顶点数"); \
 Builder.AddField("mIndexCount", &Mesh::mIndexCount).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "总索引数"); \
-Builder.AddField("mSubmeshes", &Mesh::mSubmeshes).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "子Mesh"); \
+Builder.AddField("mSubMeshes", &Mesh::mSubMeshes).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "子Mesh"); \
 Builder.AddField("mMeta", &Mesh::mMeta).SetFieldAttribute("Transient", "true").SetFieldAttribute("Label", "导入选项"); \
 Builder.Register(); \
 } \

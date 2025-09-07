@@ -10,5 +10,5 @@ int main(int ArgC, const char** ArgV) {
   SetConsoleOutputCP(CP_UTF8);
   EngineLoop::StartUpSystems(ArgV, ArgC);
   EngineLoop::Run();
-  EngineLoop::ShutDownSystems();
+  EngineLoop::ShutDownSystems(true);
 }

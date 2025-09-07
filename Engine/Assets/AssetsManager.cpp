@@ -16,26 +16,7 @@
 
 using namespace sqlite_orm;
 
-AssetsManager::AssetsManager() = default;
-AssetsManager::~AssetsManager() = default;
-
-static void WaitAllHandles(Array<AssetLoadTaskHandle> Handles) {
-  for (auto& Handle : Handles) {
-    Handle.WaitSync();
-  }
-}
-
-void AssetsManager::StartUp() {
-  // clang-format off
-  WaitAllHandles({
-      ImportAsync("Assets/Mesh/Cube.fbx")
-  });
-  // clang-format on
-}
-
-void AssetsManager::ShutDown() {}
-
-constexpr auto ASSET_CENTER_DATABASE_NAME = "AssetCenter.db";
+constexpr auto ASSET_DATABASE_NAME = "AssetsData.db";
 
 #pragma region AssetType的SqliteOrm适配
 static std::string AssetTypeToString(const EAssetType AssetType) {
@@ -56,6 +37,9 @@ static std::unique_ptr<EAssetType> AssetTypeFromString(const std::string& s) {
   }
   if (s == "Material") {
     return std::make_unique<EAssetType>(EAssetType::Material);
+  }
+  if (s == "Mesh") {
+    return std::make_unique<EAssetType>(EAssetType::Mesh);
   }
   return nullptr;
 }
@@ -129,8 +113,8 @@ static auto MakeShaderMetaTable() {
 
 static auto MakeStorage() {
   const auto LibPath = Project::GetLibraryPath();
-  const auto Path = ::Path::Combine(LibPath, ASSET_CENTER_DATABASE_NAME);
-  return make_storage(LibPath.Data(), MakeAssetIndexTable(), MakeMeshMetaTable(), MakeShaderMetaTable());
+  const auto Path = ::Path::Combine(LibPath, ASSET_DATABASE_NAME);
+  return make_storage(Path.Data(), MakeAssetIndexTable(), MakeMeshMetaTable(), MakeShaderMetaTable());
 }
 
 struct AssetsManager::Impl {
@@ -157,7 +141,6 @@ struct AssetsManager::Impl {
   }
 
   template <typename MetaType> Optional<MetaType> QueryMeta(Int32 ObjectHandle) {
-    std::lock_guard Lock(mDatabaseMutex);
     const auto Metas = GetAll<MetaType>(where(c(&MetaType::ObjectHandle) == ObjectHandle), limit(1));
     if (Metas.empty()) {
       return {};
@@ -166,7 +149,6 @@ struct AssetsManager::Impl {
   }
 
   template <typename MetaType> Optional<MetaType> QueryMeta(const StringView Path) {
-    std::lock_guard Lock(mDatabaseMutex);
     const auto Metas = GetAll<MetaType>(where(c(&MetaType::Path) == Path.ToString()), limit(1));
     if (Metas.empty()) {
       return {};
@@ -185,7 +167,7 @@ struct AssetsManager::Impl {
 
   void MakeObjectLoaded(const Int32 ObjectHandle) {
     AutoLock Lock(mLoadedAssetsMutex, mLoadingAssetsMutex);
-    if (!mLoadedAssets.Contains(ObjectHandle)) {
+    if (!mLoadingAssets.Contains(ObjectHandle)) {
       gLogger.Error(Logcat::Asset, "MakeObjectLoaded: 对象 '{}' 没有被标记为正在加载, 无法被标记为已加载", ObjectHandle);
       return;
     }
@@ -215,6 +197,67 @@ struct AssetsManager::Impl {
   DECL_TRACKABLE_MUREX(std::mutex, mLoadingAssetsMutex);
   Set<Int32> mLoadingAssets;
 };
+
+AssetsManager::AssetsManager() = default;
+AssetsManager::~AssetsManager() = default;
+
+static void WaitAllHandles(Array<AssetLoadTaskHandle> Handles) {
+  for (auto& Handle : Handles) {
+    Handle.WaitSync();
+  }
+}
+
+void AssetsManager::StartUp() {
+  GetRef().mImpl = MakeUnique<Impl>();
+  // clang-format off
+  WaitAllHandles({
+      ImportAsync("Assets/Mesh/Cube.fbx")
+  });
+  // clang-format on
+}
+
+void AssetsManager::ShutDown() {
+  // 卸载所有的资产
+  auto& Self = GetRef();
+  {
+    AutoLock Lock(Self.mImpl->mLoadedAssetsMutex);
+    for (const auto LoadedAsset : Self.mImpl->mLoadedAssets) {
+      if (auto MyAsset = static_cast<Asset*>(ObjectTable::GetObject(LoadedAsset))) {
+        if (MyAsset->IsLoaded()) {
+          // TODO: AssetManager Unload接口
+          MyAsset->BeforeUnload();
+          MyAsset->Unload();
+          MyAsset->AfterUnload();
+        }
+        ObjectTable::UnregisterObject(MyAsset, true);
+      }
+    }
+    Self.mImpl->mLoadedAssets.Clear();
+  }
+  // 等待mLoadingAssets为空
+  while (true) {
+    AutoLock Lock(Self.mImpl->mLoadingAssetsMutex);
+    if (Self.mImpl->mLoadingAssets.Empty()) {
+      break;
+    }
+  }
+  // 再次卸载
+  {
+    AutoLock Lock(Self.mImpl->mLoadedAssetsMutex);
+    for (const auto LoadedAsset : Self.mImpl->mLoadedAssets) {
+      if (auto MyAsset = static_cast<Asset*>(ObjectTable::GetObject(LoadedAsset))) {
+        if (MyAsset->IsLoaded()) {
+          // TODO: AssetManager Unload接口
+          MyAsset->BeforeUnload();
+          MyAsset->Unload();
+          MyAsset->AfterUnload();
+        }
+        ObjectTable::UnregisterObject(MyAsset, true);
+      }
+    }
+    Self.mImpl->mLoadedAssets.Clear();
+  }
+}
 
 static EAssetType GetAssetTypeByExtension(StringView Path) {
   const StringView Ext = Path::GetExtension(Path);

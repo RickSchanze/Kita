@@ -67,13 +67,13 @@ bool Path::CreateDirectory(StringView Path, bool Recursive) {
   return OK || fs::exists(FsPath);
 }
 
-String Path::GetExtension(const StringView Path) {
+StringView Path::GetExtension(const StringView Path) {
   const SizeType DotPos = Path.IndexOf('.');
-
-  if (const SizeType SepPos = Path.LastIndexOf("/\\"); DotPos == std::string::npos || (SepPos != std::string::npos && DotPos < SepPos)) {
+  const SizeType SepPos = Path.LastIndexOf(Separator);
+  if (DotPos == std::string::npos || (SepPos != std::string::npos && DotPos < SepPos)) {
     return {""};
   }
 
   // 跳过点号，从点后面开始截取
-  return String(Path.SubStr(DotPos + 1));
+  return Path.SubStr(DotPos + 1);
 }

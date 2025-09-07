@@ -4,6 +4,14 @@
 
 #include "ObjectTable.h"
 
+void ObjectTable::StartUp() {
+
+}
+
+void ObjectTable::ShutDown() {
+
+}
+
 bool ObjectTable::IsObjectAlive(const Int32 Handle) {
   CPU_PROFILING_SCOPE;
   AutoLock Lock(mTableMutex);
@@ -24,7 +32,7 @@ bool ObjectTable::RegisterObject(Object* Object) {
   return true;
 }
 
-void ObjectTable::UnregisterObject(const Int32 ObjectHandle, bool Delete) {
+void ObjectTable::UnregisterObjectM(const Int32 ObjectHandle, bool Delete) {
   CPU_PROFILING_SCOPE;
   if (IsObjectAlive(ObjectHandle)) {
     AutoLock Lock(mTableMutex);
@@ -36,11 +44,11 @@ void ObjectTable::UnregisterObject(const Int32 ObjectHandle, bool Delete) {
   }
 }
 
-void ObjectTable::UnregisterObject(const Object* Object, bool Delete) {
+void ObjectTable::UnregisterObjectM(const Object* Object, bool Delete) {
   CPU_PROFILING_SCOPE;
-  AutoLock Lock(mTableMutex);
-  if (Object != nullptr)
-    UnregisterObject(Object->GetHandle(), Delete);
+  if (Object != nullptr) {
+    UnregisterObjectM(Object->GetHandle(), Delete);
+  }
 }
 
 Int32 ObjectTable::AssignHandleM(const bool IsPersistent) {
@@ -75,7 +83,7 @@ void ObjectTable::ModifyObjectHandleM(Object* Object, Int32 NewHandle) {
     gLogger.Error(Logcat::Object, "更新对象Handle失败, NewHandle=0. 对象: '{}', {:p}.", Object->GetObjectName(), Ptr(Object));
     return;
   }
-  UnregisterObject(Object, false);
+  UnregisterObjectM(Object, false);
   Object->InternalSetHandle(NewHandle);
   RegisterObject(Object);
 }

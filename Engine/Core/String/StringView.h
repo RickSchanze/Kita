@@ -51,12 +51,12 @@ public:
   }
 
   [[nodiscard]] SizeType IndexOf(char Target, SizeType Start = 0) const;
-  [[nodiscard]] SizeType LastIndexOf(char Target, SizeType Start = 0) const;
+  [[nodiscard]] SizeType LastIndexOf(char Target, SizeType Start = std::string::npos) const;
 
   [[nodiscard]] SizeType IndexOf(StringView Target, SizeType Start = 0) const;
-  [[nodiscard]] SizeType LastIndexOf(StringView Target, SizeType Start = 0) const;
+  [[nodiscard]] SizeType LastIndexOf(StringView Target, SizeType Start = std::string::npos) const;
 
-  [[nodiscard]] StringView SubStr(SizeType Start, SizeType Length = 0) const;
+  [[nodiscard]] StringView SubStr(SizeType Start, SizeType Length = std::string::npos) const;
 
 private:
   std::string_view mStr;

@@ -13,8 +13,10 @@ struct EngineData {
 
 class EngineLoop : public Singleton<EngineLoop> {
 public:
-  static void StartUpSystems(const char** ArgV, int ArgC) { GetRef().StartUpSystemsM(ArgV, ArgC); }
-  static void ShutDownSystems() { GetRef().ShutDownSystemsM(); }
+  static void StartUpSystems(const char** ArgV, const int ArgC) { GetRef().StartUpSystemsM(ArgV, ArgC); }
+  /// 所有系统的清理函数
+  /// @param Tips 如果为True, 则会打印一条“按任意键结束” 然后等待用户输入 输入了再关终端
+  static void ShutDownSystems(bool Tips = false);
   static void Run() { GetRef().RunM(); }
 
 private:

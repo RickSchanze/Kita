@@ -529,7 +529,8 @@ UInt32 GfxContext_Vulkan::GetQueueFamilyIndex(const ERHIQueueFamilyType Family) 
   case ERHIQueueFamilyType::Compute:
     std::unreachable();
   case ERHIQueueFamilyType::Transfer:
-    std::unreachable();
+    // TODO: 当前Transfer和图形混用
+    return *mQueueFamilies.GraphicsFamily;
   case ERHIQueueFamilyType::Present:
     return *mQueueFamilies.PresentFamily;
   }

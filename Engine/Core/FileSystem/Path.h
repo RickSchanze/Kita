@@ -37,7 +37,7 @@ public:
   /// 获取文件的扩展名（不包含点号）
   /// 例如: "file.txt" -> "txt", "archive.tar.gz" -> "gz", "noext" -> ""
   /// @return 文件扩展名，如果没有扩展名则返回空字符串
-  [[nodiscard]] static String GetExtension(StringView Path);
+  [[nodiscard]] static StringView GetExtension(StringView Path);
 private:
   String mPath;
 };

@@ -44,7 +44,13 @@ void Mesh::Load() {
   }
 }
 
-void Mesh::Unload() { gLogger.Info(Logcat::Asset, "Mesh: {} 卸载.", mPath); }
+void Mesh::Unload() {
+  gLogger.Info(Logcat::Asset, "Mesh: {} 卸载.", mPath);
+  mIndexBuffer = nullptr;
+  mVertexBuffer = nullptr;
+  mSubMeshes.Clear();
+  mLoaded = false;
+}
 
 void Mesh::ApplyMeta(const AssetMeta& Meta) {
   const auto& ThisMeshMeta = static_cast<const MeshMeta&>(Meta);
@@ -90,7 +96,7 @@ bool Mesh::LoadFromPath() {
 
 void Mesh::ProcessMesh(const aiMesh* Mesh, Array<Vertex>& AllVertices, Array<UInt32>& AllIndices) {
   CPU_PROFILING_SCOPE;
-  SubmeshInfo Info{};
+  SubMeshInfo Info{};
   Info.VertexOffset = AllVertices.Count();
   Info.VertexCount = Mesh->mNumVertices;
   Info.IndexOffset = AllIndices.Count();
@@ -116,7 +122,7 @@ void Mesh::ProcessMesh(const aiMesh* Mesh, Array<Vertex>& AllVertices, Array<UIn
       AllIndices.Add(Face.mIndices[j]);
     }
   }
-  mSubmeshes.Add(Info);
+  mSubMeshes.Add(Info);
 }
 
 void Mesh::ProcessNode(const struct aiNode* Node, const struct aiScene* Scene, Array<Vertex>& AllVertices, Array<UInt32>& AllIndices) {

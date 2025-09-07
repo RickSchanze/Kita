@@ -21,11 +21,11 @@ Archive.ReadType("FlipUV", FlipUV);
 Archive.ReadType("CalcTangent", CalcTangent); 
 Archive.ReadType("EnsureTriangles", EnsureTriangles); 
 } 
-const Type* SubmeshInfo::GetStaticType() { return TypeOf<SubmeshInfo>(); }
-const Type* SubmeshInfo::GetType() { return TypeOf<SubmeshInfo>(); }
-void SubmeshInfo::WriteArchive(OutputArchive& Archive) const { 
+const Type* SubMeshInfo::GetStaticType() { return TypeOf<SubMeshInfo>(); }
+const Type* SubMeshInfo::GetType() { return TypeOf<SubMeshInfo>(); }
+void SubMeshInfo::WriteArchive(OutputArchive& Archive) const { 
 } 
-void SubmeshInfo::ReadArchive(InputArchive& Archive) { 
+void SubMeshInfo::ReadArchive(InputArchive& Archive) { 
 } 
 const Type* Mesh::GetStaticType() { return TypeOf<Mesh>(); }
 const Type* Mesh::GetType() { return TypeOf<Mesh>(); }
