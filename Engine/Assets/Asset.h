@@ -29,6 +29,7 @@ enum class EAssetType {
   Audio,
   Font,
   Prefab,
+  Count,
 };
 
 KCLASS(Abstract)

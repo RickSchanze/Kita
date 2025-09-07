@@ -25,16 +25,19 @@ public:
   static inline char Separator = '/';
 
   static bool IsExists(StringView Path);
-  bool IsExists() const;
+  [[nodiscard]] bool IsExists() const;
 
   static bool IsDirectory(StringView Path);
-  bool IsDirectory() const;
+  [[nodiscard]] bool IsDirectory() const;
 
   // 也可以提供直接 Combine 两个字符串的版本：
   static String Combine(StringView Base, StringView Relative, bool NeedNormalize = true);
   static bool CreateDirectory(StringView Path, bool Recursive = true) ;
 
-
+  /// 获取文件的扩展名（不包含点号）
+  /// 例如: "file.txt" -> "txt", "archive.tar.gz" -> "gz", "noext" -> ""
+  /// @return 文件扩展名，如果没有扩展名则返回空字符串
+  [[nodiscard]] static String GetExtension(StringView Path);
 private:
   String mPath;
 };

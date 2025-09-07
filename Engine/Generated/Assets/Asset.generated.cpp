@@ -11,6 +11,7 @@ Builder.AddField("Animation", EAssetType::Animation);
 Builder.AddField("Audio", EAssetType::Audio);
 Builder.AddField("Font", EAssetType::Font);
 Builder.AddField("Prefab", EAssetType::Prefab);
+Builder.AddField("Count", EAssetType::Count);
 Builder.Register();
 }const Type* Asset::GetStaticType() { return TypeOf<Asset>(); }
 const Type* Asset::GetType() { return TypeOf<Asset>(); }

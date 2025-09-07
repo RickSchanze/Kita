@@ -3,9 +3,9 @@
 #include "Core/Macros.h"
 #include "Core/TypeDefs.h"
 
+#include <iostream>
 #include <string>
 #include <string_view>
-#include <iostream>
 
 class String;
 
@@ -49,6 +49,14 @@ public:
     OS << StrView.mStr;
     return OS;
   }
+
+  [[nodiscard]] SizeType IndexOf(char Target, SizeType Start = 0) const;
+  [[nodiscard]] SizeType LastIndexOf(char Target, SizeType Start = 0) const;
+
+  [[nodiscard]] SizeType IndexOf(StringView Target, SizeType Start = 0) const;
+  [[nodiscard]] SizeType LastIndexOf(StringView Target, SizeType Start = 0) const;
+
+  [[nodiscard]] StringView SubStr(SizeType Start, SizeType Length = 0) const;
 
 private:
   std::string_view mStr;

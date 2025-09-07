@@ -41,3 +41,6 @@ endif ()
 # 链接 shader-slang 库
 target_link_libraries(KitaAssets PRIVATE slang)
 
+find_package(assimp CONFIG REQUIRED)
+target_link_libraries(KitaAssets PRIVATE assimp::assimp)
+

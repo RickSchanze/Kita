@@ -4,6 +4,7 @@
 
 #include "EngineLoop.h"
 
+#include "Assets/AssetsManager.h"
 #include "Core/Config/ConfigManager.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskGraph.h"
@@ -67,9 +68,12 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
 
   // EditorWindowManager
   EditorWindowManager::StartUp();
+
+  AssetsManager::StartUp();
 }
 
 void EngineLoop::ShutDownSystemsM() {
+  AssetsManager::ShutDown();
   // EditorWindowManager
   EditorWindowManager::ShutDown();
   // MenuAction

@@ -21,7 +21,8 @@ public:
   /// @param Delete 是否要释放内存
   void UnregisterObject(const Object* Object, bool Delete);
 
-  Int32 AssignHandle(bool IsPersistent);
+  static Int32 AssignHandle(const bool IsPersistent) { return GetRef().AssignHandleM(IsPersistent); }
+  Int32 AssignHandleM(bool IsPersistent);
 
   /// 以Type创建一个Object 最好使用模版化版本性能能稍好一些
   /// @param InType 输入类型
@@ -36,7 +37,7 @@ public:
     requires Traits::IsBaseOf<Object, T>
   T* CreateObject(StringView NewName = "NewObject") {
     CPU_PROFILING_SCOPE;
-    Int32 NewId = AssignHandle(false);
+    Int32 NewId = AssignHandleM(false);
     T* NewObject = new T();
     NewObject->InternalSetHandle(NewId);
     NewObject->SetObjectName(NewName);
@@ -50,6 +51,9 @@ public:
   /// @param NewHandle
   void ModifyObjectHandleM(Object* Object, Int32 NewHandle);
   static void ModifyObjectHandle(Object* Object, const Int32 NewHandle) { ObjectTable::GetRef().ModifyObjectHandleM(Object, NewHandle); }
+
+  static Object* GetObject(const Int32 Handle) { return ObjectTable::GetRef().GetObjectM(Handle); }
+  Object* GetObjectM(Int32 Handle);
 
 private:
   // TODO: 更换为ConcurrentMap

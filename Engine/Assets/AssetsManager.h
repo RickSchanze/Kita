@@ -6,12 +6,13 @@
 #include "Core/TaskGraph/TaskHandle.h"
 #include "Mesh.h"
 
+struct ShaderMeta;
+
 struct AssetIndex {
-  Int32 Id;
-  Int32 ObjectHandle;
-  std::string Name;
-  std::string Path;
-  EAssetType Type;
+  Int32 Id{};
+  Int32 ObjectHandle{};
+  String Path{};
+  EAssetType Type{EAssetType::Count};
 };
 
 struct AssetLoadTaskHandle : TaskHandle {
@@ -29,6 +30,8 @@ struct AssetLoadTaskHandle : TaskHandle {
     WaitSync();
     return static_cast<T*>(mTargetObject);
   }
+
+  void internalSetTargetObject(Asset* Asset) { mTargetObject = Asset; }
 
 private:
   Asset* mTargetObject = nullptr;
@@ -55,6 +58,11 @@ public:
   static AssetLoadTaskHandle LoadAsync(const Int32 ObjectHandle) { return GetRef().LoadAsyncM(ObjectHandle); }
   AssetLoadTaskHandle LoadAsyncM(Int32 ObjectHandle);
 
+  /// 根据路径自动导入资产, 如果资产已经存在则Warn
+  /// 导入后会进行加载 返回一个任务句柄
+  static AssetLoadTaskHandle ImportAsync(const StringView Path) { return GetRef().ImportAsyncM(Path); }
+  AssetLoadTaskHandle ImportAsyncM(StringView Path);
+
   Optional<MeshMeta> QueryMeshMeta(StringView Path);
   Optional<MeshMeta> QueryMeshMeta(Int32 ObjectHandle);
 
@@ -68,7 +76,6 @@ public:
   struct Impl;
 
 private:
-  AssetLoadTaskHandle LoadMeshAsync(const MeshMeta& Meta);
   UniquePtr<Impl> mImpl;
 };
 

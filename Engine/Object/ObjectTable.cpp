@@ -43,7 +43,7 @@ void ObjectTable::UnregisterObject(const Object* Object, bool Delete) {
     UnregisterObject(Object->GetHandle(), Delete);
 }
 
-Int32 ObjectTable::AssignHandle(const bool IsPersistent) {
+Int32 ObjectTable::AssignHandleM(const bool IsPersistent) {
   CPU_PROFILING_SCOPE;
   if (IsPersistent) {
     AutoLock Lock(mPersistentIdMutex);
@@ -60,7 +60,7 @@ Object* ObjectTable::CreateObject(const Type* InType, const StringView NewName) 
   CPU_PROFILING_SCOPE;
   Object* NewObject = InType->CreateInstanceT<Object>();
   NewObject->SetObjectName(NewName);
-  const Int32 Id = AssignHandle(false);
+  const Int32 Id = AssignHandleM(false);
   NewObject->InternalSetHandle(Id);
   RegisterObject(NewObject);
   return NewObject;
@@ -78,4 +78,12 @@ void ObjectTable::ModifyObjectHandleM(Object* Object, Int32 NewHandle) {
   UnregisterObject(Object, false);
   Object->InternalSetHandle(NewHandle);
   RegisterObject(Object);
+}
+
+Object* ObjectTable::GetObjectM(const Int32 Handle) {
+  AutoLock Lock(mTableMutex);
+  if (const auto Iter = mObjectTable.Find(Handle); Iter != mObjectTable.End()) {
+    return Iter->second;
+  }
+  return nullptr;
 }

@@ -66,3 +66,14 @@ bool Path::CreateDirectory(StringView Path, bool Recursive) {
   // 如果目录已经存在，fs::create_* 会返回 false，但是并不算错误
   return OK || fs::exists(FsPath);
 }
+
+String Path::GetExtension(const StringView Path) {
+  const SizeType DotPos = Path.IndexOf('.');
+
+  if (const SizeType SepPos = Path.LastIndexOf("/\\"); DotPos == std::string::npos || (SepPos != std::string::npos && DotPos < SepPos)) {
+    return {""};
+  }
+
+  // 跳过点号，从点后面开始截取
+  return String(Path.SubStr(DotPos + 1));
+}

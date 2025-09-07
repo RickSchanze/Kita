@@ -11,6 +11,7 @@
 #include "Mesh.h"
 #include "Object/ObjectTable.h"
 #include "Project/Project.h"
+#include "Shader.h"
 #include "sqlite_orm/sqlite_orm.h"
 
 using namespace sqlite_orm;
@@ -18,7 +19,19 @@ using namespace sqlite_orm;
 AssetsManager::AssetsManager() = default;
 AssetsManager::~AssetsManager() = default;
 
-void AssetsManager::StartUp() {}
+static void WaitAllHandles(Array<AssetLoadTaskHandle> Handles) {
+  for (auto& Handle : Handles) {
+    Handle.WaitSync();
+  }
+}
+
+void AssetsManager::StartUp() {
+  // clang-format off
+  WaitAllHandles({
+      ImportAsync("Assets/Mesh/Cube.fbx")
+  });
+  // clang-format on
+}
 
 void AssetsManager::ShutDown() {}
 
@@ -101,19 +114,23 @@ template <> struct row_extractor<String> {
 #pragma endregion
 
 static auto MakeAssetIndexTable() {
-  return make_table("AssetIndex", make_column("Id", &AssetIndex::Id, primary_key().autoincrement()), make_column("ObjectId", &AssetIndex::ObjectHandle), make_column("Name", &AssetIndex::Name),
-                    make_column("Path", &AssetIndex::Path), make_column("Type", &AssetIndex::Type));
+  return make_table("AssetIndex", make_column("Id", &AssetIndex::Id, primary_key().autoincrement()), make_column("ObjectHandle", &AssetIndex::ObjectHandle), make_column("Path", &AssetIndex::Path),
+                    make_column("Type", &AssetIndex::Type));
 }
 
 static auto MakeMeshMetaTable() {
-  return make_table("Mesh", make_column("Id", &MeshMeta::Id, primary_key().autoincrement()), make_column("ObjectId", &MeshMeta::ObjectHandle), make_column("Path", &MeshMeta::Path),
+  return make_table("Mesh", make_column("Id", &MeshMeta::Id, primary_key().autoincrement()), make_column("ObjectHandle", &MeshMeta::ObjectHandle), make_column("Path", &MeshMeta::Path),
                     make_column("FlipUV", &MeshMeta::FlipUV), make_column("CalcTangent", &MeshMeta::CalcTangent), make_column("EnsureTriangles", &MeshMeta::EnsureTriangles));
+}
+
+static auto MakeShaderMetaTable() {
+  return make_table("Shader", make_column("Id", &ShaderMeta::Id, primary_key().autoincrement()), make_column("ObjectHandle", &ShaderMeta::ObjectHandle), make_column("Path", &ShaderMeta::Path));
 }
 
 static auto MakeStorage() {
   const auto LibPath = Project::GetLibraryPath();
   const auto Path = ::Path::Combine(LibPath, ASSET_CENTER_DATABASE_NAME);
-  return make_storage(LibPath.Data(), MakeAssetIndexTable(), MakeMeshMetaTable());
+  return make_storage(LibPath.Data(), MakeAssetIndexTable(), MakeMeshMetaTable(), MakeShaderMetaTable());
 }
 
 struct AssetsManager::Impl {
@@ -199,34 +216,92 @@ struct AssetsManager::Impl {
   Set<Int32> mLoadingAssets;
 };
 
+static EAssetType GetAssetTypeByExtension(StringView Path) {
+  const StringView Ext = Path::GetExtension(Path);
+  if (Ext == "fbx" || Ext == "obj") {
+    return EAssetType::Mesh;
+  }
+  if (Ext == "slang") {
+    return EAssetType::Shader;
+  }
+  return EAssetType::Count;
+}
+
+AssetLoadTaskHandle AssetsManager::ImportAsyncM(StringView Path) {
+  const EAssetType Type = GetAssetTypeByExtension(Path);
+  if (Type == EAssetType::Count) {
+    gLogger.Error(Logcat::Asset, "未知的资产类型 '{}'.", Path);
+    return {};
+  }
+  if (auto OpIndex = mImpl->QueryMeta<AssetIndex>(Path)) {
+    gLogger.Warn(Logcat::Asset, "资产 '{}' 重复导入, 将跳过此次导入, 但仍会进行加载.", Path);
+  } else {
+    AssetIndex NewIndex{};
+    NewIndex.ObjectHandle = ObjectTable::AssignHandle(true);
+    NewIndex.Path = Path.ToString();
+    NewIndex.Type = Type;
+    mImpl->Insert(NewIndex);
+
+    switch (NewIndex.Type) {
+    case EAssetType::Shader: {
+      ShaderMeta NewShaderMeta{};
+      NewShaderMeta.ObjectHandle = NewIndex.ObjectHandle;
+      NewShaderMeta.Path = NewIndex.Path;
+      mImpl->Insert(NewShaderMeta);
+    } break;
+    case EAssetType::Mesh: {
+      MeshMeta NewMeshMeta{};
+      NewMeshMeta.ObjectHandle = NewIndex.ObjectHandle;
+      NewMeshMeta.Path = NewIndex.Path;
+      mImpl->Insert(NewMeshMeta);
+    } break;
+    case EAssetType::Texture:
+      break;
+    case EAssetType::Material:
+      break;
+    case EAssetType::Scene:
+      break;
+    case EAssetType::Animation:
+      break;
+    case EAssetType::Audio:
+      break;
+    case EAssetType::Font:
+      break;
+    case EAssetType::Prefab:
+      break;
+    case EAssetType::Count:
+      break;
+    }
+  }
+  return LoadAsyncM(Path);
+}
+
 Optional<MeshMeta> AssetsManager::QueryMeshMeta(const StringView Path) { return mImpl->QueryMeta<MeshMeta>(Path); }
 
 Optional<MeshMeta> AssetsManager::QueryMeshMeta(const Int32 ObjectHandle) { return mImpl->QueryMeta<MeshMeta>(ObjectHandle); }
 
-bool AssetsManager::IsAssetLoading(Int32 Handle) { return GetRef().mImpl->IsLoading(Handle); }
+bool AssetsManager::IsAssetLoading(const Int32 Handle) { return GetRef().mImpl->IsLoading(Handle); }
 
-bool AssetsManager::IsAssetLoaded(Int32 Handle) { return GetRef().mImpl->IsLoaded(Handle); }
+bool AssetsManager::IsAssetLoaded(const Int32 Handle) { return GetRef().mImpl->IsLoaded(Handle); }
 
-class LoadMeshTask : public TaskNode {
-public:
-  LoadMeshTask(Mesh* InMesh) : Mesh(InMesh) {}
-  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }
+struct AssetLoadTask : TaskNode {
+  explicit AssetLoadTask(Asset* InAsset) : Asset(InAsset) {}
+  [[nodiscard]] virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }
 
   virtual ETaskNodeResult Run() override {
-    if (Mesh) {
-      Mesh->Load();
+    if (Asset) {
+      Asset->Load();
     }
     return ETaskNodeResult::Success;
   }
 
-  Mesh* Mesh;
+  Asset* Asset;
 };
 
-struct AssetLoadCompletedTask : public TaskNode {
-public:
+struct AssetLoadCompletedTask final : TaskNode {
   AssetLoadCompletedTask(AssetsManager::Impl* InImpl, Int32 InObjectHandle) : Impl(InImpl), ObjectHandle(InObjectHandle) {}
 
-  virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }
+  [[nodiscard]] virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }
 
   virtual ETaskNodeResult Run() override {
     if (Impl && ObjectHandle != 0) {
@@ -239,17 +314,43 @@ public:
   Int32 ObjectHandle;
 };
 
-AssetLoadTaskHandle AssetsManager::LoadMeshAsync(const MeshMeta& Meta) {
+template <class T, class TMeta> static AssetLoadTaskHandle LoadAssetAsync(const TMeta& Meta, AssetsManager::Impl* Impl) {
   CPU_PROFILING_SCOPE;
-  Mesh* MyMesh = CreateObject<Mesh>(Meta.Path);
-  ObjectTable::ModifyObjectHandle(MyMesh, Meta.ObjectHandle);
+  if (const Int32 ObjHandle = Meta.ObjectHandle; AssetsManager::IsAssetLoaded(ObjHandle)) {
+    AssetLoadTaskHandle TaskHandle{};
+    TaskHandle.internalSetTargetObject(static_cast<Asset*>(ObjectTable::GetObject(ObjHandle)));
+    return TaskHandle;
+  }
+  T* MyShader = CreateObject<T>(Meta.Path);
+  ObjectTable::ModifyObjectHandle(MyShader, Meta.ObjectHandle);
   // 首先处理Meta
-  MyMesh->ApplyMeta(Meta);
+  MyShader->ApplyMeta(Meta);
   // 然后开始加载
-  mImpl->MakeObjectLoading(Meta.ObjectHandle);
-  const TaskHandle Handle = TaskGraph::CreateTask<LoadMeshTask>(Format("Task: Load mesh '{}'", Meta.Path), {}, MyMesh);
-  TaskGraph::CreateTask<AssetLoadCompletedTask>("Task: AssetCompleted", {Handle}, mImpl.Get(), Meta.ObjectHandle);
-  return AssetLoadTaskHandle(Handle, MyMesh);
+  Impl->MakeObjectLoading(Meta.ObjectHandle);
+  const TaskHandle Handle = TaskGraph::CreateTask<AssetLoadTask>(Format("Task: Load shader '{}'", Meta.Path), {}, MyShader);
+  TaskGraph::CreateTask<AssetLoadCompletedTask>("Task: AssetLoadCompleted", {Handle}, Impl, Meta.ObjectHandle);
+  return AssetLoadTaskHandle(Handle, MyShader);
+}
+
+static AssetLoadTaskHandle LoadAssetByIndex(const AssetIndex& Index, AssetsManager::Impl* Impl) {
+  switch (Index.Type) {
+  case EAssetType::Mesh: {
+    auto OpMeshMeta = Impl->QueryMeta<MeshMeta>(Index.ObjectHandle);
+    if (!OpMeshMeta) {
+      return {};
+    }
+    return LoadAssetAsync<Mesh>(*OpMeshMeta, Impl);
+  }
+  case EAssetType::Shader: {
+    auto OpShaderMeta = Impl->QueryMeta<ShaderMeta>(Index.ObjectHandle);
+    if (!OpShaderMeta) {
+      return {};
+    }
+    return LoadAssetAsync<Shader>(*OpShaderMeta, Impl);
+  }
+  default:
+    return {};
+  }
 }
 
 AssetLoadTaskHandle AssetsManager::LoadAsyncM(const StringView Path) {
@@ -257,19 +358,10 @@ AssetLoadTaskHandle AssetsManager::LoadAsyncM(const StringView Path) {
   CPU_PROFILING_SCOPE;
   auto OpAssetIndex = mImpl->QueryMeta<AssetIndex>(Path);
   if (!OpAssetIndex) {
+    gLogger.Error(Logcat::Asset, "LoadAsync: 找不到对象'{}', 是否忘记导入?", Path);
     return {};
   }
-  switch (const AssetIndex& AssetIndex = *OpAssetIndex; AssetIndex.Type) {
-  case EAssetType::Mesh: {
-    auto OpMeshMeta = mImpl->QueryMeta<MeshMeta>(Path);
-    if (!OpMeshMeta) {
-      return {};
-    }
-    return LoadMeshAsync(*OpMeshMeta);
-  }
-  default:
-    return {};
-  }
+  return LoadAssetByIndex(*OpAssetIndex, mImpl.Get());
 }
 
 AssetLoadTaskHandle AssetsManager::LoadAsyncM(const Int32 ObjectHandle) {
@@ -277,17 +369,8 @@ AssetLoadTaskHandle AssetsManager::LoadAsyncM(const Int32 ObjectHandle) {
   CPU_PROFILING_SCOPE;
   auto OpAssetIndex = mImpl->QueryMeta<AssetIndex>(ObjectHandle);
   if (!OpAssetIndex) {
+    gLogger.Error(Logcat::Asset, "LoadAsync: 对象'{}'不存在, 是否忘记导入?", ObjectHandle);
     return {};
   }
-  switch (const AssetIndex& AssetIndex = *OpAssetIndex; AssetIndex.Type) {
-  case EAssetType::Mesh: {
-    auto OpMeshMeta = mImpl->QueryMeta<MeshMeta>(ObjectHandle);
-    if (!OpMeshMeta) {
-      return {};
-    }
-    return LoadMeshAsync(*OpMeshMeta);
-  }
-  default:
-    return {};
-  }
+  return LoadAssetByIndex(*OpAssetIndex, mImpl.Get());
 }
