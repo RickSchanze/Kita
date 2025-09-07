@@ -64,9 +64,9 @@ void Shader::Load() {
     mLoaded = ReadBinary();
   }
   if (mLoaded) {
-    gLogger.Info(Logcat::Asset, "Shader '{}' 加载成功.", mPath);
+    gLogger.Info(Logcat::Asset, "Shader '{}' 加载成功[ObjectHandle = {}].", mPath, GetHandle());
   } else {
-    gLogger.Error(Logcat::Asset, "Shader '{}' 加载失败.", mPath);
+    gLogger.Error(Logcat::Asset, "Shader '{}' 加载失败[ObjectHandle = {}].", mPath, GetHandle());
   }
 }
 

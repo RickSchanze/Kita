@@ -40,16 +40,16 @@ void Mesh::Load() {
   if (!mLoaded) {
     gLogger.Error(Logcat::Asset, "Mesh: {} 加载失败.", mPath);
   } else {
-    gLogger.Info(Logcat::Asset, "Mesh: {} 加载.", mPath);
+    gLogger.Info(Logcat::Asset, "Mesh: {} 加载[ObjectHandle = {}].", mPath, GetHandle());
   }
 }
 
 void Mesh::Unload() {
-  gLogger.Info(Logcat::Asset, "Mesh: {} 卸载.", mPath);
   mIndexBuffer = nullptr;
   mVertexBuffer = nullptr;
   mSubMeshes.Clear();
   mLoaded = false;
+  gLogger.Info(Logcat::Asset, "Mesh: {} 卸载[ObjectHandle = {}].", mPath, GetHandle());
 }
 
 void Mesh::ApplyMeta(const AssetMeta& Meta) {
