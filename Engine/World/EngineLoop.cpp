@@ -12,6 +12,7 @@
 #include "Editor/MenuActionManager.h"
 #include "Input/Input.h"
 #include "Input/InputTicker.h"
+#include "Object/ObjectTable.h"
 #include "Project/Project.h"
 #include "RHI/GfxContext.h"
 #include "RHI/RHIConfig.h"
@@ -53,7 +54,7 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   TaskGraph::StartUp();
   // GfxContext
   GfxContext::StartUp();
-
+  ObjectTable::StartUp();
   // Swapchain
   RHIConfig& Config = ConfigManager::GetConfigRef<RHIConfig>();
   mSurfaceWindow = GfxContext::GetRef().CreateSurfaceWindowR(Config.GetDefaultWindowSize().X(), Config.GetDefaultWindowSize().Y());
@@ -101,6 +102,7 @@ void EngineLoop::ShutDownSystemsM() {
   Delete(mSurfaceWindow);
   mSurfaceWindow = nullptr;
 
+  ObjectTable::ShutDown();
   // GfxContext
   GfxContext::ShutDown();
 

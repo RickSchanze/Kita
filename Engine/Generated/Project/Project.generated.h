@@ -19,6 +19,7 @@ Builder.CreateType<Project>("Project"); \
 Builder.SetConstructor(Project::ConstructSelf).SetDestructor(Project::DestructSelf); \
 Builder.AddField("mProjectPath", &Project::mProjectPath); \
 Builder.AddField("mProjectName", &Project::mProjectName); \
+Builder.AddField("mPersistentId", &Project::mPersistentId); \
 Builder.Register(); \
 } \
 }; \

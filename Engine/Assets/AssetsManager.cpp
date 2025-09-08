@@ -208,15 +208,18 @@ static void WaitAllHandles(Array<AssetLoadTaskHandle> Handles) {
 }
 
 void AssetsManager::StartUp() {
+  Shader::ReadCache();
   GetRef().mImpl = MakeUnique<Impl>();
   // clang-format off
   WaitAllHandles({
-      ImportAsync("Assets/Mesh/Cube.fbx")
+    ImportAsync("Assets/Mesh/Cube.fbx"),
+    ImportAsync("Assets/Shader/Skybox.slang")
   });
   // clang-format on
 }
 
 void AssetsManager::ShutDown() {
+  Shader::WriteCache();
   // 卸载所有的资产
   auto& Self = GetRef();
   {

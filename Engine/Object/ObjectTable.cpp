@@ -4,12 +4,19 @@
 
 #include "ObjectTable.h"
 
-void ObjectTable::StartUp() {
+#include "Project/Project.h"
 
-}
+void ObjectTable::StartUp() { GetRef().mPersistentId = Project::GetPersistentId(); }
 
 void ObjectTable::ShutDown() {
-
+  auto& Self = GetRef();
+  Project::UpdatePersistentId(Self.mPersistentId);
+  if (Self.mObjectTable.Count() > 0) {
+    gLogger.Warn(Logcat::Object, "有{}个对象未释放:", Self.mObjectTable.Count());
+    for (auto Pair : GetRef().mObjectTable) {
+      gLogger.Warn(Logcat::Object, "[{}]: {:p}({})", Pair.first, Ptr(Pair.second), Pair.second->GetObjectName());
+    }
+  }
 }
 
 bool ObjectTable::IsObjectAlive(const Int32 Handle) {
@@ -55,7 +62,9 @@ Int32 ObjectTable::AssignHandleM(const bool IsPersistent) {
   CPU_PROFILING_SCOPE;
   if (IsPersistent) {
     AutoLock Lock(mPersistentIdMutex);
-    return mPersistentId++;
+    const Int32 NewPersistentId = mPersistentId++;
+    Project::UpdatePersistentId(NewPersistentId + 1);
+    return NewPersistentId;
   } else {
     AutoLock Lock(mInstancedIdMutex);
     return mInstancedId++;

@@ -11,6 +11,8 @@ struct Project {
 public:
   static void StartUp(StringView ProjectPath);
   static void ShutDown();
+  static void UpdatePersistentId(Int32 NewId);
+  static Int32 GetPersistentId() { return GetRef().mPersistentId; }
 
   /// 确保ProjectPath/Library存在 不存在则Crash
   static void EnsureLibraryExists();
@@ -49,6 +51,10 @@ private:
 
   KPROPERTY()
   String mProjectName = "UnnamedProject";
+
+  /// 记录当前持久化ID用到哪了
+  KPROPERTY()
+  Int32 mPersistentId = 0;
 
   /// 缓存路径
   String mProjectFilePath;

@@ -2,7 +2,7 @@ module Annotation;
 
 [__AttributeUsage(_AttributeTargets.Function)]
 public struct CullModeAttribute {
-  bool Backface;
+  bool UseBackface;
 }
 
 [__AttributeUsage(_AttributeTargets.Var)]

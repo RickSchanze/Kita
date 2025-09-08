@@ -26,6 +26,14 @@ void Project::ShutDown() {
   Archive.WriteFile(Self.mProjectFilePath);
 }
 
+void Project::UpdatePersistentId(Int32 NewId) {
+  auto& Self = GetRef();
+  Self.mPersistentId = NewId;
+  YAMLOutputArchive Archive;
+  Archive.WriteType("Project", Self);
+  Archive.WriteFile(Self.mProjectFilePath);
+}
+
 void Project::EnsureLibraryExists() {
   StringView Path = GetLibraryPath();
   if (!Path::IsExists(Path)) {

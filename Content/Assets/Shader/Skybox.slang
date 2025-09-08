@@ -32,7 +32,7 @@ struct FO {
 }
 
 /// 天空盒不适用背面剔除, 而使用正面剔除
-[shader("fragment"), CullMode(false)]
+[shader("fragment"), CullMode(true)]
 FO FragmentMain(VO In) {
   FO Out;
   Out.Color = float4(1, 0, 1, 1);

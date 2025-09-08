@@ -37,7 +37,7 @@ private:
     TargetDesc.format = SLANG_SPIRV;
     TargetDesc.profile = mGlobalSession->findProfile("glsl_460");
     Desc.searchPaths = SearchPathsArray.Data();
-    Desc.searchPathCount = SearchPathsArray.Count();
+    Desc.searchPathCount = static_cast<SlangInt>(SearchPathsArray.Count());
     Desc.targets = &TargetDesc;
     Desc.targetCount = 1;
     mGlobalSession->createSession(Desc, mCompileSession.writeRef());
@@ -116,19 +116,83 @@ static bool TranslateCompute(const Slang::ComPtr<slang::ISession>& Session, slan
   return false;
 }
 
+static void ProcessFragmentAttribute(slang::FunctionReflection* FragFuncLayout, Byte& FirstByte) {
+  const SlangInt AttributeCount = FragFuncLayout->getUserAttributeCount();
+  for (SlangInt Index = 0; Index < AttributeCount; Index++) {
+    slang::UserAttribute* Attribute = FragFuncLayout->getUserAttributeByIndex(Index);
+    if (Attribute == nullptr)
+      continue;
+    StringView AttrName = Attribute->getName();
+    if (AttrName == "CullMode") {
+      Int32 CullMode;
+      SlangResult Result = Attribute->getArgumentValueInt(0, &CullMode);
+      if (Result == SLANG_OK) {
+        if (CullMode == 0) {
+          FirstByte.Clear(1);
+        } else {
+          FirstByte.Set(1);
+        }
+      }
+    }
+  }
+}
+
+static void ProcessVertexAttribute(slang::FunctionReflection* FragFuncLayout, ShaderBinaryData& OutBinaryData) {}
+
 static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, slang::IModule* Module, const Slang::ComPtr<slang::IEntryPoint>& VertexEntry,
-                              const Slang::ComPtr<slang::IEntryPoint>& FragmentEntry, ShaderBinaryData& OutBinaryData) {
+                              const Slang::ComPtr<slang::IEntryPoint>& FragmentEntry, ShaderBinaryData& OutBinaryData, StringView ShaderPath) {
   Array<slang::IComponentType*> Components = {Module, VertexEntry, FragmentEntry};
   Slang::ComPtr<slang::IComponentType> Program;
   Slang::ComPtr<slang::IBlob> Diagnostics;
-  Session->createCompositeComponentType(Components.Data(), Components.Count(), Program.writeRef(), Diagnostics.writeRef());
+  Session->createCompositeComponentType(Components.Data(), static_cast<SlangInt>(Components.Count()), Program.writeRef(), Diagnostics.writeRef());
   if (Diagnostics) {
     return false;
   }
   // 反射
   Byte FirstByte{};
   FirstByte.Set(0); // 设置图像管线为true
+  FirstByte.Set(1); // 默认使用CullMode为backface
   OutBinaryData.Data.Add(FirstByte);
+
+  slang::ProgramLayout* ProgLayout = Program->getLayout();
+  if (!ProgLayout) {
+    return false;
+  }
+
+  // 反射获取信息
+  bool Processed[std::to_underlying(EShaderStage::Count)]{};
+  const SlangInt EntryPointCount = ProgLayout->getEntryPointCount();
+  for (SlangInt i = 0; i < EntryPointCount; i++) {
+    slang::EntryPointLayout* EntryPoint = ProgLayout->getEntryPointByIndex(i);
+    switch (SlangStage Stage = EntryPoint->getStage()) {
+    case SLANG_STAGE_VERTEX: {
+      if (Processed[std::to_underlying(EShaderStage::Vertex)]) {
+        gLogger.Error(Logcat::Asset, "'{}': 一个slang文件里不支持有多个Vertex入口.", ShaderPath);
+        return false;
+      }
+      slang::FunctionReflection* FunctionReflection = EntryPoint->getFunction();
+      if (!FunctionReflection) {
+        return false;
+      }
+      ProcessVertexAttribute(FunctionReflection, OutBinaryData);
+      Processed[std::to_underlying(EShaderStage::Vertex)] = true;
+    } break;
+    case SLANG_STAGE_FRAGMENT: {
+      if (Processed[std::to_underlying(EShaderStage::Fragment)]) {
+        gLogger.Error(Logcat::Asset, "'{}': 一个slang文件里不支持有多个Fragment入口.", ShaderPath);
+        return false;
+      }
+      slang::FunctionReflection* FunctionReflection = EntryPoint->getFunction();
+      if (!FunctionReflection) {
+        return false;
+      }
+      ProcessFragmentAttribute(FunctionReflection, FirstByte);
+      Processed[std::to_underlying(EShaderStage::Fragment)] = true;
+    } break;
+    default:
+      gLogger.Critical(Logcat::Asset, "暂不支持的Shader Stage: {}", Stage);
+    }
+  }
   return true;
 }
 
@@ -149,7 +213,7 @@ bool Shader::Translate() {
   Slang::ComPtr<IEntryPoint> FragmentEntryPoint;
   Module->findEntryPointByName("FragmentMain", FragmentEntryPoint.writeRef());
   DIAG();
-  return TranslateGraphics(GetTranslater().GetSession(), Module, VertexEntryPoint, FragmentEntryPoint, mShaderData);
+  return TranslateGraphics(GetTranslater().GetSession(), Module, VertexEntryPoint, FragmentEntryPoint, mShaderData, mPath);
 }
 
 bool Shader::ReadBinary() {
@@ -179,7 +243,7 @@ void Shader::ReadCache() {
       return;
     }
     InputFileStream InputFile(IntermediateShaderCachePath);
-    Int32 LineNum = 9;
+    Int32 LineNum = 0;
     while (true) {
       LineNum++;
       if (auto LineResult = InputFile.ReadLine()) {
@@ -211,6 +275,8 @@ void Shader::ReadCache() {
       } else {
         if (LineResult.Error() != EFileSystemError::EndOfFile) {
           gLogger.Error(Logcat::Asset, "读取ShaderCache文件'{}'时发生错误: {}", IntermediateShaderCachePath, LineResult.Error());
+        } else {
+          break;
         }
       }
     }

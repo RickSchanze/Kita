@@ -71,6 +71,9 @@ public:
 
   String GetBinaryPath();
 
+  static void ReadCache();
+  static void WriteCache();
+
 protected:
   /// 是否需要重新将Shader编译为spirv
   bool NeedReTranslate();
@@ -88,9 +91,6 @@ private:
   /// 否则重新编译Shader 并写入而二进制
   ShaderBinaryData mShaderData;
   const char* mEntryPointNames[std::to_underlying(EShaderStage::Count)] = {"VertexMain", "FragmentMain"};
-
-  static void ReadCache();
-  static void WriteCache();
 
   static inline Map<String, ShaderCache> sCache;
   static inline bool sCacheRead = false;

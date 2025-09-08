@@ -16,7 +16,7 @@ add_library(KitaObject
         Object.cpp
 )
 
-target_link_libraries(KitaObject PRIVATE KitaCore)
+target_link_libraries(KitaObject PRIVATE KitaCore KitaProject)
 
 target_include_directories(KitaObject PUBLIC ${Object_GENERATED_DIR})
 target_include_directories(KitaObject PUBLIC ../)
