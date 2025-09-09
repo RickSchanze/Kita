@@ -44,3 +44,5 @@ target_link_libraries(KitaAssets PRIVATE slang)
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(KitaAssets PRIVATE assimp::assimp)
 
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(KitaAssets PRIVATE nlohmann_json::nlohmann_json)

@@ -5,14 +5,14 @@
 #include "Shader.h"
 
 #include "AssetsConfig.h"
+#include "Core/Config/ConfigManager.h"
 #include "Core/FileSystem/File.h"
 #include "Core/FileSystem/InputFileStream.h"
 #include "Core/FileSystem/OutputFileStream.h"
 #include "Core/FileSystem/Path.h"
 #include "Core/String/StringUtils.h"
 #include "Project/Project.h"
-
-#include "Core/Config/ConfigManager.h"
+#include "nlohmann/json.hpp"
 #include "slang-com-ptr.h"
 
 class SlangShaderTranslater {
@@ -137,6 +137,39 @@ static void ProcessFragmentAttribute(slang::FunctionReflection* FragFuncLayout, 
   }
 }
 
+static bool ReflectParameter(slang::VariableLayoutReflection* Param, nlohmann::json& OutJson) {
+  if (!Param)
+    return false;
+
+  auto Variable = Param->getVariable();
+  if (!Variable)
+    return false;
+
+  auto TypeLayout = Param->getTypeLayout();
+  ShaderParameterInfo ParameterInfo;
+  ParameterInfo.Name = String(Variable->getName());
+  auto ParamType = TypeLayout->getKind();
+  if (ParamType != slang::TypeReflection::Kind::ParameterBlock) {
+    gLogger.Error(Logcat::Asset, "Shader的所有参数必须由ParameterBlock包裹. 但是'{}'违反了这一规则.", ParameterInfo.Name);
+    return false;
+  }
+  return true;
+}
+
+static bool ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& OutBinaryData) {
+  nlohmann::json ParamJson;
+  SlangInt GlobalParamCount = Layout->getParameterCount();
+  for (SlangInt Index = 0; Index < GlobalParamCount; Index++) {
+    auto Param = Layout->getParameterByIndex(Index);
+    if (!Param)
+      continue;
+    if (!ReflectParameter(Param, ParamJson)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 static void ProcessVertexAttribute(slang::FunctionReflection* FragFuncLayout, ShaderBinaryData& OutBinaryData) {}
 
 static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, slang::IModule* Module, const Slang::ComPtr<slang::IEntryPoint>& VertexEntry,
@@ -152,14 +185,21 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
   Byte FirstByte{};
   FirstByte.Set(0); // 设置图像管线为true
   FirstByte.Set(1); // 默认使用CullMode为backface
+  // 前四个字节为管线属性 先占个位
   OutBinaryData.Data.Add(FirstByte);
+  Byte SecondByte{};
+  OutBinaryData.Data.Add(SecondByte);
+  Byte ThirdByte{};
+  OutBinaryData.Data.Add(ThirdByte);
+  Byte FourthByte{};
+  OutBinaryData.Data.Add(FourthByte);
 
   slang::ProgramLayout* ProgLayout = Program->getLayout();
   if (!ProgLayout) {
     return false;
   }
 
-  // 反射获取信息
+  // 反射获取入口点信息
   bool Processed[std::to_underlying(EShaderStage::Count)]{};
   const SlangInt EntryPointCount = ProgLayout->getEntryPointCount();
   for (SlangInt i = 0; i < EntryPointCount; i++) {
@@ -193,6 +233,12 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
       gLogger.Critical(Logcat::Asset, "暂不支持的Shader Stage: {}", Stage);
     }
   }
+
+  if (!ProcessParameters(ProgLayout, OutBinaryData)) {
+    gLogger.Error(Logcat::Asset, "处理Shader '{}' 时参数出现错误.", ShaderPath);
+    return false;
+  }
+
   return true;
 }
 

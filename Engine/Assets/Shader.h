@@ -7,6 +7,39 @@
 
 #include "Shader.generated.h"
 
+enum class EShaderParameterType { float4x4, TextureCube, Sampler, Count };
+
+struct ShaderMemberInfo {
+  String Name;
+  EShaderParameterType Type = EShaderParameterType::Count;
+  Int32 Size = 0;
+  Int32 Offset = 0;
+  Int32 Binding = 0;
+#if KITA_EDITOR
+  String Label;
+  bool IsHideInEditor = false;
+#endif
+};
+
+struct ShaderParameterInfo {
+  String Name;
+  EShaderParameterType Type = EShaderParameterType::Count;
+  Int32 Size = 0;
+  Int32 Offset = 0;
+  Int32 Binding = 0;
+  Int32 Space = 0;
+  String SharedName;
+#if KITA_EDITOR
+  String Label;
+  bool IsHideInEditor = false;
+#endif
+  // for dynamic uniform buffer
+  bool IsDynamic = false;
+  // for shared uniform buffer
+  bool IsShared = false;
+  Array<ShaderMemberInfo> Members;
+};
+
 KSTRUCT()
 struct ShaderMeta : AssetMeta {
   GENERATED_BODY(ShaderMeta)
@@ -31,12 +64,11 @@ enum class EShaderStage {
 
 struct ShaderBinaryData {
   /// Shader的二进制数据
-  /// 第1~4个字节记录一些管线数据
+  /// 第1~4个字节记录一些管线属性
   ///   第一位: 此Shader是不是图形管线
   ///   第二位: CullMode是否是Backface
-  /// 第5~8字节: Vertex Shader的二进制数据长度
-  /// 第9~12字节: Fragment Shader的二进制数据长度
-  /// 第12字节往后: Shader的二进制数据
+  /// 第5~8个字节 参数字节长度N
+  /// 接下来是N个字节是表示参数的Json字符串
   Array<Byte> Data;
 
   [[nodiscard]] bool IsValid() const { return Data.Count() > 12; }

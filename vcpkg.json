@@ -48,5 +48,8 @@
   }, {
     "name" : "shader-slang",
     "version>=" : "2025.5"
+  }, {
+    "name" : "nlohmann-json",
+    "version>=" : "3.12.0"
   } ]
 }
