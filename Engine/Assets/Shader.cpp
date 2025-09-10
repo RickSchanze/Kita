@@ -26,7 +26,7 @@ public:
 
 private:
   void CreateSession() {
-    auto& Config = ConfigManager::GetConfigRef<AssetsConfig>();
+    const auto& Config = ConfigManager::GetConfigRef<AssetsConfig>();
     auto SearchPaths = Config.GetShaderSearchPaths();
     Array<const char*> SearchPathsArray;
     for (auto& SearchPath : SearchPaths) {
@@ -125,7 +125,7 @@ static void ProcessFragmentAttribute(slang::FunctionReflection* FragFuncLayout, 
     StringView AttrName = Attribute->getName();
     if (AttrName == "CullMode") {
       Int32 CullMode;
-      SlangResult Result = Attribute->getArgumentValueInt(0, &CullMode);
+      const SlangResult Result = Attribute->getArgumentValueInt(0, &CullMode);
       if (Result == SLANG_OK) {
         if (CullMode == 0) {
           FirstByte.Clear(1);
@@ -137,37 +137,118 @@ static void ProcessFragmentAttribute(slang::FunctionReflection* FragFuncLayout, 
   }
 }
 
-static bool ReflectParameter(slang::VariableLayoutReflection* Param, nlohmann::json& OutJson) {
-  if (!Param)
-    return false;
-
-  auto Variable = Param->getVariable();
-  if (!Variable)
-    return false;
-
-  auto TypeLayout = Param->getTypeLayout();
-  ShaderParameterInfo ParameterInfo;
-  ParameterInfo.Name = String(Variable->getName());
-  auto ParamType = TypeLayout->getKind();
-  if (ParamType != slang::TypeReflection::Kind::ParameterBlock) {
-    gLogger.Error(Logcat::Asset, "Shader的所有参数必须由ParameterBlock包裹. 但是'{}'违反了这一规则.", ParameterInfo.Name);
-    return false;
+static EShaderParameterType GetType(slang::TypeLayoutReflection* TypeLayout) {
+  using namespace slang;
+  if (!TypeLayout) {
+    return EShaderParameterType::Count;
   }
-  return true;
+  switch (TypeLayout->getKind()) {
+  case TypeReflection::Kind::Vector: {
+    if (TypeLayout->getScalarType() == TypeReflection::Float32 && TypeLayout->getRowCount() == 4) {
+      return EShaderParameterType::Float4;
+    }
+  } break;
+  case TypeReflection::Kind::Matrix: {
+    if (TypeLayout->getScalarType() == TypeReflection::Float32 && TypeLayout->getRowCount() == 4 && TypeLayout->getColumnCount() == 4) {
+      return EShaderParameterType::Float4x4;
+    }
+  } break;
+  case TypeReflection::Kind::Resource: {
+    const auto Shape = TypeLayout->getResourceShape();
+    switch (Shape) {
+    case SLANG_TEXTURE_2D:
+      return EShaderParameterType::Texture2D;
+    case SLANG_TEXTURE_CUBE:
+      return EShaderParameterType::TextureCube;
+    default:
+      break;
+    }
+  } break;
+  case TypeReflection::Kind::SamplerState:
+    return EShaderParameterType::SamplerState;
+  default:
+    break;
+  }
+  return EShaderParameterType::Custom;
 }
 
-static bool ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& OutBinaryData) {
-  nlohmann::json ParamJson;
-  SlangInt GlobalParamCount = Layout->getParameterCount();
-  for (SlangInt Index = 0; Index < GlobalParamCount; Index++) {
-    auto Param = Layout->getParameterByIndex(Index);
-    if (!Param)
-      continue;
-    if (!ReflectParameter(Param, ParamJson)) {
-      return false;
+template <typename T> static String ProcessVariableAttribute(T& Target, slang::Attribute* Attr) {
+  const auto Name = Attr->getName();
+  if (Name != nullptr) {
+    const StringView NameView = Name;
+#if KITA_EDITOR
+    if (NameView == "HideInEditor") {
+      Target.IsHideInEditor = true;
+    }
+#endif
+    if constexpr (Traits::SameAs<T, ShaderParameterInfo>) {
+      if (NameView == "Dynamic") {
+        Target.IsDynamic = true;
+      }
+      if (NameView == "Shared") {
+        SizeType Size;
+        const char* SharedName = Attr->getArgumentValueString(0, &Size);
+        if (Size != 0 && SharedName != nullptr) {
+          const auto SharedNameView = StringView(SharedName, Size);
+          Target.SharedName = SharedNameView.ToString();
+        } else {
+          return Format("Shared属性必须指定一个Name.");
+        }
+      }
     }
   }
-  return true;
+  return {};
+}
+
+static String ReflectParameter(slang::VariableLayoutReflection* Param, nlohmann::json& OutJson) {
+  if (!Param)
+    return {};
+
+  const auto Variable = Param->getVariable();
+  if (!Variable)
+    return {};
+
+  const auto TypeLayout = Param->getTypeLayout();
+  ShaderParameterInfo ParameterInfo;
+  ParameterInfo.Name = String(Variable->getName());
+  const auto ParamType = TypeLayout->getKind();
+  if (ParamType != slang::TypeReflection::Kind::ParameterBlock) {
+    gLogger.Error(Logcat::Asset, "Shader的所有参数必须由ParameterBlock包裹. 但是'{}'违反了这一规则.", ParameterInfo.Name);
+    return Format("Shader的参数都必须由ParameterBlock包裹, 但是参数'{}'违反了这一规则.", ParameterInfo.Name);
+  }
+  const auto ElementTypeLayout = TypeLayout->getElementTypeLayout();
+  ParameterInfo.Type = GetType(ElementTypeLayout);
+  if (ParameterInfo.Type == EShaderParameterType::Custom) {
+    // TODO 反射结构体
+    ParameterInfo.Size = -1;
+  } else {
+    ParameterInfo.Size = static_cast<Int32>(ElementTypeLayout->getSize());
+  }
+  const SlangInt AttrCount = Variable->getUserAttributeCount();
+  for (SlangInt Index = 0; Index < AttrCount; Index++) {
+    const auto Attr = Variable->getUserAttributeByIndex(Index);
+    String Message = ProcessVariableAttribute(ParameterInfo, Attr);
+    if (!Message.Empty()) {
+      return Message;
+    }
+  }
+
+  return {};
+}
+
+static String ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& OutBinaryData) {
+  nlohmann::json ParamJson;
+  const SlangInt GlobalParamCount = Layout->getParameterCount();
+  for (SlangInt Index = 0; Index < GlobalParamCount; Index++) {
+    const auto Param = Layout->getParameterByIndex(Index);
+    if (!Param)
+      continue;
+    String Error = ReflectParameter(Param, ParamJson);
+    if (!Error.Empty()) {
+      return Error;
+    }
+  }
+  return {};
 }
 
 static void ProcessVertexAttribute(slang::FunctionReflection* FragFuncLayout, ShaderBinaryData& OutBinaryData) {}
@@ -234,8 +315,9 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
     }
   }
 
-  if (!ProcessParameters(ProgLayout, OutBinaryData)) {
-    gLogger.Error(Logcat::Asset, "处理Shader '{}' 时参数出现错误.", ShaderPath);
+  String ErrorMessage = ProcessParameters(ProgLayout, OutBinaryData);
+  if (!ErrorMessage.Empty()) {
+    gLogger.Error(Logcat::Asset, "处理Shader '{}' 时参数出现错误: {}", ShaderPath, ErrorMessage);
     return false;
   }
 

@@ -7,7 +7,15 @@
 
 #include "Shader.generated.h"
 
-enum class EShaderParameterType { float4x4, TextureCube, Sampler, Count };
+enum class EShaderParameterType {
+  Float4x4,
+  Float4,
+  TextureCube,
+  SamplerState,
+  Texture2D,
+  Custom, // 结构体
+  Count
+};
 
 struct ShaderMemberInfo {
   String Name;
@@ -25,9 +33,9 @@ struct ShaderParameterInfo {
   String Name;
   EShaderParameterType Type = EShaderParameterType::Count;
   Int32 Size = 0;
-  Int32 Offset = 0;
   Int32 Binding = 0;
   Int32 Space = 0;
+  /// 如果不为空则代表Shared
   String SharedName;
 #if KITA_EDITOR
   String Label;
@@ -35,8 +43,6 @@ struct ShaderParameterInfo {
 #endif
   // for dynamic uniform buffer
   bool IsDynamic = false;
-  // for shared uniform buffer
-  bool IsShared = false;
   Array<ShaderMemberInfo> Members;
 };
 
