@@ -58,6 +58,15 @@ public:
 
   [[nodiscard]] StringView SubStr(SizeType Start, SizeType Length = std::string::npos) const;
 
+  [[nodiscard]] StringView Trim(char Char) const;
+  [[nodiscard]] StringView Trim(StringView Chars) const;
+
+  [[nodiscard]] StringView TrimLeft(char Char) const;
+  [[nodiscard]] StringView TrimLeft(StringView Chars) const;
+
+  [[nodiscard]] StringView TrimRight(char Char) const;
+  [[nodiscard]] StringView TrimRight(StringView Chars) const;
+
 private:
   std::string_view mStr;
 };

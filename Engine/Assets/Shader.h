@@ -33,7 +33,6 @@ struct ShaderParameterInfo {
   String Name;
   EShaderParameterType Type = EShaderParameterType::Count;
   Int32 Size = 0;
-  Int32 Binding = 0;
   Int32 Space = 0;
   /// 如果不为空则代表Shared
   String SharedName;
@@ -75,16 +74,16 @@ struct ShaderBinaryData {
   ///   第二位: CullMode是否是Backface
   /// 第5~8个字节 参数字节长度N
   /// 接下来是N个字节是表示参数的Json字符串
+  /// 随后1个字节标识当前是什么阶段的Shader
+  /// 随后四个字节标识该Shader长度
+  /// 随后长度字节的标识该Shader的Spirv 接下来是这样数据的循环...
   Array<Byte> Data;
 
   [[nodiscard]] bool IsValid() const { return Data.Count() > 12; }
   [[nodiscard]] bool IsGraphicsShader() const { return Data[0].Test(0); }
   [[nodiscard]] bool IsCullModeBackface() const { return Data[0].Test(1); }
 
-  [[nodiscard]] UInt32 GetVertexShaderLength() const { return IsGraphicsShader() ? *reinterpret_cast<const UInt32*>(Data.Data() + 4) : 0; }
-  [[nodiscard]] UInt32 GetFragmentShaderLength() const { return IsGraphicsShader() ? *reinterpret_cast<const UInt32*>(Data.Data() + 8) : 0; }
-  [[nodiscard]] const Byte* GetVertexShaderData() const { return IsGraphicsShader() ? Data.Data() + 12 : nullptr; }
-  [[nodiscard]] const Byte* GetFragmentShaderData() const { return IsGraphicsShader() ? Data.Data() + 12 + GetVertexShaderLength() : nullptr; }
+  [[nodiscard]] Array<ShaderParameterInfo> ParseParameterInfo();
 };
 
 struct ShaderCache {

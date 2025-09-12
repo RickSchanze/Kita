@@ -8,10 +8,13 @@ uniform ParameterBlock<float4x4> gModel;
 uniform ParameterBlock<Camera> gCamera;
 
 struct Params {
+  [Label("天空盒贴图")]
   TextureCube SkyboxTexture;
+
   SamplerState SkyboxSampler;
 }
 
+[Label("天空盒参数")]
 uniform ParameterBlock<Params> gSkybox;
 
 struct VO {

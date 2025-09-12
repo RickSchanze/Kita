@@ -144,8 +144,10 @@ static EShaderParameterType GetType(slang::TypeLayoutReflection* TypeLayout) {
   }
   switch (TypeLayout->getKind()) {
   case TypeReflection::Kind::Vector: {
-    if (TypeLayout->getScalarType() == TypeReflection::Float32 && TypeLayout->getRowCount() == 4) {
-      return EShaderParameterType::Float4;
+    if (TypeLayout->getScalarType() == TypeReflection::Float32) {
+      if (TypeLayout->getColumnCount() == 4) {
+        return EShaderParameterType::Float4;
+      }
     }
   } break;
   case TypeReflection::Kind::Matrix: {
@@ -154,8 +156,7 @@ static EShaderParameterType GetType(slang::TypeLayoutReflection* TypeLayout) {
     }
   } break;
   case TypeReflection::Kind::Resource: {
-    const auto Shape = TypeLayout->getResourceShape();
-    switch (Shape) {
+    switch (TypeLayout->getResourceShape()) {
     case SLANG_TEXTURE_2D:
       return EShaderParameterType::Texture2D;
     case SLANG_TEXTURE_CUBE:
@@ -180,6 +181,15 @@ template <typename T> static String ProcessVariableAttribute(T& Target, slang::A
     if (NameView == "HideInEditor") {
       Target.IsHideInEditor = true;
     }
+    if (NameView == "Label") {
+      SizeType Size;
+      const char* Label = Attr->getArgumentValueString(0, &Size);
+      if (Label != nullptr && Size != 0) {
+        Target.Label = StringView(Label, Size).Trim('"').ToString();
+        return {};
+      }
+      return "Label属性需要指定一个Name";
+    }
 #endif
     if constexpr (Traits::SameAs<T, ShaderParameterInfo>) {
       if (NameView == "Dynamic") {
@@ -189,7 +199,7 @@ template <typename T> static String ProcessVariableAttribute(T& Target, slang::A
         SizeType Size;
         const char* SharedName = Attr->getArgumentValueString(0, &Size);
         if (Size != 0 && SharedName != nullptr) {
-          const auto SharedNameView = StringView(SharedName, Size);
+          const auto SharedNameView = StringView(SharedName, Size).Trim('"');
           Target.SharedName = SharedNameView.ToString();
         } else {
           return Format("Shared属性必须指定一个Name.");
@@ -200,7 +210,55 @@ template <typename T> static String ProcessVariableAttribute(T& Target, slang::A
   return {};
 }
 
-static String ReflectParameter(slang::VariableLayoutReflection* Param, nlohmann::json& OutJson) {
+static String ReflectStruct(slang::TypeLayoutReflection* LayoutReflection, Array<ShaderMemberInfo>& OutMemberInfos) {
+  const SlangInt MemberCount = LayoutReflection->getFieldCount();
+  for (SlangInt Index = 0; Index < MemberCount; Index++) {
+    const auto VarLayout = LayoutReflection->getFieldByIndex(Index);
+    if (!VarLayout) {
+      continue;
+    }
+    const auto Var = VarLayout->getVariable();
+    if (!Var) {
+      continue;
+    }
+    ShaderMemberInfo MemberInfo;
+    MemberInfo.Name = StringView(Var->getName()).Trim('"').ToString();
+    const auto FieldTypeLayout = VarLayout->getTypeLayout();
+    MemberInfo.Type = GetType(FieldTypeLayout);
+
+    switch (MemberInfo.Type) {
+    case EShaderParameterType::Float4x4:
+    case EShaderParameterType::Float4:
+      MemberInfo.Size = static_cast<Int32>(FieldTypeLayout->getSize());
+      MemberInfo.Offset = static_cast<Int32>(VarLayout->getOffset());
+      MemberInfo.Binding = 0;
+      break;
+    case EShaderParameterType::TextureCube:
+    case EShaderParameterType::Texture2D:
+    case EShaderParameterType::SamplerState:
+      MemberInfo.Size = 0;
+      MemberInfo.Offset = 0;
+      MemberInfo.Binding = static_cast<Int32>(VarLayout->getBindingIndex());
+      break;
+    case EShaderParameterType::Custom:
+      return "暂时不支持嵌套结构体";
+    case EShaderParameterType::Count:
+      break;
+    }
+    const auto AttrCount = Var->getUserAttributeCount();
+    for (SlangInt AttrIndex = 0; AttrIndex < AttrCount; AttrIndex++) {
+      const auto Attr = Var->getUserAttributeByIndex(AttrIndex);
+      const auto Error = ProcessVariableAttribute(MemberInfo, Attr);
+      if (!Error.Empty()) {
+        return Error;
+      }
+    }
+    OutMemberInfos.Add(MemberInfo);
+  }
+  return "";
+};
+
+static String ReflectParameter(slang::VariableLayoutReflection* Param, Array<ShaderParameterInfo>& OutShaderInfos) {
   if (!Param)
     return {};
 
@@ -210,7 +268,7 @@ static String ReflectParameter(slang::VariableLayoutReflection* Param, nlohmann:
 
   const auto TypeLayout = Param->getTypeLayout();
   ShaderParameterInfo ParameterInfo;
-  ParameterInfo.Name = String(Variable->getName());
+  ParameterInfo.Name = StringView(Variable->getName()).Trim('"').ToString();
   const auto ParamType = TypeLayout->getKind();
   if (ParamType != slang::TypeReflection::Kind::ParameterBlock) {
     gLogger.Error(Logcat::Asset, "Shader的所有参数必须由ParameterBlock包裹. 但是'{}'违反了这一规则.", ParameterInfo.Name);
@@ -218,11 +276,10 @@ static String ReflectParameter(slang::VariableLayoutReflection* Param, nlohmann:
   }
   const auto ElementTypeLayout = TypeLayout->getElementTypeLayout();
   ParameterInfo.Type = GetType(ElementTypeLayout);
+  ParameterInfo.Size = static_cast<Int32>(ElementTypeLayout->getSize());
+  ParameterInfo.Space = static_cast<Int32>(Param->getBindingIndex());
   if (ParameterInfo.Type == EShaderParameterType::Custom) {
-    // TODO 反射结构体
-    ParameterInfo.Size = -1;
-  } else {
-    ParameterInfo.Size = static_cast<Int32>(ElementTypeLayout->getSize());
+    ReflectStruct(ElementTypeLayout, ParameterInfo.Members);
   }
   const SlangInt AttrCount = Variable->getUserAttributeCount();
   for (SlangInt Index = 0; Index < AttrCount; Index++) {
@@ -232,22 +289,57 @@ static String ReflectParameter(slang::VariableLayoutReflection* Param, nlohmann:
       return Message;
     }
   }
-
+  OutShaderInfos.Add(ParameterInfo);
   return {};
 }
 
-static String ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& OutBinaryData) {
-  nlohmann::json ParamJson;
+String ToJson(const Array<ShaderParameterInfo>& AllParams) {
+  nlohmann::json Json;
+  for (const auto& Param : AllParams) {
+    nlohmann::json ParamJson;
+    ParamJson["A"] = Param.Name.GetStdString();
+    ParamJson["B"] = Param.Type;
+    ParamJson["C"] = Param.Size;
+    ParamJson["D"] = Param.Space;
+    ParamJson["E"] = Param.IsDynamic;
+    ParamJson["F"] = Param.IsHideInEditor;
+    ParamJson["G"] = Param.Label.GetStdString();
+    ParamJson["H"] = Param.SharedName.GetStdString();
+    for (const auto& Member : Param.Members) {
+      nlohmann::json MemberJson;
+      MemberJson["A"] = Member.Name.GetStdString();
+      MemberJson["B"] = Member.Type;
+      MemberJson["C"] = Member.Offset;
+      MemberJson["D"] = Member.Size;
+      MemberJson["E"] = Member.Binding;
+      MemberJson["F"] = Member.IsHideInEditor;
+      MemberJson["G"] = Member.Label.GetStdString();
+      ParamJson["I"].push_back(MemberJson);
+    }
+    Json.push_back(ParamJson);
+  }
+  return Json.dump();
+}
+
+static String ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& OutBinaryData, Int32& InOutCursor) {
+  Array<ShaderParameterInfo> ParamInfos;
   const SlangInt GlobalParamCount = Layout->getParameterCount();
   for (SlangInt Index = 0; Index < GlobalParamCount; Index++) {
     const auto Param = Layout->getParameterByIndex(Index);
     if (!Param)
       continue;
-    String Error = ReflectParameter(Param, ParamJson);
+    String Error = ReflectParameter(Param, ParamInfos);
     if (!Error.Empty()) {
       return Error;
     }
   }
+  String ParamJson = ToJson(ParamInfos);
+  OutBinaryData.Data.Resize(OutBinaryData.Data.Count() + ParamJson.Count() + 4);
+  Byte* Current = OutBinaryData.Data.Data() + InOutCursor;
+  *reinterpret_cast<Int32*>(Current) = static_cast<Int32>(ParamJson.Count());
+  Current += 4;
+  memcpy(Current, ParamJson.Data(), ParamJson.Count());
+  InOutCursor += static_cast<Int32>(ParamJson.Count()) + 4;
   return {};
 }
 
@@ -262,6 +354,7 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
   if (Diagnostics) {
     return false;
   }
+  Int32 Cursor = 0;
   // 反射
   Byte FirstByte{};
   FirstByte.Set(0); // 设置图像管线为true
@@ -274,6 +367,7 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
   OutBinaryData.Data.Add(ThirdByte);
   Byte FourthByte{};
   OutBinaryData.Data.Add(FourthByte);
+  Cursor = 4;
 
   slang::ProgramLayout* ProgLayout = Program->getLayout();
   if (!ProgLayout) {
@@ -282,7 +376,7 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
 
   // 反射获取入口点信息
   bool Processed[std::to_underlying(EShaderStage::Count)]{};
-  const SlangInt EntryPointCount = ProgLayout->getEntryPointCount();
+  const SlangInt EntryPointCount = static_cast<Int32>(ProgLayout->getEntryPointCount());
   for (SlangInt i = 0; i < EntryPointCount; i++) {
     slang::EntryPointLayout* EntryPoint = ProgLayout->getEntryPointByIndex(i);
     switch (SlangStage Stage = EntryPoint->getStage()) {
@@ -314,8 +408,8 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
       gLogger.Critical(Logcat::Asset, "暂不支持的Shader Stage: {}", Stage);
     }
   }
-
-  String ErrorMessage = ProcessParameters(ProgLayout, OutBinaryData);
+  // 接下来是参数
+  String ErrorMessage = ProcessParameters(ProgLayout, OutBinaryData, Cursor);
   if (!ErrorMessage.Empty()) {
     gLogger.Error(Logcat::Asset, "处理Shader '{}' 时参数出现错误: {}", ShaderPath, ErrorMessage);
     return false;

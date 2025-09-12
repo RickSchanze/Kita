@@ -49,3 +49,39 @@ std::istream& operator>>(std::istream& IS, String& Str)  {
   IS >> Str.mStr;
   return IS;
 }
+
+StringView String::TrimLeft(const char Ch) const
+{
+  const StringView View = mStr;
+  return View.TrimLeft(Ch);
+}
+
+StringView String::TrimLeft(const StringView Chars) const
+{
+  const StringView View = mStr;
+  return View.TrimLeft(Chars);
+}
+
+StringView String::TrimRight(const char Ch) const
+{
+  const StringView View = mStr;
+  return View.TrimRight(Ch);
+}
+
+StringView String::TrimRight(const StringView Chars) const
+{
+  const StringView View = mStr;
+  return View.TrimRight(Chars);
+}
+
+StringView String::Trim(const char Ch) const
+{
+  const StringView View = mStr;
+  return View.Trim(Ch);
+}
+
+StringView String::Trim(const StringView Chars) const
+{
+  const StringView View = mStr;
+  return View.Trim(Chars);
+}
