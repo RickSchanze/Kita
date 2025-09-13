@@ -24,8 +24,11 @@ public:
 
   Slang::ComPtr<slang::ISession> GetSession() { return mCompileSession; }
 
+  [[nodiscard]] SlangInt GetLanguageIndex(const EShaderLanguage Language) const { return mLanguageIndices[ToUnderlying(Language)]; }
+
 private:
   void CreateSession() {
+    Ranges::Fill(mLanguageIndices, INVALID_INDEX);
     const auto& Config = ConfigManager::GetConfigRef<AssetsConfig>();
     auto SearchPaths = Config.GetShaderSearchPaths();
     Array<const char*> SearchPathsArray;
@@ -33,18 +36,23 @@ private:
       SearchPathsArray.Add(SearchPath.Data());
     }
     slang::SessionDesc Desc{};
-    slang::TargetDesc TargetDesc{};
-    TargetDesc.format = SLANG_SPIRV;
-    TargetDesc.profile = mGlobalSession->findProfile("glsl_460");
+    slang::TargetDesc TargetDesc[ToUnderlying(EShaderLanguage::Count)];
+    TargetDesc[0].format = SLANG_SPIRV;
+    TargetDesc[0].profile = mGlobalSession->findProfile("glsl_460");
+    mLanguageIndices[ToUnderlying(EShaderLanguage::Spirv)] = 0;
+    TargetDesc[1].format = SLANG_GLSL;
+    TargetDesc[1].profile = mGlobalSession->findProfile("glsl_460");
+    mLanguageIndices[ToUnderlying(EShaderLanguage::GLSL)] = 1;
     Desc.searchPaths = SearchPathsArray.Data();
     Desc.searchPathCount = static_cast<SlangInt>(SearchPathsArray.Count());
-    Desc.targets = &TargetDesc;
-    Desc.targetCount = 1;
+    Desc.targets = TargetDesc;
+    Desc.targetCount = 2;
     mGlobalSession->createSession(Desc, mCompileSession.writeRef());
   }
 
   Slang::ComPtr<slang::IGlobalSession> mGlobalSession;
   Slang::ComPtr<slang::ISession> mCompileSession;
+  SlangInt mLanguageIndices[ToUnderlying(EShaderLanguage::Count)]{};
 };
 
 static SlangShaderTranslater& GetTranslater() {
@@ -73,6 +81,7 @@ void Shader::Load() {
 void Shader::Unload() {
   mShaderData.Data.Clear();
   mLoaded = false;
+  gLogger.Info(Logcat::Asset, "卸载Shader {}, ObjectHandle = {}.", mPath, GetHandle());
 }
 
 void Shader::ApplyMeta(const AssetMeta& Meta) {
@@ -88,19 +97,73 @@ String Shader::GetBinaryPath() {
   return Path::Combine(Path::Combine(Project::GetIntermediatePath(), ShaderCacheFolder), ThisShaderBinaryFileName);
 }
 
+void Shader::GenerateTempCode(StringView Folder, const EShaderLanguage Language) {
+  if (!IsLoaded()) {
+    Load();
+    if (!mLoaded) {
+      gLogger.Error(Logcat::Asset, "加载Shader '{}' 的临时 {} 失败.", mPath, EnumToString(Language));
+      return;
+    }
+  }
+  using namespace slang;
+  Slang::ComPtr<IBlob> Diagnostics;
+  IModule* Module = GetTranslater().GetSession()->loadModule(mPath.Data(), Diagnostics.writeRef());
+  if (IsGraphics()) {
+    Slang::ComPtr<IEntryPoint> VertexEntryPoint;
+    Module->findEntryPointByName("VertexMain", VertexEntryPoint.writeRef());
+    Slang::ComPtr<IEntryPoint> FragmentEntryPoint;
+    Module->findEntryPointByName("FragmentMain", FragmentEntryPoint.writeRef());
+    Array<IComponentType*> Components = {Module, VertexEntryPoint, FragmentEntryPoint};
+    Slang::ComPtr<IComponentType> LinkedProgram;
+    GetTranslater().GetSession()->createCompositeComponentType(Components.Data(), 3, LinkedProgram.writeRef());
+    if (LinkedProgram) {
+      const String FileName = Format("{}.glsl", Path::GetFileNameWithoutExtension(mPath));
+      OutputFileStream OutputFile{Path::Combine(Folder, FileName)};
+      SlangInt StageIndices[ToUnderlying(EShaderStage::Count)];
+      const auto Layout = LinkedProgram->getLayout();
+      for (auto Index = 0; Index < Layout->getEntryPointCount(); Index++) {
+        const auto EntryPoint = Layout->getEntryPointByIndex(Index);
+        if (EntryPoint->getStage() == SLANG_STAGE_VERTEX) {
+          StageIndices[ToUnderlying(EShaderStage::Vertex)] = Index;
+        } else if (EntryPoint->getStage() == SLANG_STAGE_FRAGMENT) {
+          StageIndices[ToUnderlying(EShaderStage::Fragment)] = Index;
+        }
+      }
+      Slang::ComPtr<slang::IBlob> Code;
+      LinkedProgram->getEntryPointCode(StageIndices[ToUnderlying(EShaderStage::Vertex)], GetTranslater().GetLanguageIndex(Language), Code.writeRef());
+      OutputFile.WriteLine("Vertex:");
+      OutputFile << static_cast<const char*>(Code->getBufferPointer());
+      OutputFile.WriteLine();
+      OutputFile.WriteLine("Fragment:");
+      OutputFile << static_cast<const char*>(Code->getBufferPointer());
+    } else {
+      gLogger.Error(Logcat::Asset, "GenerateTempCode: 链接Shader '{}' 失败.", mPath);
+    }
+  } else {
+    Slang::ComPtr<IEntryPoint> ComputeEntryPoint;
+    Module->findEntryPointByName("ComputeMain", ComputeEntryPoint.writeRef());
+    // TODO
+  }
+}
+
+bool Shader::IsCompute() const { return mShaderData.IsGraphicsShader(); }
+
+bool Shader::IsGraphics() const { return !mShaderData.IsGraphicsShader(); }
+
 bool Shader::NeedReTranslate() {
   if (sCache.Contains(mPath)) {
     const ShaderCache& OldCache = sCache[mPath];
-    if (const auto NewTime = File::GetLastModifiedTime(mPath); (!NewTime || OldCache.LastTextModifiedTime != *NewTime)) {
-      return true;
-    }
-    if (const auto ThisShaderBinaryPath = GetBinaryPath(); Path::IsExists(ThisShaderBinaryPath)) {
-      if (const auto BinaryTime = File::GetLastModifiedTime(ThisShaderBinaryPath); (!BinaryTime || OldCache.LastBinaryModifiedTime != *BinaryTime)) {
+    if (const auto NewTime = File::GetLastModifiedTime(mPath)) {
+      if (*NewTime != OldCache.LastTextModifiedTime) {
         return true;
       }
-      return false;
-    } else {
-      return true;
+    }
+    if (const auto ThisShaderBinaryPath = GetBinaryPath(); Path::IsExists(ThisShaderBinaryPath)) {
+      if (const auto BinaryTime = File::GetLastModifiedTime(ThisShaderBinaryPath)) {
+        if (*BinaryTime == OldCache.LastBinaryModifiedTime) {
+          return false;
+        }
+      }
     }
   }
   return true;
@@ -321,7 +384,7 @@ String ToJson(const Array<ShaderParameterInfo>& AllParams) {
   return Json.dump();
 }
 
-static String ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& OutBinaryData, Int32& InOutCursor) {
+static String ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& OutBinaryData, UInt64& InOutCursor) {
   Array<ShaderParameterInfo> ParamInfos;
   const SlangInt GlobalParamCount = Layout->getParameterCount();
   for (SlangInt Index = 0; Index < GlobalParamCount; Index++) {
@@ -333,13 +396,13 @@ static String ProcessParameters(slang::ProgramLayout* Layout, ShaderBinaryData& 
       return Error;
     }
   }
-  String ParamJson = ToJson(ParamInfos);
+  const String ParamJson = ToJson(ParamInfos);
   OutBinaryData.Data.Resize(OutBinaryData.Data.Count() + ParamJson.Count() + 4);
   Byte* Current = OutBinaryData.Data.Data() + InOutCursor;
   *reinterpret_cast<Int32*>(Current) = static_cast<Int32>(ParamJson.Count());
   Current += 4;
-  memcpy(Current, ParamJson.Data(), ParamJson.Count());
-  InOutCursor += static_cast<Int32>(ParamJson.Count()) + 4;
+  Memcpy(Current, ParamJson.Data(), ParamJson.Count());
+  InOutCursor += ParamJson.Count() + 4;
   return {};
 }
 
@@ -354,7 +417,7 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
   if (Diagnostics) {
     return false;
   }
-  Int32 Cursor = 0;
+  UInt64 Cursor = 0;
   // 反射
   Byte FirstByte{};
   FirstByte.Set(0); // 设置图像管线为true
@@ -376,9 +439,10 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
 
   // 反射获取入口点信息
   bool Processed[std::to_underlying(EShaderStage::Count)]{};
+  SlangInt StageIndex[std::to_underlying(EShaderStage::Count)]{};
   const SlangInt EntryPointCount = static_cast<Int32>(ProgLayout->getEntryPointCount());
-  for (SlangInt i = 0; i < EntryPointCount; i++) {
-    slang::EntryPointLayout* EntryPoint = ProgLayout->getEntryPointByIndex(i);
+  for (SlangInt Index = 0; Index < EntryPointCount; Index++) {
+    slang::EntryPointLayout* EntryPoint = ProgLayout->getEntryPointByIndex(Index);
     switch (SlangStage Stage = EntryPoint->getStage()) {
     case SLANG_STAGE_VERTEX: {
       if (Processed[std::to_underlying(EShaderStage::Vertex)]) {
@@ -391,6 +455,7 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
       }
       ProcessVertexAttribute(FunctionReflection, OutBinaryData);
       Processed[std::to_underlying(EShaderStage::Vertex)] = true;
+      StageIndex[std::to_underlying(EShaderStage::Vertex)] = Index;
     } break;
     case SLANG_STAGE_FRAGMENT: {
       if (Processed[std::to_underlying(EShaderStage::Fragment)]) {
@@ -403,6 +468,7 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
       }
       ProcessFragmentAttribute(FunctionReflection, FirstByte);
       Processed[std::to_underlying(EShaderStage::Fragment)] = true;
+      StageIndex[std::to_underlying(EShaderStage::Fragment)] = Index;
     } break;
     default:
       gLogger.Critical(Logcat::Asset, "暂不支持的Shader Stage: {}", Stage);
@@ -414,7 +480,32 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
     gLogger.Error(Logcat::Asset, "处理Shader '{}' 时参数出现错误: {}", ShaderPath, ErrorMessage);
     return false;
   }
-
+  // 接下来是SpirvCode
+  Slang::ComPtr<slang::IBlob> VertSpirvCode;
+  SlangResult Result =
+      Program->getEntryPointCode(StageIndex[ToUnderlying(EShaderStage::Vertex)], GetTranslater().GetLanguageIndex(EShaderLanguage::Spirv), VertSpirvCode.writeRef(), Diagnostics.writeRef());
+  if (SLANG_FAILED(Result)) {
+    gLogger.Error(Logcat::Asset, "处理Shader '{}' 时获取Vertex SpirvCode 出错(Code = {}): {}", ShaderPath, Result,
+                  Diagnostics->getBufferPointer() == nullptr ? "Unknown Error" : static_cast<const char*>(Diagnostics->getBufferPointer()));
+    return false;
+  }
+  Slang::ComPtr<slang::IBlob> FragSpirvCode;
+  Result = Program->getEntryPointCode(StageIndex[ToUnderlying(EShaderStage::Fragment)], GetTranslater().GetLanguageIndex(EShaderLanguage::Spirv), FragSpirvCode.writeRef(), Diagnostics.writeRef());
+  if (SLANG_FAILED(Result)) {
+    gLogger.Error(Logcat::Asset, "处理Shader '{}' 时获取Fragment SpirvCode 出错(Code = {}): {}", ShaderPath, Result,
+                  Diagnostics->getBufferPointer() == nullptr ? "Unknown Error" : static_cast<const char*>(Diagnostics->getBufferPointer()));
+    return false;
+  }
+  // 写入Vert长度和Frag长度
+  OutBinaryData.Data.Resize(OutBinaryData.Data.Count() + 4 * 2 + VertSpirvCode->getBufferSize() + FragSpirvCode->getBufferSize());
+  *reinterpret_cast<Int32*>(OutBinaryData.Data.Data() + Cursor) = static_cast<Int32>(VertSpirvCode->getBufferSize());
+  Cursor += 4;
+  *reinterpret_cast<Int32*>(OutBinaryData.Data.Data() + Cursor) = static_cast<Int32>(FragSpirvCode->getBufferSize());
+  Cursor += 4;
+  Memcpy(OutBinaryData.Data.Data() + Cursor, VertSpirvCode->getBufferPointer(), VertSpirvCode->getBufferSize());
+  Cursor += VertSpirvCode->getBufferSize();
+  Memcpy(OutBinaryData.Data.Data() + Cursor, FragSpirvCode->getBufferPointer(), FragSpirvCode->getBufferSize());
+  Cursor += FragSpirvCode->getBufferSize();
   return true;
 }
 
@@ -435,7 +526,22 @@ bool Shader::Translate() {
   Slang::ComPtr<IEntryPoint> FragmentEntryPoint;
   Module->findEntryPointByName("FragmentMain", FragmentEntryPoint.writeRef());
   DIAG();
-  return TranslateGraphics(GetTranslater().GetSession(), Module, VertexEntryPoint, FragmentEntryPoint, mShaderData, mPath);
+  if (TranslateGraphics(GetTranslater().GetSession(), Module, VertexEntryPoint, FragmentEntryPoint, mShaderData, mPath)) {
+    // 写入Binary文件
+    const String BinaryPath = GetBinaryPath();
+    {
+      OutputFileStream OutputFile(BinaryPath, std::ios::out | std::ios::binary);
+      OutputFile.WriteBytes(reinterpret_cast<const char*>(mShaderData.Data.Data()), mShaderData.Data.Count());
+    }
+    const UInt64 BinaryModifiedTime = *File::GetLastModifiedTime(BinaryPath);
+    const UInt64 TextModifiedTime = *File::GetLastModifiedTime(mPath);
+    sCache[mPath] = ShaderCache{TextModifiedTime, BinaryModifiedTime};
+    WriteCache();
+    return true;
+  } else {
+    mShaderData.Data.Clear();
+    return false;
+  }
 }
 
 bool Shader::ReadBinary() {
@@ -512,4 +618,14 @@ void Shader::WriteCache() {
   for (auto& [Path, Cache] : sCache) {
     OutputFile.WriteLine(Path, ",", Cache.LastBinaryModifiedTime, ",", Cache.LastTextModifiedTime);
   }
+}
+
+void Shader::GenerateTempCodeGLSL() {
+  const String TempPath = Path::Combine(Project::GetIntermediatePath(), "Shader");
+  GenerateTempCode(TempPath, EShaderLanguage::GLSL);
+}
+
+void Shader::GenerateTempCodeHLSL() {
+  const String TempPath = Path::Combine(Project::GetIntermediatePath(), "Shader");
+  GenerateTempCode(TempPath, EShaderLanguage::HLSL);
 }

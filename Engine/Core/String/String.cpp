@@ -10,16 +10,17 @@ String::String(const StringView& Str) : mStr(Str.GetStdStringView()) {}
 
 bool String::EndsWith(const StringView& Suffix) const { return mStr.ends_with(Suffix.GetStdStringView()); }
 
-String& String::Replace(const char OldChar, const char NewChar) {
-  for (char& c : mStr) {
+String String::Replace(const char OldChar, const char NewChar) const {
+  String Result = *this;
+  for (char& c : Result) {
     if (c == OldChar) {
       c = NewChar;
     }
   }
-  return *this;
+  return Result;
 }
 
-String& String::Replace(const StringView& OldStr, const StringView& NewStr) {
+String String::Replace(const StringView& OldStr, const StringView& NewStr) const {
   const auto OldStdStr = OldStr.GetStdStringView(); // 假设StringView有GetStdString方法
   const auto NewStdStr = NewStr.GetStdStringView();
 
@@ -27,12 +28,13 @@ String& String::Replace(const StringView& OldStr, const StringView& NewStr) {
     return *this; // 不能替换空字符串
   }
 
+  std::string Result = GetStdString();
   std::size_t Pos = 0;
-  while ((Pos = mStr.find(OldStdStr, Pos)) != std::string::npos) {
-    mStr.replace(Pos, OldStdStr.length(), NewStdStr);
+  while ((Pos = Result.find(OldStdStr, Pos)) != std::string::npos) {
+    Result.replace(Pos, OldStdStr.length(), NewStdStr);
     Pos += NewStdStr.length();
   }
-  return *this;
+  return Result;
 }
 
 String operator+(const String& Str1, const StringView& Str2) {
@@ -45,43 +47,37 @@ String operator+(const String& Str1, const char* Str2) {
   return Str3 += Str2;
 }
 
-std::istream& operator>>(std::istream& IS, String& Str)  {
+std::istream& operator>>(std::istream& IS, String& Str) {
   IS >> Str.mStr;
   return IS;
 }
 
-StringView String::TrimLeft(const char Ch) const
-{
+StringView String::TrimLeft(const char Ch) const {
   const StringView View = mStr;
   return View.TrimLeft(Ch);
 }
 
-StringView String::TrimLeft(const StringView Chars) const
-{
+StringView String::TrimLeft(const StringView Chars) const {
   const StringView View = mStr;
   return View.TrimLeft(Chars);
 }
 
-StringView String::TrimRight(const char Ch) const
-{
+StringView String::TrimRight(const char Ch) const {
   const StringView View = mStr;
   return View.TrimRight(Ch);
 }
 
-StringView String::TrimRight(const StringView Chars) const
-{
+StringView String::TrimRight(const StringView Chars) const {
   const StringView View = mStr;
   return View.TrimRight(Chars);
 }
 
-StringView String::Trim(const char Ch) const
-{
+StringView String::Trim(const char Ch) const {
   const StringView View = mStr;
   return View.Trim(Ch);
 }
 
-StringView String::Trim(const StringView Chars) const
-{
+StringView String::Trim(const StringView Chars) const {
   const StringView View = mStr;
   return View.Trim(Chars);
 }

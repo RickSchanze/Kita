@@ -7,6 +7,15 @@
 
 #include "Shader.generated.h"
 
+KENUM()
+enum class EShaderLanguage {
+  Slang,
+  Spirv,
+  GLSL,
+  HLSL,
+  Count,
+};
+
 enum class EShaderParameterType {
   Float4x4,
   Float4,
@@ -80,7 +89,8 @@ struct ShaderBinaryData {
   Array<Byte> Data;
 
   [[nodiscard]] bool IsValid() const { return Data.Count() > 12; }
-  [[nodiscard]] bool IsGraphicsShader() const { return Data[0].Test(0); }
+  [[nodiscard]] bool IsGraphicsShader() const { return IsValid() ? Data[0].Test(0) : false; }
+  [[nodiscard]] bool IsCompute() const { return IsValid() ? !IsGraphicsShader() : false; }
   [[nodiscard]] bool IsCullModeBackface() const { return Data[0].Test(1); }
 
   [[nodiscard]] Array<ShaderParameterInfo> ParseParameterInfo();
@@ -110,6 +120,20 @@ public:
 
   static void ReadCache();
   static void WriteCache();
+
+  /// 将生成的Shader文件写入到
+  /// Intermediate/Shader/{ShaderName}.glsl
+  /// 中
+  void GenerateTempCodeGLSL();
+  void GenerateTempCodeHLSL();
+
+  /// 将Shader文件写入到 {Folder}/{ShaderName}.{Lang}等
+  /// @param Folder 将生成的Shader文件写入到哪个目录下
+  /// @param Language 目标语言
+  void GenerateTempCode(StringView Folder, EShaderLanguage Language);
+
+  [[nodiscard]] bool IsCompute() const;
+  [[nodiscard]] bool IsGraphics() const;
 
 protected:
   /// 是否需要重新将Shader编译为spirv

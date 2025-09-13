@@ -46,10 +46,10 @@ public:
   friend std::istream& operator>>(std::istream& IS, String& Str);
 
   // 替换所有出现的字符
-  String& Replace(char OldChar, char NewChar);
+  [[nodiscard]] String Replace(char OldChar, char NewChar) const;
 
   // 替换所有出现的子字符串
-  String& Replace(const StringView& OldStr, const StringView& NewStr);
+  [[nodiscard]] String Replace(const StringView& OldStr, const StringView& NewStr) const;
 
   [[nodiscard]] StringView Trim(char Ch) const;
   [[nodiscard]] StringView Trim(StringView Chars) const;

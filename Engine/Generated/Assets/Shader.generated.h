@@ -5,6 +5,8 @@
 #include "Core/Reflection/TypeRegistry.h"
 #include "Core/Serialization/InputArchive.h"
 #include "Core/Serialization/OutputArchive.h"
+void Z_Reflection_Register_Func_Enum_EShaderLanguage();struct Z_Reflection_Register_Enum_EShaderLanguage { Z_Reflection_Register_Enum_EShaderLanguage() {Z_Reflection_Register_Func_Enum_EShaderLanguage(); }};
+inline Z_Reflection_Register_Enum_EShaderLanguage Z_Reflection_Register_Enum_EShaderLanguage___Instance{}; 
 #define GENERATED_HEADER_ShaderMeta \
 typedef ThisStruct Super; \
 typedef ShaderMeta ThisStruct; \

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #if DEBUG_MODE
 #define KITA_DEBUG 1
 #else
@@ -19,6 +21,7 @@
   inline constexpr Enum& operator&=(Enum& lhs, Enum rhs) { return lhs = lhs & rhs; }                                                                                                 \
   inline constexpr Enum& operator^=(Enum& lhs, Enum rhs) { return lhs = lhs ^ rhs; }
 #include <type_traits>
+#include <utility>
 
 template <typename T>
   requires std::is_enum_v<T>
@@ -30,6 +33,18 @@ template <typename T>
   requires std::is_enum_v<T>
 bool False(T Flag) {
   return std::underlying_type_t<T>(Flag) == 0;
+}
+
+template <typename T>
+  requires std::is_enum_v<T>
+constexpr auto ToUnderlying(T Enum) {
+  return std::to_underlying(Enum);
+}
+
+template <typename T>
+  requires std::is_enum_v<T>
+constexpr auto ToEnum(std::underlying_type_t<T> Value) {
+  return static_cast<T>(Value);
 }
 
 #ifdef _MSC_VER

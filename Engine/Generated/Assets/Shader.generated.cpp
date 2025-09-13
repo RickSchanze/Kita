@@ -1,7 +1,14 @@
 // Auto-generated source file
 #include "Assets/Shader.h"
 
-const Type* ShaderMeta::GetStaticType() { return TypeOf<ShaderMeta>(); }
+void Z_Reflection_Register_Func_Enum_EShaderLanguage() {TypeBuilder Builder{};Builder.CreateType<EShaderLanguage>("EShaderLanguage");
+Builder.AddField("Slang", EShaderLanguage::Slang);
+Builder.AddField("Spirv", EShaderLanguage::Spirv);
+Builder.AddField("GLSL", EShaderLanguage::GLSL);
+Builder.AddField("HLSL", EShaderLanguage::HLSL);
+Builder.AddField("Count", EShaderLanguage::Count);
+Builder.Register();
+}const Type* ShaderMeta::GetStaticType() { return TypeOf<ShaderMeta>(); }
 const Type* ShaderMeta::GetType() { return TypeOf<ShaderMeta>(); }
 void ShaderMeta::WriteArchive(OutputArchive& Archive) const { 
 Super::WriteArchive(Archive); 
