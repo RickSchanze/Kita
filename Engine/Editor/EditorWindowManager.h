@@ -15,6 +15,7 @@ public:
 
   static void Render();
   static EditorWindow* GetWindow(const Type* WindowType);
+  static void MakeSureReflections();
 
 private:
   Map<const Type*, EditorWindow*> mEditorWindows;

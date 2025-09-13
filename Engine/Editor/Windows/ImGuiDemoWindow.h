@@ -13,7 +13,7 @@ public:
   virtual void DrawEditorUI() override;
 };
 
-KCLASS(MenuActionItem = "工具/ImGui Demo")
+KCLASS(MenuActionItem = "示例/ImGui Demo")
 class MenuAction_ShowImGuiDemo : public MenuAction {
   GENERATED_BODY(MenuAction_ShowImGuiDemo)
 public:

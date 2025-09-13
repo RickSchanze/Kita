@@ -1,8 +1,8 @@
 #pragma once
+#include "Core/Container/Deque.h"
 #include "Editor/EditorWindow.h"
 #include "Editor/MenuAction.h"
 
-#include "Core/Container/Deque.h"
 #include "LoggingWindow.generated.h"
 
 KCLASS()
@@ -23,7 +23,7 @@ private:
   Map<StringView, bool> mLoggingRecordTagFilter;
 };
 
-KCLASS(MenuActionItem = "工具/日志")
+KCLASS(MenuActionItem = "窗口/日志")
 class MenuAction_OpenLoggingWindow : public MenuAction {
   GENERATED_BODY(MenuAction_OpenLoggingWindow)
 public:

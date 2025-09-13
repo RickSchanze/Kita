@@ -18,9 +18,15 @@ add_library(KitaEditor
         EditorWindowManager.h
         Windows/ImGuiDemoWindow.cpp
         Windows/ImGuiDemoWindow.h
+        Inspector/ShaderInspector.cpp
+        Inspector/ShaderInspector.h
+        Inspector/Inspector.cpp
+        Inspector/Inspector.h
+        Windows/InspectorWindow.cpp
+        Windows/InspectorWindow.h
 )
 
-target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender)
+target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets)
 
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(KitaEditor PRIVATE glfw)

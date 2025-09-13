@@ -41,7 +41,7 @@ TypeBuilder Builder{}; \
 Builder.CreateType<MenuAction_OpenLoggingWindow>("MenuAction_OpenLoggingWindow"); \
 Builder.AddParent<MenuAction>(); \
 Builder.SetConstructor(MenuAction_OpenLoggingWindow::ConstructSelf).SetDestructor(MenuAction_OpenLoggingWindow::DestructSelf); \
-Builder.SetTypeAttribute("MenuActionItem", "工具/日志"); \
+Builder.SetTypeAttribute("MenuActionItem", "窗口/日志"); \
 Builder.Register(); \
 } \
 }; \

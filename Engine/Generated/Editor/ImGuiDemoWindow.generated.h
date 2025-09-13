@@ -41,7 +41,7 @@ TypeBuilder Builder{}; \
 Builder.CreateType<MenuAction_ShowImGuiDemo>("MenuAction_ShowImGuiDemo"); \
 Builder.AddParent<MenuAction>(); \
 Builder.SetConstructor(MenuAction_ShowImGuiDemo::ConstructSelf).SetDestructor(MenuAction_ShowImGuiDemo::DestructSelf); \
-Builder.SetTypeAttribute("MenuActionItem", "工具/ImGui Demo"); \
+Builder.SetTypeAttribute("MenuActionItem", "示例/ImGui Demo"); \
 Builder.Register(); \
 } \
 }; \
