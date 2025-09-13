@@ -27,10 +27,13 @@ TOMLOutputArchive::TOMLOutputArchive() {
   mStateStack.Push(WritingObject);
 }
 
-void TOMLOutputArchive::BeginObject(const StringView ObjectName) {
+void TOMLOutputArchive::BeginObject(const StringView ObjectName, EOutputArchiveFlag Flag) {
   auto* Parent = mImpl->CurrentNode();
   if (const auto Table = Parent->as_table()) {
     toml::table Object;
+    if (True(Flag & EOutputArchiveFlag::Inline)) {
+      Object.is_inline(true);
+    }
     auto& NewObject = Table->insert_or_assign(ObjectName.Data(), std::move(Object)).first->second;
     mImpl->NodeStack.Push(&NewObject);
   } else if (const auto Array = Parent->as_array()) {

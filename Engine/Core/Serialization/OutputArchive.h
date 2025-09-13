@@ -1,15 +1,24 @@
 #pragma once
 #include "Core/Container/Array.h"
 #include "Core/Container/Map.h"
+#include "Core/Reflection/EnumString.h"
 #include "Core/String/StringView.h"
 #include "Core/Traits.h"
-#include "Core/Reflection/EnumString.h"
+
+enum class EOutputArchiveFlag {
+  None = 0,
+  Inline = 1 << 0, // for toml yaml
+};
+ENABLE_BITMASK_OPERATORS(EOutputArchiveFlag)
+
+// 继承此结构体, 使结构体Inline
+struct InlinedOutput {};
 
 class OutputArchive {
 public:
   virtual ~OutputArchive() = default;
 
-  virtual void BeginObject(StringView ObjectName) = 0;
+  virtual void BeginObject(StringView ObjectName, EOutputArchiveFlag Flag) = 0;
   virtual void EndObject() = 0;
   virtual void BeginArray(StringView Key) = 0;
   virtual void EndArray() = 0;
@@ -60,11 +69,19 @@ template <typename T> void OutputArchive::WriteType(StringView Key, const T& Val
     Write(Key, EnumToString(Value));
   } else {
     if constexpr (Traits::HasGlobalOutputArchiveFunc<T>) {
-      BeginObject(Key);
+      auto Flag = EOutputArchiveFlag::None;
+      if constexpr (Traits::IsBaseOf<InlinedOutput, T>) {
+        Flag |= EOutputArchiveFlag::Inline;
+      }
+      BeginObject(Key, Flag);
       WriteArchive(*this, Value);
       EndObject();
     } else if constexpr (Traits::HasMemberOutputArchiveFunc<T>) {
-      BeginObject(Key);
+      auto Flag = EOutputArchiveFlag::None;
+      if constexpr (Traits::IsBaseOf<InlinedOutput, T>) {
+        Flag |= EOutputArchiveFlag::Inline;
+      }
+      BeginObject(Key, Flag);
       Value.WriteArchive(*this);
       EndObject();
     } else {

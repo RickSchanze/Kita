@@ -14,7 +14,7 @@
 #include <glm/gtx/vector_angle.hpp>
 
 // =================== Vector2 ===================
-template <typename T> struct Vector2 {
+template <typename T> struct Vector2 : InlinedOutput {
   glm::vec<2, T> Data;
 
   FORCE_INLINE constexpr Vector2(T X = {}, T Y = {}) : Data(X, Y) {}
@@ -108,7 +108,7 @@ typedef Vector2<UInt32> Vector2u;
 #undef VECTOR2_DECL
 
 // =================== Vector3 ===================
-template <typename T> struct Vector3 {
+template <typename T> struct Vector3 : InlinedOutput {
   glm::vec<3, T> Data;
 
   FORCE_INLINE constexpr Vector3(T X = 0, T Y = 0, T Z = 0) : Data(X, Y, Z) {}
@@ -191,7 +191,7 @@ typedef Vector3<double> Vector3d;
 #undef VECTOR3_DECL
 
 // =================== Vector4 ===================
-template <typename T> struct Vector4 {
+template <typename T> struct Vector4 : InlinedOutput {
   glm::vec<4, T> Data;
 
   constexpr Vector4() = default;

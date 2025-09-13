@@ -14,7 +14,7 @@ public:
   virtual ~TOMLOutputArchive() override;
   TOMLOutputArchive(TOMLOutputArchive&&) noexcept = default;
 
-  virtual void BeginObject(StringView ObjectName) override;
+  virtual void BeginObject(StringView ObjectName, EOutputArchiveFlag Flag) override;
   virtual void EndObject() override;
   virtual void BeginArray(StringView Key) override;
   virtual void EndArray() override;

@@ -24,8 +24,12 @@ YAMLOutputArchive::YAMLOutputArchive() {
 
 YAMLOutputArchive::~YAMLOutputArchive() = default;
 
-void YAMLOutputArchive::BeginObject(StringView ObjectName) {
-  mImpl->Emitter << YAML::Key << ObjectName.Data() << YAML::Value << YAML::BeginMap;
+void YAMLOutputArchive::BeginObject(StringView ObjectName, EOutputArchiveFlag Flag) {
+  mImpl->Emitter << YAML::Key << ObjectName.Data() << YAML::Value;
+  if (True(Flag & EOutputArchiveFlag::Inline)) {
+    mImpl->Emitter << YAML::Flow;
+  }
+  mImpl->Emitter << YAML::BeginMap;
   mStateStack.Push(State::WritingObject);
 }
 void YAMLOutputArchive::EndObject() {
