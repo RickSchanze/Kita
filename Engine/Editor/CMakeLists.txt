@@ -3,7 +3,6 @@ project(KitaEditor)
 find_package(Vulkan REQUIRED)
 
 add_library(KitaEditor
-        ${Editor_GENERATED_FILES}
         EditorWindow.h
         EditorWindow.cpp
         MenuAction.cpp
@@ -24,6 +23,7 @@ add_library(KitaEditor
         Inspector/Inspector.h
         Windows/InspectorWindow.cpp
         Windows/InspectorWindow.h
+        ${Editor_GENERATED_FILES}
 )
 
 target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets)

@@ -5,12 +5,7 @@
 #include "EditorWindowManager.h"
 
 #include "EditorWindow.h"
-// ReSharper disable once CppUnusedIncludeDirective 避免变量被优化而无法注册
-#include "Windows/ImGuiDemoWindow.h"
-// ReSharper disable once CppUnusedIncludeDirective 避免变量被优化而无法注册
 #include "Windows/LoggingWindow.h"
-// ReSharper disable once CppUnusedIncludeDirective 避免变量被优化而无法注册
-#include "Windows/InspectorWindow.h"
 
 EditorWindow* EditorWindowManager::Open(const Type* InType) {
   auto& Self = GetRef();

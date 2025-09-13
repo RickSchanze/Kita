@@ -19,4 +19,3 @@ class MenuAction_ShowImGuiDemo : public MenuAction {
 public:
   virtual void Execute() override { EditorWindowManager::Open<ImGuiDemoWindow>(); }
 };
-

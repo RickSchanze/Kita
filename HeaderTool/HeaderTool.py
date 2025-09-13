@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 import re
 from dataclasses import dataclass, field
@@ -5,9 +7,10 @@ from typing import List, Dict, Optional, TextIO
 
 # ======== 配置 ========
 EXCLUDED_HEADERS = [
-    "Core/Reflection/MetaMark.h"
+    "Engine/Core/Reflection/MetaMark.h"
 ]
-PROJECT_ROOT_PATH = "C:/Users/kita/Documents/Projects/Kita/Engine"
+PROJECT_ROOT_PATH = "C:/Users/kita/Documents/Projects/Kita"
+CACHE_PATH = f"{PROJECT_ROOT_PATH}/cmake-build-debug/Cache.json"
 
 
 # ---------------- 数据模型 ----------------
@@ -15,7 +18,6 @@ PROJECT_ROOT_PATH = "C:/Users/kita/Documents/Projects/Kita/Engine"
 class ArgumentInfo:
     type: str
     name: str
-
 
 @dataclass
 class PropertyInfo:
@@ -455,14 +457,35 @@ class CMakeScanner:
         return headers
 
 
+def get_file_hash(file_path, algorithm='sha256'):
+    """获取文件哈希值"""
+    hash_obj = hashlib.new(algorithm)
+
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_obj.update(chunk)
+
+    return hash_obj.hexdigest()
+
+
 class CodeGenerator:
     def __init__(self, generated_directory: str):
         self.__generated_directory = os.path.abspath(generated_directory).replace("\\", "/")
         self.__class_hide_attr = ["Abstract", "Name", "CustomSerialization"]
+        self.__cache = {}
+        # 读Cache
+        try:
+            with open(CACHE_PATH, 'r', encoding="utf-8") as f:
+                self.__cache = json.load(f)
+        except:
+            print(f"[WARN] 缓存文件 {CACHE_PATH} 无效，将重新生成")
+            self.__cache = {}
 
     def generate_projects(self, projs: List[CMakeProjectInfo]):
         for proj in projs:
             self.generate_project(proj)
+        with open(CACHE_PATH, "w", encoding="utf-8") as f:
+            json.dump(self.__cache, f, indent=4)
 
     def generate_project(self, proj: CMakeProjectInfo):
         has_class_or_enum = any(
@@ -481,6 +504,15 @@ class CodeGenerator:
             has_code = any(item.__class__.__name__ in ("ClassInfo", "EnumInfo") for item in parsed_items)
             if not has_code:
                 continue
+
+            file_hash = get_file_hash(abs_header_path)
+            if abs_header_path in self.__cache:
+                if self.__cache[abs_header_path] == file_hash:
+                    continue
+                else:
+                    self.__cache[abs_header_path] = file_hash
+            else:
+                self.__cache[abs_header_path] = file_hash
 
             base_name = os.path.splitext(os.path.basename(abs_header_path))[0]
             gen_h_path = os.path.join(output_dir, f"{base_name}.generated.h")

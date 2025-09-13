@@ -8,7 +8,6 @@ function(kita_add_subdirectory DIR_NAME)
             ${GENERATED_DIR_PATH}
             CACHE INTERNAL "Path to generated files for ${DIR_NAME}"
     )
-    # 收集目录下所有的.generated.hpp和.generated.cpp文件
     file(GLOB GENERATED_FILES "${GENERATED_DIR_PATH}/*.cpp" "${GENERATED_DIR_PATH}/*.hpp")
     set(${DIR_NAME}_GENERATED_FILES ${GENERATED_FILES} CACHE INTERNAL "All generated files for ${DIR_NAME}")
     # 添加子目录到构建系统

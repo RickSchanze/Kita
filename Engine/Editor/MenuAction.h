@@ -3,7 +3,6 @@
 
 #include "MenuAction.generated.h"
 
-
 // 使用属性MenuActionItem注册一个MenuItem
 // KCLASS(MenuActionItem = "工具/日志")
 KCLASS(Abstract)
