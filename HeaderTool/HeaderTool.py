@@ -7,10 +7,10 @@ from typing import List, Dict, Optional, TextIO
 
 # ======== 配置 ========
 EXCLUDED_HEADERS = [
-    "Engine/Core/Reflection/MetaMark.h"
+    "Core/Reflection/MetaMark.h"
 ]
-PROJECT_ROOT_PATH = "C:/Users/kita/Documents/Projects/Kita"
-CACHE_PATH = f"{PROJECT_ROOT_PATH}/cmake-build-debug/Cache.json"
+PROJECT_ROOT_PATH = "C:/Users/kita/Documents/Projects/Kita/Engine"
+CACHE_PATH = f"C:/Users/kita/Documents/Projects/Kita/cmake-build-debug/Cache.json"
 
 
 # ---------------- 数据模型 ----------------

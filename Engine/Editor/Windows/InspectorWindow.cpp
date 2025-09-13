@@ -4,7 +4,11 @@
 
 #include "InspectorWindow.h"
 
-InspectorWindow::InspectorWindow() {}
+InspectorWindow::InspectorWindow() {
+  mWindowTitle = "细节";
+  mName = "InspectorWindow";
+  mShouldDeleteWhenUnVisible = false;
+}
 
 InspectorWindow::~InspectorWindow() {}
 

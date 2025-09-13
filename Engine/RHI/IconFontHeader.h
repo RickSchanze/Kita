@@ -4111,3 +4111,5 @@
 #define ICON_MS_ZOOM_OUT_MAP "\xee\x95\xab"                                // U+e56b
 
 #define KITA_ICON_FONT_CHECK ICON_MS_CHECK
+#define KITA_ICON_FOLDER ICON_MS_FOLDER
+#define KITA_ICON_FOLDER_OPEN ICON_MS_FOLDER_OPEN

@@ -9,6 +9,7 @@
 
 LoggingWindow::LoggingWindow() {
   mWindowTitle = "日志";
+  mName = "LoggingWindow";
   mShouldDeleteWhenUnVisible = false;
   mLoggingCallbackHandle = gLogger.Evt_Log.Add(RecordLog);
 }
@@ -52,9 +53,9 @@ static void DrawLog(const Log& InLog) {
 }
 
 static void DrawTagFilterCombo(Map<StringView, bool>& TagsFilter) {
-  if (EditorUI::BeginCombo("标签筛选", "", EditorUI::CFB_NoPreview)) {
+  if (EditorUI::BeginCombo("标签筛选", "", EditorUI::EComboFlags::NoPreview)) {
     for (auto& [Tag, Enabled] : TagsFilter) {
-      if (EditorUI::Selectable(Tag, Enabled, EditorUI::SFB_NoAutoClosePopups)) {
+      if (EditorUI::Selectable(Tag, Enabled, EditorUI::ESelectableFlags::NoAutoClosePopups)) {
         Enabled = !Enabled;
       }
       if (Enabled) {
@@ -71,7 +72,8 @@ void LoggingWindow::DrawEditorUI() {
   DrawTagFilterCombo(mLoggingRecordTagFilter);
   float ContentWidth = GetAvailableContentWidth();
   // 标签筛选
-  EditorUI::ETableFlags Flags = EditorUI::TFB_SizingStretchProp | EditorUI::TFB_Borders | EditorUI::TFB_Resizable;
+  constexpr EditorUI::ETableFlags Flags =
+      EditorUI::ETableFlags::SizingStretchProp | EditorUI::ETableFlags::Borders | EditorUI::ETableFlags::Resizable | EditorUI::ETableFlags::RowBg | EditorUI::ETableFlags::BordersInner;
   if (EditorUI::BeginTable("LoggingTable", 3, Flags, Vector2f(ContentWidth, 0.0f))) {
     EditorUI::TableSetupColumn("Tag");
     EditorUI::TableSetupColumn("等级");

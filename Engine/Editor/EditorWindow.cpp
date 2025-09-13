@@ -6,16 +6,18 @@
 
 #include "EditorUI.h"
 
-#include <imgui.h>
-
 void EditorWindow::Render() {
   if (mShowWindow) {
-    if (!mBeginEndWindowSelf)
+    if (!mBeginEndWindowSelf) {
       EditorUI::Begin(mWindowTitle, &mShowWindow, mFlags);
+    }
     DrawEditorUI();
-    if (!mBeginEndWindowSelf)
+    if (!mBeginEndWindowSelf) {
       EditorUI::End();
+    }
   }
 }
 
-float EditorWindow::GetAvailableContentWidth() { return EditorUI::GetContentRegionAvail().X(); }
+float EditorWindow::GetAvailableContentWidth() { return mWindowSize.X(); }
+
+Vector2f EditorWindow::GetWindowSize() const { return mWindowSize; }

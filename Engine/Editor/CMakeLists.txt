@@ -24,6 +24,10 @@ add_library(KitaEditor
         Windows/InspectorWindow.cpp
         Windows/InspectorWindow.h
         ${Editor_GENERATED_FILES}
+        Windows/ContentBrowserWindow.cpp
+        Windows/ContentBrowserWindow.h
+        Selection.cpp
+        Selection.h
 )
 
 target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets)

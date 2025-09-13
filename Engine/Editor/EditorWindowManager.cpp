@@ -5,6 +5,8 @@
 #include "EditorWindowManager.h"
 
 #include "EditorWindow.h"
+#include "Windows/ContentBrowserWindow.h"
+#include "Windows/InspectorWindow.h"
 #include "Windows/LoggingWindow.h"
 
 EditorWindow* EditorWindowManager::Open(const Type* InType) {
@@ -32,7 +34,11 @@ void EditorWindowManager::Close(const Type* InType) {
   }
 }
 
-void EditorWindowManager::StartUp() { Open<LoggingWindow>(); }
+void EditorWindowManager::StartUp() {
+  Open<LoggingWindow>();
+  Open<ContentBrowserWindow>();
+  Open<InspectorWindow>();
+}
 
 void EditorWindowManager::ShutDown() {
   for (auto& [Type, Window] : GetRef().mEditorWindows) {

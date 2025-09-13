@@ -26,10 +26,13 @@ public:
 
   float GetAvailableContentWidth();
 
+  [[nodiscard]] Vector2f GetWindowSize() const;
+
 protected:
   bool mShowWindow = true;
-  EditorUI::EWindowFlags mFlags = EditorUI::WFB_None;
+  EditorUI::EWindowFlags mFlags = EditorUI::EWindowFlags::None;
   String mWindowTitle = "窗口";
   bool mShouldDeleteWhenUnVisible = true;
   bool mBeginEndWindowSelf = false;
+  Vector2f mWindowSize;
 };
