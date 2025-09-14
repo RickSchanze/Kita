@@ -220,29 +220,17 @@ public:
     NavFlattened = 1 << 8, // [BETA] Share focus scope, allow keyboard/gamepad navigation to cross over parent border to this child or between sibling child windows.
   };
 
-  // 水平布局相关函数
-  static void BeginHorizontal(const char* Id = nullptr);
-  static void EndHorizontal();
-  static void BeginChild(const char* Id = nullptr, const Vector2f& Size = Vector2f(0, 0), bool Border = true);
-  static void EndChild();
-  static void Separator(float Thickness = 1.0f, const Color& InColor = ::Color(0.5f, 0.5f, 0.5f, 1.0f));
+  enum class ESplitterDirection { Horizontal, Vertical };
 
-  // 可拖拽分隔器
-  static void DraggableSeparator(const char* Id, float& OutWidth, float MinWidth = 0, float MaxWidth = std::numeric_limits<float>::max());
+  // 使用Button模拟的Splitter
+  static void Splitter(float& S1, float& S2, ESplitterDirection Direction = ESplitterDirection::Vertical, float MinSize1 = 0.0f, float MinSize2 = 0.0f, float Thickness = 5);
 
-  // 内部状态管理
-  struct HorizontalLayoutState {
-    String LayoutId;
-    Vector2f AvailableSize;
-    Vector2f CursorStartPos;
-    int ChildCount;
-    bool FirstChild;
+  static void InitializeColors();
 
-    HorizontalLayoutState() : ChildCount(0), FirstChild(true) {}
-  };
-
-  static inline Stack<HorizontalLayoutState> sLayoutStack;
-  static inline int sLayoutCounter = 0;
+private:
+  static inline UInt32 SplitterNormal;
+  static inline UInt32 SplitterHovered;
+  static inline UInt32 SplitterActive;
 };
 
 ENABLE_BITMASK_OPERATORS(EditorUI::EChildFlags)

@@ -18,7 +18,8 @@ public:
   };
 
 private:
-  float mLeftPanelWidth = 0.f;
+  float mLeftPanelWidth = 100.f;
+  float mRightPanelWidth = 0.f;
   bool IsFolderOpen = false;
   DirectoryTreeNode* Root;
 };

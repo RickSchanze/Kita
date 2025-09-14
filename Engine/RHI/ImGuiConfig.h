@@ -1,69 +1,70 @@
 #pragma once
 #include "Core/Config/IConfig.h"
+#include "Math/Color.h"
+#include "Math/Vector.h"
 
 #include "ImGuiConfig.generated.h"
-#include "Math/Vector.h"
 
 KSTRUCT()
 struct ImGuiColorTheme {
   GENERATED_BODY(ImGuiColorTheme)
 
   // Colors
-  KPROPERTY() Vector4f Text { 1.00f, 1.00f, 1.00f, 1.00f };
-  KPROPERTY() Vector4f TextDisabled { 0.50f, 0.50f, 0.50f, 1.00f };
-  KPROPERTY() Vector4f WindowBg { 0.10f, 0.10f, 0.10f, 1.00f };
-  KPROPERTY() Vector4f ChildBg { 0.00f, 0.00f, 0.00f, 0.00f };
-  KPROPERTY() Vector4f PopupBg { 0.19f, 0.19f, 0.19f, 0.92f };
-  KPROPERTY() Vector4f Border { 0.19f, 0.19f, 0.19f, 0.29f };
-  KPROPERTY() Vector4f BorderShadow { 0.00f, 0.00f, 0.00f, 0.24f };
-  KPROPERTY() Vector4f FrameBg { 0.05f, 0.05f, 0.05f, 0.54f };
-  KPROPERTY() Vector4f FrameBgHovered { 0.19f, 0.19f, 0.19f, 0.54f };
-  KPROPERTY() Vector4f FrameBgActive { 0.20f, 0.22f, 0.23f, 1.00f };
-  KPROPERTY() Vector4f TitleBg { 0.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f TitleBgActive { 0.06f, 0.06f, 0.06f, 1.00f };
-  KPROPERTY() Vector4f TitleBgCollapsed { 0.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f MenuBarBg { 0.14f, 0.14f, 0.14f, 1.00f };
-  KPROPERTY() Vector4f ScrollbarBg { 0.05f, 0.05f, 0.05f, 0.54f };
-  KPROPERTY() Vector4f ScrollbarGrab { 0.34f, 0.34f, 0.34f, 0.54f };
-  KPROPERTY() Vector4f ScrollbarGrabHovered { 0.40f, 0.40f, 0.40f, 0.54f };
-  KPROPERTY() Vector4f ScrollbarGrabActive { 0.56f, 0.56f, 0.56f, 0.54f };
-  KPROPERTY() Vector4f CheckMark { 0.33f, 0.67f, 0.86f, 1.00f };
-  KPROPERTY() Vector4f SliderGrab { 0.34f, 0.34f, 0.34f, 0.54f };
-  KPROPERTY() Vector4f SliderGrabActive { 0.56f, 0.56f, 0.56f, 0.54f };
-  KPROPERTY() Vector4f Button { 0.05f, 0.05f, 0.05f, 0.54f };
-  KPROPERTY() Vector4f ButtonHovered { 0.19f, 0.19f, 0.19f, 0.54f };
-  KPROPERTY() Vector4f ButtonActive { 0.20f, 0.22f, 0.23f, 1.00f };
-  KPROPERTY() Vector4f Header { 0.00f, 0.00f, 0.00f, 0.52f };
-  KPROPERTY() Vector4f HeaderHovered { 0.00f, 0.00f, 0.00f, 0.36f };
-  KPROPERTY() Vector4f HeaderActive { 0.20f, 0.22f, 0.23f, 0.33f };
-  KPROPERTY() Vector4f Separator { 0.28f, 0.28f, 0.28f, 0.29f };
-  KPROPERTY() Vector4f SeparatorHovered { 0.44f, 0.44f, 0.44f, 0.29f };
-  KPROPERTY() Vector4f SeparatorActive { 0.40f, 0.44f, 0.47f, 1.00f };
-  KPROPERTY() Vector4f ResizeGrip { 0.28f, 0.28f, 0.28f, 0.29f };
-  KPROPERTY() Vector4f ResizeGripHovered { 0.44f, 0.44f, 0.44f, 0.29f };
-  KPROPERTY() Vector4f ResizeGripActive { 0.40f, 0.44f, 0.47f, 1.00f };
-  KPROPERTY() Vector4f Tab { 0.00f, 0.00f, 0.00f, 0.52f };
-  KPROPERTY() Vector4f TabHovered { 0.14f, 0.14f, 0.14f, 1.00f };
-  KPROPERTY() Vector4f TabActive { 0.20f, 0.20f, 0.20f, 0.36f };
-  KPROPERTY() Vector4f TabUnfocused { 0.00f, 0.00f, 0.00f, 0.52f };
-  KPROPERTY() Vector4f TabUnfocusedActive { 0.14f, 0.14f, 0.14f, 1.00f };
-  KPROPERTY() Vector4f DockingPreview { 0.33f, 0.67f, 0.86f, 1.00f };
-  KPROPERTY() Vector4f DockingEmptyBg { 1.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f PlotLines { 1.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f PlotLinesHovered { 1.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f PlotHistogram { 1.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f PlotHistogramHovered { 1.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f TableHeaderBg { 0.00f, 0.00f, 0.00f, 0.52f };
-  KPROPERTY() Vector4f TableBorderStrong { 0.00f, 0.00f, 0.00f, 0.52f };
-  KPROPERTY() Vector4f TableBorderLight { 0.28f, 0.28f, 0.28f, 0.29f };
-  KPROPERTY() Vector4f TableRowBg { 0.00f, 0.00f, 0.00f, 0.00f };
-  KPROPERTY() Vector4f TableRowBgAlt { 1.00f, 1.00f, 1.00f, 0.06f };
-  KPROPERTY() Vector4f TextSelectedBg { 0.20f, 0.22f, 0.23f, 1.00f };
-  KPROPERTY() Vector4f DragDropTarget { 0.33f, 0.67f, 0.86f, 1.00f };
-  KPROPERTY() Vector4f NavHighlight { 1.00f, 0.00f, 0.00f, 1.00f };
-  KPROPERTY() Vector4f NavWindowingHighlight { 1.00f, 0.00f, 0.00f, 0.70f };
-  KPROPERTY() Vector4f NavWindowingDimBg { 1.00f, 0.00f, 0.00f, 0.20f };
-  KPROPERTY() Vector4f ModalWindowDimBg { 1.00f, 0.00f, 0.00f, 0.35f };
+  KPROPERTY() Color Text { 1.00f, 1.00f, 1.00f, 1.00f };
+  KPROPERTY() Color TextDisabled { 0.50f, 0.50f, 0.50f, 1.00f };
+  KPROPERTY() Color WindowBg { 0.10f, 0.10f, 0.10f, 1.00f };
+  KPROPERTY() Color ChildBg { 0.00f, 0.00f, 0.00f, 0.00f };
+  KPROPERTY() Color PopupBg { 0.19f, 0.19f, 0.19f, 0.92f };
+  KPROPERTY() Color Border { 0.19f, 0.19f, 0.19f, 0.29f };
+  KPROPERTY() Color BorderShadow { 0.00f, 0.00f, 0.00f, 0.24f };
+  KPROPERTY() Color FrameBg { 0.05f, 0.05f, 0.05f, 0.54f };
+  KPROPERTY() Color FrameBgHovered { 0.19f, 0.19f, 0.19f, 0.54f };
+  KPROPERTY() Color FrameBgActive { 0.20f, 0.22f, 0.23f, 1.00f };
+  KPROPERTY() Color TitleBg { 0.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color TitleBgActive { 0.06f, 0.06f, 0.06f, 1.00f };
+  KPROPERTY() Color TitleBgCollapsed { 0.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color MenuBarBg { 0.14f, 0.14f, 0.14f, 1.00f };
+  KPROPERTY() Color ScrollbarBg { 0.05f, 0.05f, 0.05f, 0.54f };
+  KPROPERTY() Color ScrollbarGrab { 0.34f, 0.34f, 0.34f, 0.54f };
+  KPROPERTY() Color ScrollbarGrabHovered { 0.40f, 0.40f, 0.40f, 0.54f };
+  KPROPERTY() Color ScrollbarGrabActive { 0.56f, 0.56f, 0.56f, 0.54f };
+  KPROPERTY() Color CheckMark { 0.33f, 0.67f, 0.86f, 1.00f };
+  KPROPERTY() Color SliderGrab { 0.34f, 0.34f, 0.34f, 0.54f };
+  KPROPERTY() Color SliderGrabActive { 0.56f, 0.56f, 0.56f, 0.54f };
+  KPROPERTY() Color Button { 0.05f, 0.05f, 0.05f, 0.54f };
+  KPROPERTY() Color ButtonHovered { 0.19f, 0.19f, 0.19f, 0.54f };
+  KPROPERTY() Color ButtonActive { 0.20f, 0.22f, 0.23f, 1.00f };
+  KPROPERTY() Color Header { 0.00f, 0.00f, 0.00f, 0.52f };
+  KPROPERTY() Color HeaderHovered { 0.00f, 0.00f, 0.00f, 0.36f };
+  KPROPERTY() Color HeaderActive { 0.20f, 0.22f, 0.23f, 0.33f };
+  KPROPERTY() Color Separator { 0.28f, 0.28f, 0.28f, 0.29f };
+  KPROPERTY() Color SeparatorHovered { 0.44f, 0.44f, 0.44f, 0.29f };
+  KPROPERTY() Color SeparatorActive { 0.40f, 0.44f, 0.47f, 1.00f };
+  KPROPERTY() Color ResizeGrip { 0.28f, 0.28f, 0.28f, 0.29f };
+  KPROPERTY() Color ResizeGripHovered { 0.44f, 0.44f, 0.44f, 0.29f };
+  KPROPERTY() Color ResizeGripActive { 0.40f, 0.44f, 0.47f, 1.00f };
+  KPROPERTY() Color Tab { 0.00f, 0.00f, 0.00f, 0.52f };
+  KPROPERTY() Color TabHovered { 0.14f, 0.14f, 0.14f, 1.00f };
+  KPROPERTY() Color TabActive { 0.20f, 0.20f, 0.20f, 0.36f };
+  KPROPERTY() Color TabUnfocused { 0.00f, 0.00f, 0.00f, 0.52f };
+  KPROPERTY() Color TabUnfocusedActive { 0.14f, 0.14f, 0.14f, 1.00f };
+  KPROPERTY() Color DockingPreview { 0.33f, 0.67f, 0.86f, 1.00f };
+  KPROPERTY() Color DockingEmptyBg { 1.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color PlotLines { 1.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color PlotLinesHovered { 1.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color PlotHistogram { 1.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color PlotHistogramHovered { 1.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color TableHeaderBg { 0.00f, 0.00f, 0.00f, 0.52f };
+  KPROPERTY() Color TableBorderStrong { 0.00f, 0.00f, 0.00f, 0.52f };
+  KPROPERTY() Color TableBorderLight { 0.28f, 0.28f, 0.28f, 0.29f };
+  KPROPERTY() Color TableRowBg { 0.00f, 0.00f, 0.00f, 0.00f };
+  KPROPERTY() Color TableRowBgAlt { 1.00f, 1.00f, 1.00f, 0.06f };
+  KPROPERTY() Color TextSelectedBg { 0.20f, 0.22f, 0.23f, 1.00f };
+  KPROPERTY() Color DragDropTarget { 0.33f, 0.67f, 0.86f, 1.00f };
+  KPROPERTY() Color NavHighlight { 1.00f, 0.00f, 0.00f, 1.00f };
+  KPROPERTY() Color NavWindowingHighlight { 1.00f, 0.00f, 0.00f, 0.70f };
+  KPROPERTY() Color NavWindowingDimBg { 1.00f, 0.00f, 0.00f, 0.20f };
+  KPROPERTY() Color ModalWindowDimBg { 1.00f, 0.00f, 0.00f, 0.35f };
 
   // Style
   KPROPERTY() Vector2f WindowPadding { 8.00f, 8.00f };

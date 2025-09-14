@@ -30,7 +30,7 @@ add_library(KitaEditor
         Selection.h
 )
 
-target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets)
+target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets KitaRHI)
 
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(KitaEditor PRIVATE glfw)

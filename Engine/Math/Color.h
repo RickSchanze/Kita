@@ -2,7 +2,7 @@
 #include "Core/Reflection/MetaMark.h"
 #include "Vector.h"
 
-struct Color {
+struct Color : InlinedOutput {
   Color(const float R = 0, const float G = 0, const float B = 0, const float A = 1) : Data(R, G, B, A) {}
 
   float& R() { return Data.X(); }
@@ -13,6 +13,9 @@ struct Color {
   [[nodiscard]] const float& B() const { return Data.Z(); }
   float& A() { return Data.W(); }
   [[nodiscard]] const float& A() const { return Data.W(); }
+
+  void WriteArchive(OutputArchive& Archive) const;
+  void ReadArchive(InputArchive& Archive);
 
   Vector4f Data;
 

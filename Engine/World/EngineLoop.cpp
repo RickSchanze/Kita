@@ -8,6 +8,7 @@
 #include "Core/Config/ConfigManager.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskGraph.h"
+#include "Editor/EditorUI.h"
 #include "Editor/EditorWindowManager.h"
 #include "Editor/MenuActionManager.h"
 #include "Input/Input.h"
@@ -59,6 +60,7 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   RHIConfig& Config = ConfigManager::GetConfigRef<RHIConfig>();
   mSurfaceWindow = GfxContext::GetRef().CreateSurfaceWindowR(Config.GetDefaultWindowSize().X(), Config.GetDefaultWindowSize().Y());
   mSurfaceWindow->CreateSwapchain();
+  EditorUI::InitializeColors();
 
   // RenderContext
   RenderContext::StartUp(mSurfaceWindow);

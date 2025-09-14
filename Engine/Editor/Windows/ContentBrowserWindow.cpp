@@ -16,35 +16,21 @@ ContentBrowserWindow::ContentBrowserWindow() {
 ContentBrowserWindow::~ContentBrowserWindow() {}
 
 void ContentBrowserWindow::DrawEditorUI() {
-  EditorUI::BeginHorizontal("ContentBrowser");
-  if (mLeftPanelWidth == 0) {
-    mLeftPanelWidth = EditorUI::GetContentRegionAvail().X() / 2;
+  if (mRightPanelWidth == 0) {
+    mRightPanelWidth = mWindowSize.X() - mLeftPanelWidth;
   }
-  // 左侧面板
-  EditorUI::BeginChild("Left", Vector2f(mLeftPanelWidth, 0));
-  ImGui::Text("文件夹树");
-  if (ImGui::Button(IsFolderOpen ? KITA_ICON_FOLDER_OPEN : KITA_ICON_FOLDER)) {
-    IsFolderOpen = !IsFolderOpen;
-  }
+  ImGui::BeginChild("A", {mLeftPanelWidth, 0});
+  ImGui::Text("Hello World");
+  ImGui::EndChild();
   ImGui::SameLine();
-  if (ImGui::Button("Root")) {
-    gLogger.Info(Logcat::Editor, "选中了");
-  }
-  if (IsFolderOpen) {
-    ImGui::Indent();
-    ImGui::Text("123");
-  }
-  EditorUI::EndChild();
+  ImGui::SameLine();
 
-  // 可拖拽分隔器
-  EditorUI::DraggableSeparator("LeftSplitter", mLeftPanelWidth, 20, EditorUI::GetContentRegionAvail().X() - 10);
+  EditorUI::Splitter(mLeftPanelWidth, mRightPanelWidth);
 
-  // 右侧面板
-  EditorUI::BeginChild("Right", {GetAvailableContentWidth() - mLeftPanelWidth, 0});
-  ImGui::Text("属性面板");
-  ImGui::Text("文件大小: 1024 KB");
-  ImGui::Text("修改时间: 2024-01-01");
-  EditorUI::EndChild();
-
-  EditorUI::EndHorizontal();
+  ImGui::SameLine();
+  ImGui::BeginChild("B", {mRightPanelWidth, 0});
+  ImGui::Text("Hello World");
+  ImGui::EndChild();
+  ImGui::SameLine();
+  ImGui::SameLine();
 }

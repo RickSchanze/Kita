@@ -43,7 +43,7 @@ public:
   T* CreateObject(StringView NewName = "NewObject") {
     CPU_PROFILING_SCOPE;
     Int32 NewId = AssignHandleM(false);
-    T* NewObject = new T();
+    T* NewObject = New<T>();
     NewObject->InternalSetHandle(NewId);
     NewObject->SetObjectName(NewName);
     RegisterObject(NewObject);

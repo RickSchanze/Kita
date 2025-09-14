@@ -10,6 +10,7 @@ void EditorWindow::Render() {
   if (mShowWindow) {
     if (!mBeginEndWindowSelf) {
       EditorUI::Begin(mWindowTitle, &mShowWindow, mFlags);
+      mWindowSize = EditorUI::GetContentRegionAvail();
     }
     DrawEditorUI();
     if (!mBeginEndWindowSelf) {
