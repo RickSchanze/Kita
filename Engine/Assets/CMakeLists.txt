@@ -48,3 +48,6 @@ target_link_libraries(KitaAssets PRIVATE assimp::assimp)
 
 find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(KitaAssets PRIVATE nlohmann_json::nlohmann_json)
+
+find_package(Stb REQUIRED)
+target_include_directories(KitaAssets PRIVATE ${Stb_INCLUDE_DIR})

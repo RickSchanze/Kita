@@ -4,7 +4,8 @@
 void Z_Reflection_Register_Func_Enum_EAssetType() {TypeBuilder Builder{};Builder.CreateType<EAssetType>("EAssetType");
 Builder.AddField("Shader", EAssetType::Shader);
 Builder.AddField("Mesh", EAssetType::Mesh);
-Builder.AddField("Texture", EAssetType::Texture);
+Builder.AddField("Texture2D", EAssetType::Texture2D);
+Builder.AddField("TextureCube", EAssetType::TextureCube);
 Builder.AddField("Material", EAssetType::Material);
 Builder.AddField("Scene", EAssetType::Scene);
 Builder.AddField("Animation", EAssetType::Animation);

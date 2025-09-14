@@ -22,7 +22,8 @@ KENUM()
 enum class EAssetType {
   Shader,
   Mesh,
-  Texture,
+  Texture2D,
+  TextureCube,
   Material,
   Scene,
   Animation,

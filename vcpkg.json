@@ -51,5 +51,8 @@
   }, {
     "name" : "nlohmann-json",
     "version>=" : "3.12.0"
+  }, {
+    "name" : "stb",
+    "version>=" : "2024-07-29#1"
   } ]
 }
