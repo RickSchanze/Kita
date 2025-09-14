@@ -17,6 +17,7 @@ public:
   static Vector2f ImVec2ToVector2f(const ImVec2 Vec) { return Vector2f(Vec.x, Vec.y); }
   static ImU32 ColorToImU32(const Color& InColor) { return ImGui::ColorConvertFloat4ToU32(ImVec4(InColor.Data.X(), InColor.Data.Y(), InColor.Data.Z(), InColor.Data.W())); }
   static void Indent() { ImGui::Indent(); }
+  static void Unindent() { ImGui::Unindent(); }
 
   enum class EWindowFlags {
     None = 0,
@@ -208,6 +209,21 @@ public:
 
   static void SameLine(const float Offset = 0.0f) { ImGui::SameLine(Offset); }
 
+  enum class ESplitterDirection { Horizontal, Vertical };
+
+  // 使用Button模拟的Splitter
+  static void Splitter(float& S1, float& S2, ESplitterDirection Direction = ESplitterDirection::Vertical, float MinSize1 = 0.0f, float MinSize2 = 0.0f, float Thickness = 5);
+
+  static void StartUp();
+  static void ShutDown();
+
+  static bool Button(StringView Label, Vector2f Size = {}, Optional<UInt32> TextColor = NullOpt);
+
+  static void PushID(const StringView Str) { ImGui::PushID(Str.Data()); }
+  static void PushID(const Int32 ID) { ImGui::PushID(ID); }
+  static void PushID(const void* ID) { ImGui::PushID(ID); }
+  static void PopID() { ImGui::PopID(); }
+
   enum class EChildFlags {
     None = 0,
     Borders = 1 << 0,                // Show an outer border and enable WindowPadding. (IMPORTANT: this is always == 1 == true for legacy reason)
@@ -221,14 +237,15 @@ public:
     NavFlattened = 1 << 8, // [BETA] Share focus scope, allow keyboard/gamepad navigation to cross over parent border to this child or between sibling child windows.
   };
 
-  enum class ESplitterDirection { Horizontal, Vertical };
+  static bool BeginChild(const StringView StrId, const Vector2f& Size = {}, EChildFlags ChildFlags = EChildFlags::None, EWindowFlags WindowFlags = EWindowFlags::None) {
+    return ImGui::BeginChild(StrId.Data(), {Size.X(), Size.Y()}, static_cast<ImGuiChildFlags>(ChildFlags), static_cast<ImGuiWindowFlags>(WindowFlags));
+  }
+  static void EndChild() { ImGui::EndChild(); }
 
-  // 使用Button模拟的Splitter
-  static void Splitter(float& S1, float& S2, ESplitterDirection Direction = ESplitterDirection::Vertical, float MinSize1 = 0.0f, float MinSize2 = 0.0f, float Thickness = 5);
-
-  static void InitializeColors();
-
-  static bool Button(StringView Label, Vector2f Size = {}, Optional<UInt32> TextColor = NullOpt);
+  enum class EEditorIcon {
+    Shader,
+    Mesh,
+  };
 
 private:
   static inline UInt32 SplitterNormal;

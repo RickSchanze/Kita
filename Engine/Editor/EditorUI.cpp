@@ -77,11 +77,15 @@ void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction
   ImGui::PopStyleVar();
 }
 
-void EditorUI::InitializeColors() {
+void EditorUI::StartUp() {
   const auto& Config = ConfigManager::GetConfigRef<ImGuiConfig>();
   SplitterNormal = ColorToImU32(Config.Theme.Separator);
   SplitterHovered = ColorToImU32(Config.Theme.SeparatorHovered);
   SplitterActive = ColorToImU32(Config.Theme.SeparatorActive);
+}
+
+void EditorUI::ShutDown() {
+
 }
 
 bool EditorUI::Button(const StringView Label, const Vector2f Size, Optional<UInt32> TextColor) {

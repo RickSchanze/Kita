@@ -60,11 +60,9 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   RHIConfig& Config = ConfigManager::GetConfigRef<RHIConfig>();
   mSurfaceWindow = GfxContext::GetRef().CreateSurfaceWindowR(Config.GetDefaultWindowSize().X(), Config.GetDefaultWindowSize().Y());
   mSurfaceWindow->CreateSwapchain();
-  EditorUI::InitializeColors();
-
   // RenderContext
   RenderContext::StartUp(mSurfaceWindow);
-
+  EditorUI::StartUp();
   // Input
   mInputTicker = New<InputTicker>(mSurfaceWindow);
 
@@ -73,19 +71,15 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   Ref.SetRenderTickInstance(RenderContext::GetRef().GetRenderTicker());
   Ref.SetTickInstance(mInputTicker);
 
-  // MenuAction
   MenuActionManager::StartUp();
-
-  // EditorWindowManager
-  EditorWindowManager::StartUp();
-
   AssetsManager::StartUp();
+  EditorWindowManager::StartUp();
 }
 
 void EngineLoop::ShutDownSystemsM() {
-  AssetsManager::ShutDown();
   // EditorWindowManager
   EditorWindowManager::ShutDown();
+  AssetsManager::ShutDown();
   // MenuAction
   MenuActionManager::ShutDown();
   // 清理Ticker
@@ -95,7 +89,7 @@ void EngineLoop::ShutDownSystemsM() {
 
   // Input
   mInputTicker = {};
-
+  EditorUI::ShutDown();
   // RenderContext
   RenderContext::ShutDown();
 

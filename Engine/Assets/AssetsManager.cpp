@@ -330,6 +330,14 @@ bool AssetsManager::IsAssetLoading(const Int32 Handle) { return GetRef().mImpl->
 
 bool AssetsManager::IsAssetLoaded(const Int32 Handle) { return GetRef().mImpl->IsLoaded(Handle); }
 
+Array<AssetIndex> AssetsManager::internalGetAllAssetIndex() {
+  Array<AssetIndex> Result;
+  for (const auto& Index : mImpl->GetAll<AssetIndex>()) {
+    Result.Add(Index);
+  }
+  return Result;
+}
+
 struct AssetLoadTask : TaskNode {
   explicit AssetLoadTask(Asset* InAsset) : Asset(InAsset) {}
   [[nodiscard]] virtual ENamedThread GetDesiredThread() const override { return ENamedThread::IO; }

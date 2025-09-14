@@ -73,6 +73,8 @@ public:
 
   template <typename T> Optional<AssetMetaType<T>> QueryMeta(Int32 ObjectHandle);
 
+  Array<AssetIndex> internalGetAllAssetIndex();
+
   struct Impl;
 
 private:
