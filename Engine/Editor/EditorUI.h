@@ -16,6 +16,7 @@ public:
   static ImVec2 Vector2fToImVec2(const Vector2f Vec) { return ImVec2(Vec.X(), Vec.Y()); }
   static Vector2f ImVec2ToVector2f(const ImVec2 Vec) { return Vector2f(Vec.x, Vec.y); }
   static ImU32 ColorToImU32(const Color& InColor) { return ImGui::ColorConvertFloat4ToU32(ImVec4(InColor.Data.X(), InColor.Data.Y(), InColor.Data.Z(), InColor.Data.W())); }
+  static void Indent() { ImGui::Indent(); }
 
   enum class EWindowFlags {
     None = 0,
@@ -226,6 +227,8 @@ public:
   static void Splitter(float& S1, float& S2, ESplitterDirection Direction = ESplitterDirection::Vertical, float MinSize1 = 0.0f, float MinSize2 = 0.0f, float Thickness = 5);
 
   static void InitializeColors();
+
+  static bool Button(StringView Label, Vector2f Size = {}, Optional<UInt32> TextColor = NullOpt);
 
 private:
   static inline UInt32 SplitterNormal;

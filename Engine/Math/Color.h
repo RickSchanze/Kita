@@ -17,6 +17,17 @@ struct Color : InlinedOutput {
   void WriteArchive(OutputArchive& Archive) const;
   void ReadArchive(InputArchive& Archive);
 
+  [[nodiscard]] UInt32 ToUInt32() const {
+    auto Clamp = [](const float v) -> UInt32 { return static_cast<UInt32>(std::round(std::clamp(v, 0.0f, 1.0f) * 255.0f)); };
+
+    const UInt32 r = Clamp(R());
+    const UInt32 g = Clamp(G());
+    const UInt32 b = Clamp(B());
+    const UInt32 a = Clamp(A());
+
+    return (r << 24) | (g << 16) | (b << 8) | (a);
+  }
+
   Vector4f Data;
 
   [[nodiscard]] String ToString() const { return Data.ToString(); }

@@ -13,6 +13,10 @@
 
 void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction, const float MinSize1, const float MinSize2, const float Thickness) {
   const auto Size = ImGui::GetContentRegionAvail();
+  if (S1 == 0 || S2 == 0) {
+    S1 = Size.x * 0.5f;
+    S2 = Size.x - S1;
+  }
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0)); // 紧贴窗口
   bool Dragging = false;
 
@@ -78,4 +82,15 @@ void EditorUI::InitializeColors() {
   SplitterNormal = ColorToImU32(Config.Theme.Separator);
   SplitterHovered = ColorToImU32(Config.Theme.SeparatorHovered);
   SplitterActive = ColorToImU32(Config.Theme.SeparatorActive);
+}
+
+bool EditorUI::Button(const StringView Label, const Vector2f Size, Optional<UInt32> TextColor) {
+  if (TextColor) {
+    ImGui::PushStyleColor(ImGuiCol_Text, *TextColor);
+  }
+  const auto Result = ImGui::Button(Label.GetStdStringView().data(), Vector2fToImVec2(Size));
+  if (TextColor) {
+    ImGui::PopStyleColor();
+  }
+  return Result;
 }

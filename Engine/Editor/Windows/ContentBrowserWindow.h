@@ -15,12 +15,13 @@ public:
   struct DirectoryTreeNode {
     Array<DirectoryTreeNode*> Children;
     bool IsOpened;
+    Int8 Indent;
+    String Name;
   };
 
 private:
   float mLeftPanelWidth = 100.f;
   float mRightPanelWidth = 0.f;
-  bool IsFolderOpen = false;
   DirectoryTreeNode* Root;
 };
 
