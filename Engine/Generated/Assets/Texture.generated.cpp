@@ -1,16 +1,34 @@
 // Auto-generated source file
 #include "Assets/Texture.h"
 
-const Type* TextureMeta::GetStaticType() { return TypeOf<TextureMeta>(); }
-const Type* TextureMeta::GetType() { return TypeOf<TextureMeta>(); }
-void TextureMeta::WriteArchive(OutputArchive& Archive) const { 
+const Type* Texture2DMeta::GetStaticType() { return TypeOf<Texture2DMeta>(); }
+const Type* Texture2DMeta::GetType() { return TypeOf<Texture2DMeta>(); }
+void Texture2DMeta::WriteArchive(OutputArchive& Archive) const { 
+Super::WriteArchive(Archive); 
+Archive.WriteType("Id", Id); 
+Archive.WriteType("Path", Path); 
+Archive.WriteType("ObjectHandle", ObjectHandle); 
+Archive.WriteType("EnableMipMap", EnableMipMap); 
+Archive.WriteType("Format", Format); 
+} 
+void Texture2DMeta::ReadArchive(InputArchive& Archive) { 
+Super::ReadArchive(Archive); 
+Archive.ReadType("Id", Id); 
+Archive.ReadType("Path", Path); 
+Archive.ReadType("ObjectHandle", ObjectHandle); 
+Archive.ReadType("EnableMipMap", EnableMipMap); 
+Archive.ReadType("Format", Format); 
+} 
+const Type* TextureCubeMeta::GetStaticType() { return TypeOf<TextureCubeMeta>(); }
+const Type* TextureCubeMeta::GetType() { return TypeOf<TextureCubeMeta>(); }
+void TextureCubeMeta::WriteArchive(OutputArchive& Archive) const { 
 Super::WriteArchive(Archive); 
 Archive.WriteType("Id", Id); 
 Archive.WriteType("Path", Path); 
 Archive.WriteType("ObjectHandle", ObjectHandle); 
 Archive.WriteType("EnableMipMap", EnableMipMap); 
 } 
-void TextureMeta::ReadArchive(InputArchive& Archive) { 
+void TextureCubeMeta::ReadArchive(InputArchive& Archive) { 
 Super::ReadArchive(Archive); 
 Archive.ReadType("Id", Id); 
 Archive.ReadType("Path", Path); 

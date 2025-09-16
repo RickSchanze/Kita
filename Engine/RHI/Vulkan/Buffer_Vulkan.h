@@ -9,6 +9,9 @@ public:
 
   [[nodiscard]] virtual void* GetNativeHandle() const override { return mBuffer; }
 
+  virtual void* Map(UInt64 Size, UInt64 Offset) override;
+  virtual void Unmap(void* MappedPtr) override;
+
 private:
   VkBuffer mBuffer = VK_NULL_HANDLE;
   VkDeviceMemory mBufferMemory = VK_NULL_HANDLE;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vulkan/vulkan.h"
 #include "RHI/RHIEnums.h" // 这里包含你第二段发的所有枚举定义
+#include "vulkan/vulkan.h"
 
 VkFormat RHIFormatToVkFormat(ERHIFormat format);
 ERHIFormat VkFormatToRHIFormat(VkFormat format);
@@ -99,6 +99,6 @@ VkColorComponentFlags RHIColorComponentToVkColorComponent(ERHIColorComponent Com
 VkMemoryPropertyFlags RHIBufferMemoryPropertyToVkMemoryPropertyFlags(ERHIBufferMemoryProperty Props);
 
 // Vulkan VkMemoryPropertyFlags -> ERHIBufferMemoryProperty
-ERHIBufferMemoryProperty VkMemoryPropertyFlagsToRHIBufferMemoryProperty(VkMemoryPropertyFlags Props) ;
+ERHIBufferMemoryProperty VkMemoryPropertyFlagsToRHIBufferMemoryProperty(VkMemoryPropertyFlags Props);
 // 单个 ERHIBufferMemoryPropertyBits -> 单个 VkMemoryPropertyFlagBits
-VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERHIBufferMemoryPropertyBits Prop) ;
+VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERHIBufferMemoryProperty Prop);

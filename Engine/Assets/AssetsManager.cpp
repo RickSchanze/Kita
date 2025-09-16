@@ -18,55 +18,33 @@ using namespace sqlite_orm;
 
 constexpr auto ASSET_DATABASE_NAME = "AssetsData.db";
 
-#pragma region AssetType的SqliteOrm适配
-static std::string AssetTypeToString(const EAssetType AssetType) {
-  switch (AssetType) {
-  case EAssetType::Shader:
-    return "Shader";
-  case EAssetType::Material:
-    return "Material";
-  case EAssetType::Mesh:
-    return "Mesh";
-  default:
-    return "MAXCOUNT";
-  }
-}
-static std::unique_ptr<EAssetType> AssetTypeFromString(const std::string& s) {
-  if (s == "Shader") {
-    return std::make_unique<EAssetType>(EAssetType::Shader);
-  }
-  if (s == "Material") {
-    return std::make_unique<EAssetType>(EAssetType::Material);
-  }
-  if (s == "Mesh") {
-    return std::make_unique<EAssetType>(EAssetType::Mesh);
-  }
-  return nullptr;
-}
+#pragma region Enum的SqliteOrm适配
 
 namespace sqlite_orm {
-template <> struct type_printer<EAssetType> : text_printer {};
+template <typename T>
+  requires std::is_enum_v<T>
+struct type_printer<T> : text_printer {};
 
-template <> struct statement_binder<EAssetType> {
-  static int bind(sqlite3_stmt* stmt, const int index, const EAssetType& value) { return statement_binder<std::string>().bind(stmt, index, AssetTypeToString(value)); }
+template <typename T>
+  requires std::is_enum_v<T>
+struct statement_binder<T> {
+  static int bind(sqlite3_stmt* stmt, const int index, const T& value) { return statement_binder<std::string>().bind(stmt, index, EnumToString(value).GetStdString()); }
 };
 
-template <> struct field_printer<EAssetType> {
-  std::string operator()(const EAssetType& t) const { return AssetTypeToString(t); }
+template <typename T>
+  requires std::is_enum_v<T>
+struct field_printer<T> {
+  std::string operator()(const T& t) const { return EnumToString(t).GetStdString(); }
 };
 
-template <> struct row_extractor<EAssetType> {
-  static EAssetType extract(const char* ColumnText) {
-    if (const auto Gender = AssetTypeFromString(ColumnText)) {
-      return *Gender;
-    } else {
-      throw std::runtime_error("incorrect gender string (" + std::string(ColumnText) + ")");
-    }
-  }
+template <typename T>
+  requires std::is_enum_v<T>
+struct row_extractor<T> {
+  static T extract(const char* ColumnText) { return StringToEnum<T>(ColumnText); }
 
-  static EAssetType extract(sqlite3_stmt* Stmt, const int ColumnIndex) {
+  static T extract(sqlite3_stmt* Stmt, const int ColumnIndex) {
     const auto Str = sqlite3_column_text(Stmt, ColumnIndex);
-    return sqlite_orm::row_extractor<EAssetType, void>::extract(reinterpret_cast<const char*>(Str));
+    return sqlite_orm::row_extractor<T, void>::extract(reinterpret_cast<const char*>(Str));
   }
 };
 } // namespace sqlite_orm
@@ -301,8 +279,6 @@ AssetLoadTaskHandle AssetsManager::ImportAsyncM(StringView Path) {
       NewMeshMeta.Path = NewIndex.Path;
       mImpl->Insert(NewMeshMeta);
     } break;
-    case EAssetType::Texture:
-      break;
     case EAssetType::Material:
       break;
     case EAssetType::Scene:

@@ -74,18 +74,18 @@ bool Mesh::LoadFromPath() {
   // Vertex
   RHIBufferDesc VertexBufferDesc{};
   UInt64 Size = AllVertices.Count() * sizeof(Vertex);
-  VertexBufferDesc.SetMemoryProperty(BMPB_HostVisible | BMPB_HostCoherent).SetSize(Size).SetUsage(BUB_TransferSrc);
+  VertexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::HostVisible | ERHIBufferMemoryProperty::HostCoherent).SetSize(Size).SetUsage(ERHIBufferUsage::TransferSrc);
   UniquePtr<RHIBuffer> TempVertexBuffer = GfxContext::GetRef().CreateBufferU(VertexBufferDesc);
-  VertexBufferDesc.SetMemoryProperty(BMPB_DeviceLocal).SetUsage(BUB_VertexBuffer | BUB_TransferDst);
+  VertexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::DeviceLocal).SetUsage(ERHIBufferUsage::VertexBuffer | ERHIBufferUsage::TransferDst);
   mVertexBuffer = GfxContext::GetRef().CreateBufferU(VertexBufferDesc);
   auto VertexHandle = GfxCommandHelper::CopyAsync(TempVertexBuffer.Get(), mVertexBuffer.Get(), Size, 0, 0);
 
   // Index
   RHIBufferDesc IndexBufferDesc{};
   Size = AllIndices.Count() * sizeof(UInt32);
-  IndexBufferDesc.SetMemoryProperty(BMPB_HostVisible | BMPB_HostCoherent).SetSize(Size).SetUsage(BUB_TransferSrc);
+  IndexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::HostVisible | ERHIBufferMemoryProperty::HostCoherent).SetSize(Size).SetUsage(ERHIBufferUsage::TransferSrc);
   UniquePtr<RHIBuffer> TempIndexBuffer = GfxContext::GetRef().CreateBufferU(IndexBufferDesc);
-  IndexBufferDesc.SetMemoryProperty(BMPB_DeviceLocal).SetUsage(BUB_IndexBuffer | BUB_TransferDst);
+  IndexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::DeviceLocal).SetUsage(ERHIBufferUsage::IndexBuffer | ERHIBufferUsage::TransferDst);
   mIndexBuffer = GfxContext::GetRef().CreateBufferU(IndexBufferDesc);
   auto IndexHandle = GfxCommandHelper::CopyAsync(TempIndexBuffer.Get(), mIndexBuffer.Get(), Size, 0, 0);
   VertexHandle.WaitAll();

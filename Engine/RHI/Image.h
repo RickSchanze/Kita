@@ -10,7 +10,7 @@ struct RHIImageDesc {
   RHI_DEFINE_BUILDER_FIELD(ERHIFormat, Format, ERHIFormat::Count)                 // necessary
   RHI_DEFINE_BUILDER_FIELD(UInt32, MipLevels, 1)
   RHI_DEFINE_BUILDER_FIELD(UInt32, ArrayLayers, 1)
-  RHI_DEFINE_BUILDER_FIELD(ERHIImageUsage, Usage, ERHIImageUsageBits::IUB_Max) // necessary
+  RHI_DEFINE_BUILDER_FIELD(ERHIImageUsage, Usage, ERHIImageUsage::Max) // necessary
   RHI_DEFINE_BUILDER_FIELD(ERHIImageLayout, InitialLayout, ERHIImageLayout::Undefined)
 
 #ifdef KITA_DEBUG

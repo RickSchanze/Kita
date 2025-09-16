@@ -40,3 +40,12 @@ RHIBuffer_Vulkan::~RHIBuffer_Vulkan() {
   Context.DeallocateMemory(mBufferMemory);
   vkDestroyBuffer(Context.GetDevice(), mBuffer, nullptr);
 }
+
+void* RHIBuffer_Vulkan::Map(const UInt64 Size, const UInt64 Offset) {
+  ASSERT_MSG(Offset + Size <= mDesc.Size, "Buffer Map内存越界!");
+  void* MappedPtr = nullptr;
+  vkMapMemory(GetVulkanGfxContexRef().GetDevice(), mBufferMemory, Offset, Size, 0, &MappedPtr);
+  return MappedPtr;
+}
+
+void RHIBuffer_Vulkan::Unmap(void* MappedPtr) { vkUnmapMemory(GetVulkanGfxContexRef().GetDevice(), mBufferMemory); }

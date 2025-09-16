@@ -5,28 +5,52 @@
 #include "Core/Reflection/TypeRegistry.h"
 #include "Core/Serialization/InputArchive.h"
 #include "Core/Serialization/OutputArchive.h"
-#define GENERATED_HEADER_TextureMeta \
+#define GENERATED_HEADER_Texture2DMeta \
 typedef ThisStruct Super; \
-typedef TextureMeta ThisStruct; \
+typedef Texture2DMeta ThisStruct; \
 static FORCE_INLINE const Type* GetStaticType(); \
 static FORCE_INLINE constexpr bool IsReflected() { return true; } \
 const Type* GetType(); \
 void WriteArchive(OutputArchive& Archive) const;\
 void ReadArchive(InputArchive& Archive);\
-static void ConstructSelf(void* Ptr) { new (Ptr) TextureMeta(); }static void DestructSelf(void* Ptr) { ((TextureMeta*)(Ptr))->~TextureMeta(); }struct Z_TypeRegister_TextureMeta { \
-Z_TypeRegister_TextureMeta() { \
+static void ConstructSelf(void* Ptr) { new (Ptr) Texture2DMeta(); }static void DestructSelf(void* Ptr) { ((Texture2DMeta*)(Ptr))->~Texture2DMeta(); }struct Z_TypeRegister_Texture2DMeta { \
+Z_TypeRegister_Texture2DMeta() { \
 TypeBuilder Builder{}; \
-Builder.CreateType<TextureMeta>("TextureMeta"); \
+Builder.CreateType<Texture2DMeta>("Texture2DMeta"); \
 Builder.AddParent<AssetMeta>(); \
-Builder.SetConstructor(TextureMeta::ConstructSelf).SetDestructor(TextureMeta::DestructSelf); \
-Builder.AddField("Id", &TextureMeta::Id); \
-Builder.AddField("Path", &TextureMeta::Path); \
-Builder.AddField("ObjectHandle", &TextureMeta::ObjectHandle); \
-Builder.AddField("EnableMipMap", &TextureMeta::EnableMipMap); \
+Builder.SetConstructor(Texture2DMeta::ConstructSelf).SetDestructor(Texture2DMeta::DestructSelf); \
+Builder.AddField("Id", &Texture2DMeta::Id); \
+Builder.AddField("Path", &Texture2DMeta::Path); \
+Builder.AddField("ObjectHandle", &Texture2DMeta::ObjectHandle); \
+Builder.AddField("EnableMipMap", &Texture2DMeta::EnableMipMap); \
+Builder.AddField("Format", &Texture2DMeta::Format); \
 Builder.Register(); \
 } \
 }; \
-static inline Z_TypeRegister_TextureMeta __Z_TypeRegister_TextureMeta_Instance; \
+static inline Z_TypeRegister_Texture2DMeta __Z_TypeRegister_Texture2DMeta_Instance; \
+
+#define GENERATED_HEADER_TextureCubeMeta \
+typedef ThisStruct Super; \
+typedef TextureCubeMeta ThisStruct; \
+static FORCE_INLINE const Type* GetStaticType(); \
+static FORCE_INLINE constexpr bool IsReflected() { return true; } \
+const Type* GetType(); \
+void WriteArchive(OutputArchive& Archive) const;\
+void ReadArchive(InputArchive& Archive);\
+static void ConstructSelf(void* Ptr) { new (Ptr) TextureCubeMeta(); }static void DestructSelf(void* Ptr) { ((TextureCubeMeta*)(Ptr))->~TextureCubeMeta(); }struct Z_TypeRegister_TextureCubeMeta { \
+Z_TypeRegister_TextureCubeMeta() { \
+TypeBuilder Builder{}; \
+Builder.CreateType<TextureCubeMeta>("TextureCubeMeta"); \
+Builder.AddParent<AssetMeta>(); \
+Builder.SetConstructor(TextureCubeMeta::ConstructSelf).SetDestructor(TextureCubeMeta::DestructSelf); \
+Builder.AddField("Id", &TextureCubeMeta::Id); \
+Builder.AddField("Path", &TextureCubeMeta::Path); \
+Builder.AddField("ObjectHandle", &TextureCubeMeta::ObjectHandle); \
+Builder.AddField("EnableMipMap", &TextureCubeMeta::EnableMipMap); \
+Builder.Register(); \
+} \
+}; \
+static inline Z_TypeRegister_TextureCubeMeta __Z_TypeRegister_TextureCubeMeta_Instance; \
 
 #define GENERATED_HEADER_Texture \
 public: \

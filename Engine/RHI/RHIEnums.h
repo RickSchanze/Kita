@@ -94,24 +94,24 @@ enum ERHIImageAspectBits {
 
 typedef UInt32 ERHIImageAspect;
 
-enum ERHIBufferUsageBits {
-  BUB_VertexBuffer = 1,
-  BUB_IndexBuffer = 1 << 1,
-  BUB_UniformBuffer = 1 << 2,
-  BUB_TransferSrc = 1 << 3,
-  BUB_TransferDst = 1 << 4,
+enum class ERHIBufferUsage {
+  None = 0,
+  VertexBuffer = 1,
+  IndexBuffer = 1 << 1,
+  UniformBuffer = 1 << 2,
+  TransferSrc = 1 << 3,
+  TransferDst = 1 << 4,
 };
+ENABLE_BITMASK_OPERATORS(ERHIBufferUsage)
 
-typedef UInt32 ERHIBufferUsage;
-
-enum ERHIBufferMemoryPropertyBits {
-  BMPB_DeviceLocal = 1,       // GPU Only CPU无法访问(纹理、IndexBuffer、VertexBuffer)
-  BMPB_HostVisible = 1 << 1,  // CPU可以访问(UniformBuffer) 通常和 HostCoherent 一起使用
-  BMPB_HostCoherent = 1 << 2, // CPU可以访问, 但GPU会自动刷新(UniformBuffer)而不用手动同步
-  BMPB_Max = 0x7FFFFFFF,
+enum class ERHIBufferMemoryProperty {
+  None,
+  DeviceLocal = 1,       // GPU Only CPU无法访问(纹理、IndexBuffer、VertexBuffer)
+  HostVisible = 1 << 1,  // CPU可以访问(UniformBuffer) 通常和 HostCoherent 一起使用
+  HostCoherent = 1 << 2, // CPU可以访问, 但GPU会自动刷新(UniformBuffer)而不用手动同步
+  Max = 0x7FFFFFFF,
 };
-
-typedef UInt32 ERHIBufferMemoryProperty;
+ENABLE_BITMASK_OPERATORS(ERHIBufferMemoryProperty)
 
 enum class ERHIComponentMappingElement {
   Identity,
@@ -230,19 +230,19 @@ enum class ERHIVertexInputRate {
   Count,
 };
 
-enum ERHIImageUsageBits {
-  IUB_TransferSrc = 0b0000001,  // VK_IMAGE_USAGE_TRANSFER_SRC_BIT
-  IUB_TransferDst = 0b0000010,  // VK_IMAGE_USAGE_TRANSFER_DST_BIT
-  IUB_RenderTarget = 0b0000100, // VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-  IUB_DepthStencil = 0b0001000, // VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
-  IUB_ShaderRead = 0b0010000,   // VK_IMAGE_USAGE_SAMPLED_BIT
-  IUB_Transient = 0b0100000,    // VK_IMAGE_USAGE_STORAGE_BIT
-  IUB_SwapChain = 0b1000000,    // For swapchain use
-  IUB_Storage = 0b10000000,     // VK_IMAGE_USAGE_STORAGE_BIT
-  IUB_Max,                      // VK_IMAGE_USAGE_MAX_ENUM
+enum class ERHIImageUsage {
+  None = 0,
+  TransferSrc = 0b0000001,  // VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+  TransferDst = 0b0000010,  // VK_IMAGE_USAGE_TRANSFER_DST_BIT
+  RenderTarget = 0b0000100, // VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+  DepthStencil = 0b0001000, // VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+  ShaderRead = 0b0010000,   // VK_IMAGE_USAGE_SAMPLED_BIT
+  Transient = 0b0100000,    // VK_IMAGE_USAGE_STORAGE_BIT
+  SwapChain = 0b1000000,    // For swapchain use
+  Storage = 0b10000000,     // VK_IMAGE_USAGE_STORAGE_BIT
+  Max,                      // VK_IMAGE_USAGE_MAX_ENUM
 };
-
-using ERHIImageUsage = UInt32;
+ENABLE_BITMASK_OPERATORS(ERHIImageUsage)
 
 enum class ERHIImageDimension {
   D1, // 一维图像

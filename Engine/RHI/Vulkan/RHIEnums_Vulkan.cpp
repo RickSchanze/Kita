@@ -323,70 +323,70 @@ ERHIImageDimension VkImageViewTypeToRHIImageDimension(const VkImageViewType type
 
 VkBufferUsageFlags RHIBufferUsageToVkBufferUsage(const ERHIBufferUsage usage) {
   VkBufferUsageFlags flags = 0;
-  if (usage & BUB_VertexBuffer) {
+  if (True(usage & ERHIBufferUsage::VertexBuffer)) {
     flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
   }
-  if (usage & BUB_IndexBuffer) {
+  if (True(usage & ERHIBufferUsage::IndexBuffer)) {
     flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
   }
-  if (usage & BUB_UniformBuffer) {
+  if (True(usage & ERHIBufferUsage::UniformBuffer)) {
     flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
   }
-  if (usage & BUB_TransferSrc) {
+  if (True(usage & ERHIBufferUsage::TransferSrc)) {
     flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
   }
-  if (usage & BUB_TransferDst) {
+  if (True(usage & ERHIBufferUsage::TransferDst)) {
     flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   }
   return flags;
 }
 
 ERHIBufferUsage VkBufferUsageToRHIBufferUsage(const VkBufferUsageFlags usage) {
-  ERHIBufferUsage flags = 0;
+  ERHIBufferUsage flags = ERHIBufferUsage::None;
   if (usage & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) {
-    flags |= BUB_VertexBuffer;
+    flags |= ERHIBufferUsage::VertexBuffer;
   }
   if (usage & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) {
-    flags |= BUB_IndexBuffer;
+    flags |= ERHIBufferUsage::IndexBuffer;
   }
   if (usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) {
-    flags |= BUB_UniformBuffer;
+    flags |= ERHIBufferUsage::UniformBuffer;
   }
   if (usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) {
-    flags |= BUB_TransferSrc;
+    flags |= ERHIBufferUsage::TransferSrc;
   }
   if (usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) {
-    flags |= BUB_TransferDst;
+    flags |= ERHIBufferUsage::TransferDst;
   }
   return flags;
 }
 
 VkMemoryPropertyFlags RHIMemoryPropertyToVkMemoryProperty(const ERHIBufferMemoryProperty property) {
   VkMemoryPropertyFlags flags = 0;
-  if (property & BMPB_DeviceLocal) {
+  if (True(property & ERHIBufferMemoryProperty::DeviceLocal)) {
     flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   }
-  if (property & BMPB_HostVisible) {
+  if (True(property & ERHIBufferMemoryProperty::HostVisible)) {
     flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
   }
-  if (property & BMPB_HostCoherent) {
+  if (True(property & ERHIBufferMemoryProperty::HostCoherent)) {
     flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
   }
   return flags;
 }
 
 ERHIBufferMemoryProperty VkMemoryPropertyToRHIMemoryProperty(const VkMemoryPropertyFlags property) {
-  ERHIBufferMemoryProperty flags = 0;
+  auto Flags = ERHIBufferMemoryProperty::None;
   if (property & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-    flags |= BMPB_DeviceLocal;
+    Flags |= ERHIBufferMemoryProperty::DeviceLocal;
   }
   if (property & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-    flags |= BMPB_HostVisible;
+    Flags |= ERHIBufferMemoryProperty::HostVisible;
   }
   if (property & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-    flags |= BMPB_HostCoherent;
+    Flags |= ERHIBufferMemoryProperty::HostCoherent;
   }
-  return flags;
+  return Flags;
 }
 
 VkImageLayout RHIImageLayoutToVkImageLayout(const ERHIImageLayout layout) {
@@ -826,19 +826,19 @@ ERHIImageDimension VkImageTypeToRHIImageDimension(const VkImageType type) {
 
 VkImageUsageFlags RHIImageUsageToVkImageUsageFlags(const ERHIImageUsage usage_flag) {
   VkImageUsageFlags flags = 0;
-  if (usage_flag & IUB_TransferSrc)
+  if (True(usage_flag & ERHIImageUsage::TransferSrc))
     flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-  if (usage_flag & IUB_TransferDst)
+  if (True(usage_flag & ERHIImageUsage::TransferDst))
     flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-  if (usage_flag & IUB_DepthStencil)
+  if (True(usage_flag & ERHIImageUsage::DepthStencil))
     flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-  if (usage_flag & IUB_Transient)
+  if (True(usage_flag & ERHIImageUsage::Transient))
     flags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
-  if (usage_flag & IUB_RenderTarget)
+  if (True(usage_flag & ERHIImageUsage::RenderTarget))
     flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-  if (usage_flag & IUB_ShaderRead)
+  if (True(usage_flag & ERHIImageUsage::ShaderRead))
     flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
-  if (usage_flag & IUB_Storage)
+  if (True(usage_flag & ERHIImageUsage::Storage))
     flags |= VK_IMAGE_USAGE_STORAGE_BIT;
   return flags;
 }
@@ -922,19 +922,19 @@ ERHIBlendFactor VkBlendFactorToRHIBlendFactor(const VkBlendFactor blend_factor) 
 }
 
 ERHIImageUsage VkImageUsageToRHIImageUsageFlags(const VkImageUsageFlags usage_flag) {
-  ERHIImageUsage flags = 0;
+  ERHIImageUsage flags = ERHIImageUsage::None;
   if (usage_flag & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
-    flags |= IUB_TransferSrc;
+    flags |= ERHIImageUsage::TransferSrc;
   if (usage_flag & VK_IMAGE_USAGE_TRANSFER_DST_BIT)
-    flags |= IUB_TransferDst;
+    flags |= ERHIImageUsage::TransferDst;
   if (usage_flag & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
-    flags |= IUB_DepthStencil;
+    flags |= ERHIImageUsage::DepthStencil;
   if (usage_flag & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)
-    flags |= IUB_Transient;
+    flags |= ERHIImageUsage::Transient;
   if (usage_flag & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
-    flags |= IUB_RenderTarget;
+    flags |= ERHIImageUsage::RenderTarget;
   if (usage_flag & VK_IMAGE_USAGE_SAMPLED_BIT)
-    flags |= IUB_ShaderRead;
+    flags |= ERHIImageUsage::ShaderRead;
   return flags;
 }
 
@@ -1036,13 +1036,13 @@ VkColorComponentFlags RHIColorComponentToVkColorComponent(const ERHIColorCompone
 VkMemoryPropertyFlags RHIBufferMemoryPropertyToVkMemoryPropertyFlags(ERHIBufferMemoryProperty Props) {
   VkMemoryPropertyFlags flags = 0;
 
-  if (Props & BMPB_DeviceLocal) {
+  if (True(Props & ERHIBufferMemoryProperty::DeviceLocal)) {
     flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
   }
-  if (Props & BMPB_HostVisible) {
+  if (True(Props & ERHIBufferMemoryProperty::HostVisible)) {
     flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
   }
-  if (Props & BMPB_HostCoherent) {
+  if (True(Props & ERHIBufferMemoryProperty::HostCoherent)) {
     flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
   }
 
@@ -1050,28 +1050,28 @@ VkMemoryPropertyFlags RHIBufferMemoryPropertyToVkMemoryPropertyFlags(ERHIBufferM
 }
 
 ERHIBufferMemoryProperty VkMemoryPropertyFlagsToRHIBufferMemoryProperty(VkMemoryPropertyFlags Props) {
-  ERHIBufferMemoryProperty flags = 0;
+  ERHIBufferMemoryProperty flags = ERHIBufferMemoryProperty::None;
 
   if (Props & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
-    flags |= BMPB_DeviceLocal;
+    flags |= ERHIBufferMemoryProperty::DeviceLocal;
   }
   if (Props & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-    flags |= BMPB_HostVisible;
+    flags |= ERHIBufferMemoryProperty::HostVisible;
   }
   if (Props & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
-    flags |= BMPB_HostCoherent;
+    flags |= ERHIBufferMemoryProperty::HostCoherent;
   }
 
   return flags;
 }
 
-VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERHIBufferMemoryPropertyBits Prop) {
+VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERHIBufferMemoryProperty Prop) {
   switch (Prop) {
-  case BMPB_DeviceLocal:
+  case ERHIBufferMemoryProperty::DeviceLocal:
     return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-  case BMPB_HostVisible:
+  case ERHIBufferMemoryProperty::HostVisible:
     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-  case BMPB_HostCoherent:
+  case ERHIBufferMemoryProperty::HostCoherent:
     return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
   default:
     return static_cast<VkMemoryPropertyFlagBits>(0); // 未知返回0
