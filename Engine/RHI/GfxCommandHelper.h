@@ -48,4 +48,9 @@ public:
   static GfxCommandSyncHandle CreateSingleTimeCommandBuffer(ERHIQueueFamilyType Family = ERHIQueueFamilyType::Graphics);
   static void SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handle);
   static void SubmitSingleTimeCommandBufferAndWait(GfxCommandSyncHandle& Handle);
+
+private:
+#if KITA_DEBUG
+  static inline int sNameCounter = 0;
+#endif
 };

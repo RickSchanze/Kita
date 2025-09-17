@@ -38,7 +38,12 @@ void TaskGraph::ShutDown() {
 void TaskGraph::NotifyTaskCompleted(SharedPtr<TaskInstance>& InInstance) {
   ASSERT_MSG(InInstance != nullptr, "TaskGraph::NotifyTaskCompleted called with nullptr");
   ASSERT_MSG(mInstances.Contains(InInstance), "TaskGraph::NotifyTaskCompleted called with invalid instance(instance not be managed). Name=\"{}\", Ptr={}", InInstance->DebugName, Ptr(InInstance));
-  for (auto& DependentInstance : InInstance->Subsequence) {
+  Array<SharedPtr<TaskInstance>> SubsequenceCopy;
+  {
+    AutoLock Lock(InInstance->Mutex);
+    SubsequenceCopy = InInstance->Subsequence;
+  }
+  for (auto& DependentInstance : SubsequenceCopy) {
     if (DependentInstance == nullptr) {
       continue;
     }

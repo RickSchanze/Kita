@@ -5,12 +5,15 @@
 #include "Sync_Vulkan.h"
 
 #include "GfxContext_Vulkan.h"
-RHIFence_Vulkan::RHIFence_Vulkan() {
+RHIFence_Vulkan::RHIFence_Vulkan(StringView DebugName) {
   VkFenceCreateInfo CreateInfo{};
   CreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   CreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
   if (VkResult Result = vkCreateFence(GetVulkanGfxContexRef().GetDevice(), &CreateInfo, nullptr, &mFence); Result != VK_SUCCESS) {
     gLogger.Error("RHI", "创建Fence失败, Code={}", Result);
+  }
+  if (!DebugName.Empty()) {
+    GetVulkanGfxContexRef().SetDebugName(DebugName, VK_OBJECT_TYPE_FENCE, reinterpret_cast<UInt64>(mFence));
   }
 }
 
@@ -29,6 +32,4 @@ RHISemaphore_Vulkan::RHISemaphore_Vulkan() {
   }
 }
 
-RHISemaphore_Vulkan::~RHISemaphore_Vulkan() {
-  vkDestroySemaphore(GetVulkanGfxContexRef().GetDevice(), mSemaphore, nullptr);
-}
+RHISemaphore_Vulkan::~RHISemaphore_Vulkan() { vkDestroySemaphore(GetVulkanGfxContexRef().GetDevice(), mSemaphore, nullptr); }

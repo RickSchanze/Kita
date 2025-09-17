@@ -29,7 +29,13 @@ GfxCommandSyncHandle GfxCommandHelper::CreateSingleTimeCommandBuffer(const ERHIQ
 void GfxCommandHelper::SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handle) {
   Handle.CommandBuffer->EndRecord();
   Handle.CommitHandle = Handle.CommandBuffer->Execute("");
-  Handle.GpuExecuteFence = GfxContext::GetRef().CreateFenceU();
+#if KITA_DEBUG
+  String DebugName = Format("SingleTimeCmdBufferFence_{}", sNameCounter++);
+#else
+  StringView DebugName = "";
+#endif
+  Handle.GpuExecuteFence = GfxContext::GetRef().CreateFenceU(DebugName);
+  Handle.GpuExecuteFence->Reset();
   RHICommandBufferSubmitParams Params;
   Params.CommandBuffer = Handle.CommandBuffer.Get();
   Params.WaitSemaphores = {};

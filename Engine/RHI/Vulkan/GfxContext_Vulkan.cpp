@@ -62,13 +62,13 @@ GfxContext_Vulkan::~GfxContext_Vulkan() {
 
 SharedPtr<RHIImage> GfxContext_Vulkan::CreateImageS(const RHIImageDesc& Desc) { return nullptr; }
 
-UniquePtr<RHIImage> GfxContext_Vulkan::CreateImageU(const RHIImageDesc& Desc) {}
+UniquePtr<RHIImage> GfxContext_Vulkan::CreateImageU(const RHIImageDesc& Desc) { return nullptr; }
 
 SharedPtr<RHIImageView> GfxContext_Vulkan::CreateImageViewS(const RHIImageViewDesc& Desc) { return MakeShared<RHIImageView_Vulkan>(Desc); }
 
-SharedPtr<RHIFence> GfxContext_Vulkan::CreateFenceS() { return MakeShared<RHIFence_Vulkan>(); }
+SharedPtr<RHIFence> GfxContext_Vulkan::CreateFenceS(StringView DebugName) { return MakeShared<RHIFence_Vulkan>(DebugName); }
 
-UniquePtr<RHIFence> GfxContext_Vulkan::CreateFenceU() { return MakeUnique<RHIFence_Vulkan>(); }
+UniquePtr<RHIFence> GfxContext_Vulkan::CreateFenceU(StringView DebugName) { return MakeUnique<RHIFence_Vulkan>(DebugName); }
 
 UniquePtr<RHISemaphore> GfxContext_Vulkan::CreateSemaphoreU() { return MakeUnique<RHISemaphore_Vulkan>(); }
 
@@ -434,6 +434,7 @@ void GfxContext_Vulkan::SetupDebugMessenger() {
   VkDebugUtilsMessengerCreateInfoEXT Info{};
   PopulateDebugMessengerCreateInfo(Info);
   ASSERT_MSG(Dyn_CreateDebugUtilsMessengerEXT(&Info, nullptr, &mDebugMessenger) == VK_SUCCESS, "Vulkan调试信息设置失败");
+  Dyn_GetSetObjectDebugNameFuncPtr();
 }
 
 void GfxContext_Vulkan::SelectPhysicalDevice(RHISurfaceWindow& TempWindow) {
@@ -587,6 +588,17 @@ VkQueue GfxContext_Vulkan::GetQueue(const ERHIQueueFamilyType Family) const {
     return mPresentQueue;
   }
   return VK_NULL_HANDLE;
+}
+
+void GfxContext_Vulkan::SetDebugName(StringView DebugName, VkObjectType ObjectType, UInt64 Object) const {
+  if (mSetDebugUtilsObjectNameEXT) {
+    VkDebugUtilsObjectNameInfoEXT NameInfo{};
+    NameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+    NameInfo.objectType = ObjectType;
+    NameInfo.objectHandle = Object;
+    NameInfo.pObjectName = DebugName.Data();
+    mSetDebugUtilsObjectNameEXT(mDevice, &NameInfo);
+  }
 }
 
 #if KITA_EDITOR
@@ -784,4 +796,8 @@ void GfxContext_Vulkan::Dyn_DestroyDebugUtilsMessengerEXT(const VkDebugUtilsMess
   } else {
     gLogger.Warn("RHI", "未找到函数vkDestroyDebugUtilsMessengerEXT");
   }
+}
+
+void GfxContext_Vulkan::Dyn_GetSetObjectDebugNameFuncPtr() {
+  mSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(mInstance, "vkSetDebugUtilsObjectNameEXT"));
 }

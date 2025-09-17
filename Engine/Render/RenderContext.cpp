@@ -26,7 +26,12 @@ void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
   for (Int32 Index = 0; Index < KITA_MAX_FRAMES_IN_FLIGHT; Index++) {
     Self.mImageAvailableSemaphores[Index] = Self.mGfxContext->CreateSemaphoreU();
     Self.mRenderFinishedSemaphores[Index] = Self.mGfxContext->CreateSemaphoreU();
-    Self.mInFlightFences[Index] = Self.mGfxContext->CreateFenceU();
+#if KITA_DEBUG
+    String DebugName = Format("FrameFence_{}",  Index);
+#else
+    StringView DebugName = "";
+#endif
+    Self.mInFlightFences[Index] = Self.mGfxContext->CreateFenceU(DebugName);
     Self.mCommandBuffers[Index] = Self.mCommandPool->CreateCommandBuffer();
   }
 

@@ -74,7 +74,7 @@ void Texture2D::Load() {
 
   RHIImageDesc ImageDesc{};
   ImageDesc.SetFormat(ERHIFormat::R8G8B8A8_SRGB).SetWidth(Width).SetHeight(Height).SetUsage(ERHIImageUsage::ShaderRead | ERHIImageUsage::TransferDst);
-  mImage = GfxContext::GetRef().CreateImage()
+  mImage = GfxContext::GetRef().CreateImageU(ImageDesc);
 }
 
 void Texture2D::Unload() {}

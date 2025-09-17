@@ -1,11 +1,12 @@
 #pragma once
+#include "Core/String/StringView.h"
 #include "RHI/Sync.h"
 
 #include <vulkan/vulkan_core.h>
 
 class RHIFence_Vulkan final : public RHIFence {
 public:
-  RHIFence_Vulkan();
+  explicit RHIFence_Vulkan(StringView DebugName);
   virtual ~RHIFence_Vulkan() override;
 
   [[nodiscard]] virtual void* GetNativeHandle() const override { return mFence; }

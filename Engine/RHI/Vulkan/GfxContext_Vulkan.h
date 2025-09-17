@@ -20,8 +20,8 @@ public:
 
 
   virtual SharedPtr<RHIImageView> CreateImageViewS(const RHIImageViewDesc& Desc) override;
-  virtual SharedPtr<RHIFence> CreateFenceS() override;
-  virtual UniquePtr<RHIFence> CreateFenceU() override;
+  virtual SharedPtr<RHIFence> CreateFenceS(StringView DebugName) override;
+  virtual UniquePtr<RHIFence> CreateFenceU(StringView DebugName) override;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() override;
   SharedPtr<RHIImageView> CreateSwapchainImageView(VkImage Img, VkFormat Format);
   virtual RHISurfaceWindow* CreateSurfaceWindowR(Int32 Width, Int32 Height) override;
@@ -75,6 +75,8 @@ public:
   [[nodiscard]] UInt32 GetQueueFamilyIndex(ERHIQueueFamilyType Family) const;
   [[nodiscard]] VkQueue GetQueue(ERHIQueueFamilyType Family) const;
 
+  void SetDebugName(StringView DebugName, VkObjectType ObjectType, UInt64 Object) const;
+
 private:
   static bool IsLayerSupported(const char* LayerName);
   static void OnPostGfxContextCreated(GfxContext* Context);
@@ -91,9 +93,11 @@ private:
   VkResult Dyn_CreateDebugUtilsMessengerEXT(const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) const;
 
   void Dyn_DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT DebugMessenger, const VkAllocationCallbacks* pAllocator) const;
+  void Dyn_GetSetObjectDebugNameFuncPtr();
 
   VkInstance mInstance = nullptr;
   VkDebugUtilsMessengerEXT mDebugMessenger{};
+  PFN_vkSetDebugUtilsObjectNameEXT mSetDebugUtilsObjectNameEXT = nullptr;
   VkPhysicalDevice mPhysicalDevice = nullptr;
   VkDevice mDevice = nullptr;
   VkQueue mGraphicsQueue = nullptr;

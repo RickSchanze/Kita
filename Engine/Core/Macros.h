@@ -10,6 +10,23 @@
 
 #if KITA_DEBUG
 #define FORCE_INLINE inline
+#ifdef _MSC_VER
+#define DEBUG_BREAK()         \
+  if (CheckDebuggerPresent()) \
+  __debugbreak()
+#endif
+#else
+#define FORCE_INLINE __forceinline
+#define DEBUG_BREAK()
+#endif
+
+#define INLINE_NODISCARD [[nodiscard]] FORCE_INLINE
+#define LIKELY(x) (x) [[likely]]
+#define UNLIKELY(x) (x) [[unlikely]]
+
+#ifdef KITA_EDITOR
+#define KITA_EDITOR 1
+#endif
 
 // 定义宏，使枚举类支持位运算
 #define ENABLE_BITMASK_OPERATORS(Enum)                                                                                                                                               \
@@ -46,23 +63,5 @@ template <typename T>
 constexpr auto ToEnum(std::underlying_type_t<T> Value) {
   return static_cast<T>(Value);
 }
-
-#ifdef _MSC_VER
-#define DEBUG_BREAK()         \
-  if (CheckDebuggerPresent()) \
-  __debugbreak()
-#endif
-#else
-#define FORCE_INLINE __forceinline
-#define DEBUG_BREAK()
-#endif
-
-#define INLINE_NODISCARD [[nodiscard]] FORCE_INLINE
-#define LIKELY(x) (x) [[likely]]
-#define UNLIKELY(x) (x) [[unlikely]]
-
-#ifdef KITA_EDITOR
-#define KITA_EDITOR 1
-#endif
 
 bool CheckDebuggerPresent();

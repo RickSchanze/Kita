@@ -4,6 +4,7 @@
 #include "Core/Reflection/EnumString.h"
 #include "Core/String/StringView.h"
 #include "Core/Traits.h"
+#include "Core/Macros.h"
 
 enum class EOutputArchiveFlag {
   None = 0,

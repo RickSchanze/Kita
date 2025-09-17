@@ -92,8 +92,8 @@ public:
   [[nodiscard]] virtual PhysicalDeviceSwapchainFeatures GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const = 0;
 
   virtual SharedPtr<RHIImageView> CreateImageViewS(const struct RHIImageViewDesc& Desc) = 0;
-  virtual UniquePtr<RHIFence> CreateFenceU() = 0;
-  virtual SharedPtr<RHIFence> CreateFenceS() = 0;
+  virtual UniquePtr<RHIFence> CreateFenceU(StringView DebugName) = 0;
+  virtual SharedPtr<RHIFence> CreateFenceS(StringView DebugName) = 0;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() = 0;
   /// 创建一个CommandPool
   /// @param QueueFamily 队列家族
