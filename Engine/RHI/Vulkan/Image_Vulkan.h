@@ -12,4 +12,5 @@ public:
 
 protected:
   VkImage mNativeImage = VK_NULL_HANDLE;
+  VkDeviceMemory mMemory = VK_NULL_HANDLE;
 };

@@ -43,8 +43,8 @@ struct TaskInstance {
 };
 
 struct TaskHandleListAutoLock {
-  std::initializer_list<TaskHandle> TaskHandles;
-  TaskHandleListAutoLock(const std::initializer_list<TaskHandle> TaskHandles) : TaskHandles(TaskHandles) {
+  const Array<TaskHandle> TaskHandles;
+  explicit TaskHandleListAutoLock(const Array<TaskHandle>& TaskHandles) : TaskHandles(TaskHandles) {
     for (const auto& Handle : TaskHandles) {
       Handle.GetInstance()->Lock();
     }
@@ -70,7 +70,7 @@ public:
   /// @return 任务句柄
   template <typename T, typename... Args>
     requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
-  TaskHandle CreateLazyTaskM(const StringView DebugName, const std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+  TaskHandle CreateLazyTaskM(const StringView DebugName, const Array<TaskHandle>& InDeps, Args&&... InArgs) {
     TaskHandleListAutoLock Lock(InDeps);
     Int32 RemainingDependencies = 0;
     for (const auto& Dep : InDeps) {
@@ -93,7 +93,7 @@ public:
 
   template <typename T, typename... Args>
     requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
-  static TaskHandle CreateLazyTask(const StringView DebugName, const std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+  static TaskHandle CreateLazyTask(const StringView DebugName, const Array<TaskHandle>& InDeps, Args&&... InArgs) {
     return GetRef().CreateLazyTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
   }
 
@@ -106,7 +106,7 @@ public:
   /// @return 任务句柄
   template <typename T, typename... Args>
     requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
-  TaskHandle CreateTaskM(const StringView DebugName, std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+  TaskHandle CreateTaskM(const StringView DebugName, const Array<TaskHandle>& InDeps, Args&&... InArgs) {
     TaskHandle Handle = CreateLazyTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
     Handle.StartLazy();
     return Handle;
@@ -114,7 +114,7 @@ public:
 
   template <typename T, typename... Args>
     requires(Traits::IsConstructible<T, Args...> && Traits::IsBaseOf<TaskNode, T>)
-  static TaskHandle CreateTask(const StringView DebugName, std::initializer_list<TaskHandle> InDeps, Args&&... InArgs) {
+  static TaskHandle CreateTask(const StringView DebugName, const Array<TaskHandle>& InDeps, Args&&... InArgs) {
     return GetRef().CreateTaskM<T>(DebugName, InDeps, std::forward<Args>(InArgs)...);
   }
 

@@ -6,7 +6,12 @@
 
 #include "Core/Assert.h"
 #include "Core/TaskGraph/TaskHandle.h"
+
 #include "GfxContext.generated.h"
+
+namespace Logcat {
+inline auto RHI = "RHI";
+}
 
 class RHIBuffer;
 class RHICommandBuffer;
@@ -82,8 +87,6 @@ public:
   virtual ~GfxContext() = default;
   [[nodiscard]] virtual ERHIBackend GetBackend() const = 0;
 
-  virtual SharedPtr<RHIImage> CreateImage(const RHIImageDesc& Desc) = 0;
-
   [[nodiscard]] const GfxDeviceFeatures& GetGfxDeviceFeatures() const { return mGfxDeviceFeatures; }
 
   [[nodiscard]] virtual PhysicalDeviceSwapchainFeatures GetPhysicalDeviceSwapchainFeatures(RHISurfaceWindow& Window) const = 0;
@@ -105,6 +108,8 @@ public:
   virtual UniquePtr<RHIPipeline> CreatePipelineU(const struct RHIGraphicsPipelineDesc& Desc) = 0;
   virtual UniquePtr<RHIBuffer> CreateBufferU(const struct RHIBufferDesc& Desc) = 0;
   virtual SharedPtr<RHIBuffer> CreateBufferS(const struct RHIBufferDesc& Desc) = 0;
+  virtual SharedPtr<RHIImage> CreateImageS(const RHIImageDesc& Desc) = 0;
+  virtual UniquePtr<RHIImage> CreateImageU(const RHIImageDesc& Desc) = 0;
   virtual void WaitDeviceIdle() = 0;
 
   /**
@@ -125,6 +130,7 @@ public:
   virtual UInt32 GetNextImage(RHISurfaceWindow* Window, RHISemaphore* WaitSemaphore, RHIFence* WaitFence, bool& NeedRecreation) = 0;
 
   virtual void Submit(const struct RHICommandBufferSubmitParams& Params) = 0;
+  virtual TaskHandle SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies) = 0;
 
   /// 呈现 返回是否需要重建交换链
   virtual bool Present(const RHIPresentParams& Params) = 0;

@@ -37,6 +37,13 @@ void RHICommandBuffer::EndRenderPass() {
   PushCommand(std::move(Cmd));
 }
 
+void RHICommandBuffer::ResourceBarrier(RHIImage* Image, ERHIImageLayout OldLayout, ERHIImageLayout NewLayout) {
+  ASSERT_MSG(Image != nullptr && OldLayout != NewLayout, "命令ResourceBarrier参数配置错误")
+  UniquePtr<RHICmd_ResourceBarrier> Cmd = MakeUnique<RHICmd_ResourceBarrier>();
+  Cmd->SetImage(Image).SetOldLayout(OldLayout).SetNewLayout(NewLayout);
+  PushCommand(std::move(Cmd));
+}
+
 void RHICommandBuffer::Copy(RHIBuffer* Source, RHIBuffer* Dest, UInt64 Size, UInt64 SourceOffset, UInt64 DestOffset) {
   ASSERT_MSG(Source != nullptr && Dest != nullptr && Size != 0, "命令CopyBuffer参数配置错误")
   UniquePtr<RHICmd_CopyBuffer> Cmd = MakeUnique<RHICmd_CopyBuffer>();

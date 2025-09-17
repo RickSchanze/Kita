@@ -6,6 +6,7 @@
 #include "Math/Vector.h"
 #include "RHIEnums.h"
 
+class RHIImage;
 class RHIBuffer;
 class RHIFrameBuffer;
 class RHIRenderPass;
@@ -47,6 +48,8 @@ public:
   void BeginRenderPass(RHIRenderPass* RenderPass, RHIFrameBuffer* FrameBuffer, Vector2u Size, const Optional<Color>& ClearColor = {}, Vector2i Offset = {}, Optional<float> ClearDepth = std::nullopt);
 
   void EndRenderPass();
+
+  void ResourceBarrier(RHIImage* Image, ERHIImageLayout OldLayout, ERHIImageLayout NewLayout);
 
   /// 将一个Buffer的内容拷贝到另一个Buffer
   /// @param Source 源Buffer

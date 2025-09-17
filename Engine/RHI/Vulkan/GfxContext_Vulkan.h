@@ -18,7 +18,7 @@ public:
 
   [[nodiscard]] virtual ERHIBackend GetBackend() const override { return ERHIBackend::Vulkan; }
 
-  virtual SharedPtr<RHIImage> CreateImage(const RHIImageDesc& Desc) override;
+
   virtual SharedPtr<RHIImageView> CreateImageViewS(const RHIImageViewDesc& Desc) override;
   virtual SharedPtr<RHIFence> CreateFenceS() override;
   virtual UniquePtr<RHIFence> CreateFenceU() override;
@@ -37,10 +37,13 @@ public:
   virtual UniquePtr<RHIPipeline> CreatePipelineU(const RHIGraphicsPipelineDesc& Desc) override;
   virtual UniquePtr<RHIBuffer> CreateBufferU(const struct RHIBufferDesc& Desc) override;
   virtual SharedPtr<RHIBuffer> CreateBufferS(const struct RHIBufferDesc& Desc) override;
+  virtual SharedPtr<RHIImage> CreateImageS(const RHIImageDesc& Desc) override;
+  virtual UniquePtr<RHIImage> CreateImageU(const RHIImageDesc& Desc) override;
   virtual bool Present(const RHIPresentParams& Params) override;
   virtual void WaitDeviceIdle() override;
 
-  VkDeviceMemory AllocateMemory(VkBuffer For, VkDeviceSize Size, VkMemoryPropertyFlags MemoryFlags) const;
+  VkDeviceMemory AllocateMemory(VkBuffer For, VkMemoryPropertyFlags MemoryFlags) const;
+  VkDeviceMemory AllocateMemory(VkImage For, VkMemoryPropertyFlags MemoryFlags) const;
   void DeallocateMemory(VkDeviceMemory Memory) const;
 
   UInt32 FindMemoryType(UInt32 TypeFilter, VkMemoryPropertyFlags Properties) const;
@@ -58,6 +61,7 @@ public:
 #endif
 
   virtual void Submit(const RHICommandBufferSubmitParams& Params) override;
+  virtual TaskHandle SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies) override;
 
   [[nodiscard]] VkDevice GetDevice() const { return mDevice; }
 

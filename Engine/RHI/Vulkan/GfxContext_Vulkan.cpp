@@ -4,6 +4,8 @@
 
 #include "GfxContext_Vulkan.h"
 
+#include <utility>
+
 #include "Buffer_Vulkan.h"
 #include "CommandBuffer_Vulkan.h"
 #include "Core/Config/ConfigManager.h"
@@ -58,7 +60,9 @@ GfxContext_Vulkan::~GfxContext_Vulkan() {
   vkDestroyInstance(mInstance, nullptr);
 }
 
-SharedPtr<RHIImage> GfxContext_Vulkan::CreateImage(const RHIImageDesc& Desc) { return nullptr; }
+SharedPtr<RHIImage> GfxContext_Vulkan::CreateImageS(const RHIImageDesc& Desc) { return nullptr; }
+
+UniquePtr<RHIImage> GfxContext_Vulkan::CreateImageU(const RHIImageDesc& Desc) {}
 
 SharedPtr<RHIImageView> GfxContext_Vulkan::CreateImageViewS(const RHIImageViewDesc& Desc) { return MakeShared<RHIImageView_Vulkan>(Desc); }
 
@@ -132,8 +136,8 @@ bool GfxContext_Vulkan::Present(const RHIPresentParams& Params) {
 
 void GfxContext_Vulkan::WaitDeviceIdle() { vkDeviceWaitIdle(mDevice); }
 
-VkDeviceMemory GfxContext_Vulkan::AllocateMemory(VkBuffer For, VkDeviceSize Size, VkMemoryPropertyFlags MemoryFlags) const {
-  if (For == VK_NULL_HANDLE || Size == 0)
+VkDeviceMemory GfxContext_Vulkan::AllocateMemory(VkBuffer For, VkMemoryPropertyFlags MemoryFlags) const {
+  if (For == VK_NULL_HANDLE)
     return VK_NULL_HANDLE;
   VkMemoryRequirements MemReqs;
   vkGetBufferMemoryRequirements(mDevice, For, &MemReqs);
@@ -144,6 +148,23 @@ VkDeviceMemory GfxContext_Vulkan::AllocateMemory(VkBuffer For, VkDeviceSize Size
   VkDeviceMemory Memory = VK_NULL_HANDLE;
   if (auto Result = vkAllocateMemory(mDevice, &AllocInfo, nullptr, &Memory) != VK_SUCCESS) {
     gLogger.Error("RHI", "为Buffer '{:p}' 分配内存失败! Code={}", Ptr(For), Result);
+    return VK_NULL_HANDLE;
+  }
+  return Memory;
+}
+
+VkDeviceMemory GfxContext_Vulkan::AllocateMemory(VkImage For, VkMemoryPropertyFlags MemoryFlags) const {
+  if (For == VK_NULL_HANDLE)
+    return VK_NULL_HANDLE;
+  VkMemoryRequirements MemReqs;
+  vkGetImageMemoryRequirements(mDevice, For, &MemReqs);
+  VkMemoryAllocateInfo AllocInfo{};
+  AllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  AllocInfo.allocationSize = MemReqs.size;
+  AllocInfo.memoryTypeIndex = FindMemoryType(MemReqs.memoryTypeBits, MemoryFlags);
+  VkDeviceMemory Memory = VK_NULL_HANDLE;
+  if (auto Result = vkAllocateMemory(mDevice, &AllocInfo, nullptr, &Memory) != VK_SUCCESS) {
+    gLogger.Error("RHI", "为Image '{:p}' 分配内存失败! Code={}", Ptr(For), Result);
     return VK_NULL_HANDLE;
   }
   return Memory;
@@ -301,6 +322,23 @@ void GfxContext_Vulkan::Submit(const RHICommandBufferSubmitParams& Params) {
   if (Result != VK_SUCCESS) {
     gLogger.Error("RHI", "提交渲染指令失败!Code={}", Result);
   }
+}
+
+struct Task_SubmitAsync : TaskNode {
+public:
+  RHICommandBufferSubmitParams Params;
+  explicit Task_SubmitAsync(RHICommandBufferSubmitParams InParams) : Params(std::move(InParams)) {}
+
+  [[nodiscard]] virtual ENamedThread GetDesiredThread() const override { return ENamedThread::Render; }
+
+  virtual ETaskNodeResult Run() override {
+    GetVulkanGfxContexRef().Submit(Params);
+    return ETaskNodeResult::Success;
+  }
+};
+
+TaskHandle GfxContext_Vulkan::SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies) {
+  return TaskGraph::CreateTask<Task_SubmitAsync>("", Dependencies, Params);
 }
 
 bool GfxContext_Vulkan::IsLayerSupported(const char* LayerName) {

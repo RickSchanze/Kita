@@ -12,8 +12,8 @@ RHIBuffer_Vulkan::RHIBuffer_Vulkan(const RHIBufferDesc& Desc) {
   if (Desc.Size == 0) {
     return; // 无效Buffer
   }
-  auto& Context = GetVulkanGfxContexRef();
-  VkDevice Device = Context.GetDevice();
+  const auto& Context = GetVulkanGfxContexRef();
+  const VkDevice Device = Context.GetDevice();
   VkBufferCreateInfo BufferInfo = {};
   BufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
   BufferInfo.size = Desc.Size;
@@ -25,7 +25,7 @@ RHIBuffer_Vulkan::RHIBuffer_Vulkan(const RHIBufferDesc& Desc) {
     gLogger.Error("RHI", "创建Buffer失败!");
     return;
   }
-  mBufferMemory = Context.AllocateMemory(mBuffer, Desc.Size, RHIBufferMemoryPropertyToVkMemoryPropertyFlags(Desc.MemoryProperty));
+  mBufferMemory = Context.AllocateMemory(mBuffer, RHIBufferMemoryPropertyToVkMemoryPropertyFlags(Desc.MemoryProperty));
   if (mBufferMemory == nullptr) {
     vkDestroyBuffer(Device, mBuffer, nullptr);
     mBuffer = nullptr;

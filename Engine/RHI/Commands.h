@@ -12,6 +12,7 @@ enum class ERHICommandType {
   EndRenderPass,
   BeginRecord,
   EndRecord,
+  ResourceBarrier,
   CopyBuffer,
 };
 
@@ -56,4 +57,12 @@ struct RHICmd_CopyBuffer : IRHICommand {
   RHI_DEFINE_BUILDER_FIELD(UInt64, Size, 0);                 // necessary
   RHI_DEFINE_BUILDER_FIELD(UInt64, SourceOffset, 0);
   RHI_DEFINE_BUILDER_FIELD(UInt64, DestOffset, 0)
+};
+
+struct RHICmd_ResourceBarrier : IRHICommand {
+  [[nodiscard]] virtual ERHICommandType GetType() const override { return ERHICommandType::ResourceBarrier; }
+
+  RHI_DEFINE_BUILDER_FIELD(ERHIImageLayout, OldLayout, ERHIImageLayout::Count); // necessary
+  RHI_DEFINE_BUILDER_FIELD(ERHIImageLayout, NewLayout, ERHIImageLayout::Count); // necessary
+  RHI_DEFINE_BUILDER_FIELD_PTR(class RHIImage*, Image, nullptr);                // necessary
 };

@@ -2,6 +2,7 @@
 #include "Core/Memory/UniquePtr.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskHandle.h"
+#include "RHIEnums.h"
 
 class RHICommandBuffer;
 class RHICommandPool;
@@ -43,4 +44,8 @@ class GfxCommandHelper {
 public:
   static void Copy(RHIBuffer* Source, RHIBuffer* Dest, UInt64 Size, UInt64 SourceOffset, UInt64 DestOffset) { CopyAsync(Source, Dest, Size, SourceOffset, DestOffset); }
   static GfxCommandSyncHandle CopyAsync(RHIBuffer* Source, RHIBuffer* Dest, UInt64 Size, UInt64 SourceOffset, UInt64 DestOffset);
+
+  static GfxCommandSyncHandle CreateSingleTimeCommandBuffer(ERHIQueueFamilyType Family = ERHIQueueFamilyType::Graphics);
+  static void SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handle);
+  static void SubmitSingleTimeCommandBufferAndWait(GfxCommandSyncHandle& Handle);
 };
