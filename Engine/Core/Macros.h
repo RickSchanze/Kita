@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
 #if DEBUG_MODE
 #define KITA_DEBUG 1
@@ -37,8 +38,6 @@
   inline constexpr Enum& operator|=(Enum& lhs, Enum rhs) { return lhs = lhs | rhs; }                                                                                                 \
   inline constexpr Enum& operator&=(Enum& lhs, Enum rhs) { return lhs = lhs & rhs; }                                                                                                 \
   inline constexpr Enum& operator^=(Enum& lhs, Enum rhs) { return lhs = lhs ^ rhs; }
-#include <type_traits>
-#include <utility>
 
 template <typename T>
   requires std::is_enum_v<T>
