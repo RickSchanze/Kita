@@ -12,26 +12,15 @@
 #include "Vulkan/GfxContext_Vulkan.h"
 
 GfxCommandSyncHandle GfxCommandHelper::CopyAsync(RHIBuffer* Source, RHIBuffer* Dest, UInt64 Size, UInt64 SourceOffset, UInt64 DestOffset) {
-  GfxCommandSyncHandle Handle;
-  Handle.CommandPool = GfxContext::GetRef().CreateCommandPoolU(ERHIQueueFamilyType::Transfer, false);
-  Handle.CommandBuffer = Handle.CommandPool->CreateCommandBuffer();
-  Handle.CommandBuffer->BeginRecord();
+  GfxCommandSyncHandle Handle = CreateSingleTimeCommandBuffer(ERHIQueueFamilyType::Transfer);
   Handle.CommandBuffer->Copy(Source, Dest, Size, SourceOffset, DestOffset);
-  Handle.CommandBuffer->EndRecord();
-  Handle.GpuExecuteFence = GfxContext::GetRef().CreateFenceU();
-  Handle.CommitHandle = Handle.CommandBuffer->Execute("");
-  RHICommandBufferSubmitParams Params;
-  Params.CommandBuffer = Handle.CommandBuffer.Get();
-  Params.WaitSemaphores = {};
-  Params.SignalSemaphores = {};
-  Params.Fence = Handle.GpuExecuteFence.Get();
-  Handle.CommitHandle = GfxContext::GetRef().SubmitAsync(Params, {Handle.CommitHandle});
+  SubmitSingleTimeCommandBuffer(Handle);
   return Handle;
 }
 
 GfxCommandSyncHandle GfxCommandHelper::CreateSingleTimeCommandBuffer(const ERHIQueueFamilyType Family) {
   GfxCommandSyncHandle Handle;
-  Handle.CommandPool = GfxContext::GetRef().CreateCommandPoolU(Family, true);
+  Handle.CommandPool = GfxContext::GetRef().CreateCommandPoolU(Family, false);
   Handle.CommandBuffer = Handle.CommandPool->CreateCommandBuffer();
   Handle.CommandBuffer->BeginRecord();
   return Handle;
