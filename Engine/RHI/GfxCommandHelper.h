@@ -2,8 +2,10 @@
 #include "Core/Memory/UniquePtr.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskHandle.h"
+#include "Math/Vector.h"
 #include "RHIEnums.h"
 
+class RHIImage;
 class RHICommandBuffer;
 class RHICommandPool;
 class RHIBuffer;
@@ -42,8 +44,13 @@ struct GfxCommandSyncHandle {
 
 class GfxCommandHelper {
 public:
-  static void Copy(RHIBuffer* Source, RHIBuffer* Dest, UInt64 Size, UInt64 SourceOffset, UInt64 DestOffset) { CopyAsync(Source, Dest, Size, SourceOffset, DestOffset); }
+  static void Copy(RHIBuffer* Source, RHIBuffer* Dest, const UInt64 Size, const UInt64 SourceOffset, const UInt64 DestOffset) { CopyAsync(Source, Dest, Size, SourceOffset, DestOffset); }
   static GfxCommandSyncHandle CopyAsync(RHIBuffer* Source, RHIBuffer* Dest, UInt64 Size, UInt64 SourceOffset, UInt64 DestOffset);
+
+  static void CopyBufferToImage(RHIBuffer* Source, RHIImage* Dest, const UInt64 BufferOffset = 0, const Vector3i ImageOffset = {}, const Vector3u ImageExtent = {}) {
+    CopyBufferToImageAsync(Source, Dest, BufferOffset, ImageOffset, ImageExtent).WaitAll();
+  }
+  static GfxCommandSyncHandle CopyBufferToImageAsync(RHIBuffer* Source, RHIImage* Dest, UInt64 BufferOffset = 0, Vector3i ImageOffset = {}, Vector3u ImageExtent = {});
 
   static GfxCommandSyncHandle CreateSingleTimeCommandBuffer(ERHIQueueFamilyType Family = ERHIQueueFamilyType::Graphics);
   static void SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handle);

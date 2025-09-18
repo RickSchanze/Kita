@@ -44,12 +44,13 @@ public:
   void BeginRecord();
   void EndRecord();
 
-
   void BeginRenderPass(RHIRenderPass* RenderPass, RHIFrameBuffer* FrameBuffer, Vector2u Size, const Optional<Color>& ClearColor = {}, Vector2i Offset = {}, Optional<float> ClearDepth = std::nullopt);
 
   void EndRenderPass();
 
   void ResourceBarrier(RHIImage* Image, ERHIImageLayout OldLayout, ERHIImageLayout NewLayout);
+
+  void CopyBufferToImage(RHIBuffer* Source, RHIImage* Dest, UInt64 BufferOffset = 0, Vector3i ImageOffset = {}, Vector3u ImageExtent = {});
 
   /// 将一个Buffer的内容拷贝到另一个Buffer
   /// @param Source 源Buffer

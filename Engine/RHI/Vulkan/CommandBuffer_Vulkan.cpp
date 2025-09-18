@@ -107,19 +107,14 @@ public:
   VkCommandBuffer CmdBuffer;
 
   void BeginRecord(IRHICommand* Cmd) const {
-    CPU_PROFILING_SCOPE;
     VkCommandBufferBeginInfo BeginInfo{};
     BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     vkBeginCommandBuffer(CmdBuffer, &BeginInfo);
   }
 
-  void EndRecord(IRHICommand* Cmd) const {
-    CPU_PROFILING_SCOPE;
-    vkEndCommandBuffer(CmdBuffer);
-  }
+  void EndRecord(IRHICommand* Cmd) const { vkEndCommandBuffer(CmdBuffer); }
 
   void BeginRenderPass(IRHICommand* Cmd) const {
-    CPU_PROFILING_SCOPE;
     const auto CmdBeginRenderPass = static_cast<RHICmd_BeginRenderPass*>(Cmd);
     VkRenderPassBeginInfo BeginInfo{};
     BeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -141,13 +136,9 @@ public:
     vkCmdBeginRenderPass(CmdBuffer, &BeginInfo, VK_SUBPASS_CONTENTS_INLINE);
   }
 
-  void EndRenderPass(IRHICommand* Cmd) const {
-    CPU_PROFILING_SCOPE;
-    vkCmdEndRenderPass(CmdBuffer);
-  }
+  void EndRenderPass(IRHICommand* Cmd) const { vkCmdEndRenderPass(CmdBuffer); }
 
   void CopyBuffer(IRHICommand* Cmd) const {
-    CPU_PROFILING_SCOPE;
     const auto CmdCopyBuffer = static_cast<RHICmd_CopyBuffer*>(Cmd);
     VkBufferCopy CopyRegion{};
     CopyRegion.size = CmdCopyBuffer->Size;
@@ -181,6 +172,29 @@ public:
     vkCmdPipelineBarrier(CmdBuffer, Src.stageMask, Dst.stageMask, 0, 0, nullptr, 0, nullptr, 1, &Barrier);
   }
 
+  void CopyBufferToImage(IRHICommand* Cmd) const {
+    const auto CmdCopyBufferToImage = static_cast<RHICmd_CopyBufferToImage*>(Cmd);
+    VkBufferImageCopy CopyRegion{};
+    CopyRegion.bufferOffset = CmdCopyBufferToImage->BufferOffset;
+    if (True(CmdCopyBufferToImage->Dest->GetDesc().Usage | ERHIImageUsage::DepthStencil)) {
+      CopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    } else if (True(CmdCopyBufferToImage->Dest->GetDesc().Usage | ERHIImageUsage::ShaderRead)) {
+      CopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+    CopyRegion.imageSubresource.baseArrayLayer = 0;
+    CopyRegion.imageSubresource.layerCount = CmdCopyBufferToImage->Dest->GetDesc().GetArrayLayers();
+    CopyRegion.imageSubresource.mipLevel = 0;
+    CopyRegion.imageOffset.x = CmdCopyBufferToImage->ImageOffset.X();
+    CopyRegion.imageOffset.y = CmdCopyBufferToImage->ImageOffset.Y();
+    CopyRegion.imageOffset.z = CmdCopyBufferToImage->ImageOffset.Z();
+
+    CopyRegion.imageExtent.width = CmdCopyBufferToImage->ImageExtent.X() == 0 ? CmdCopyBufferToImage->Dest->GetDesc().Width : CmdCopyBufferToImage->ImageExtent.X();
+    CopyRegion.imageExtent.height = CmdCopyBufferToImage->ImageExtent.Y() == 0 ? CmdCopyBufferToImage->Dest->GetDesc().Height : CmdCopyBufferToImage->ImageExtent.Y();
+    CopyRegion.imageExtent.depth = CmdCopyBufferToImage->ImageExtent.Z() == 0 ? CmdCopyBufferToImage->Dest->GetDesc().Depth : CmdCopyBufferToImage->ImageExtent.Z();
+    vkCmdCopyBufferToImage(CmdBuffer, CmdCopyBufferToImage->Source->GetNativeHandleT<VkBuffer>(), CmdCopyBufferToImage->Dest->GetNativeHandleT<VkImage>(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                           &CopyRegion);
+  }
+
   virtual ETaskNodeResult Run() override {
     CPU_PROFILING_SCOPE;
     while (!Queue.Empty()) {
@@ -199,6 +213,12 @@ public:
         break;
       case ERHICommandType::CopyBuffer:
         CopyBuffer(Cmd.Get());
+        break;
+      case ERHICommandType::ResourceBarrier:
+        ResourceBarrier(Cmd.Get());
+        break;
+      case ERHICommandType::CopyBufferToImage:
+        CopyBufferToImage(Cmd.Get());
         break;
       default:
         break;

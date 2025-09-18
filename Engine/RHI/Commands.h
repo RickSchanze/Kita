@@ -14,6 +14,7 @@ enum class ERHICommandType {
   EndRecord,
   ResourceBarrier,
   CopyBuffer,
+  CopyBufferToImage,
 };
 
 struct IRHICommand {
@@ -65,4 +66,14 @@ struct RHICmd_ResourceBarrier : IRHICommand {
   RHI_DEFINE_BUILDER_FIELD(ERHIImageLayout, OldLayout, ERHIImageLayout::Count); // necessary
   RHI_DEFINE_BUILDER_FIELD(ERHIImageLayout, NewLayout, ERHIImageLayout::Count); // necessary
   RHI_DEFINE_BUILDER_FIELD_PTR(class RHIImage*, Image, nullptr);                // necessary
+};
+
+struct RHICmd_CopyBufferToImage : IRHICommand {
+  [[nodiscard]] virtual ERHICommandType GetType() const override { return ERHICommandType::CopyBufferToImage; }
+
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHIBuffer*, Source, nullptr); // necessary
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHIImage*, Dest, nullptr);    // necessary
+  RHI_DEFINE_BUILDER_FIELD(UInt64, BufferOffset, 0);
+  RHI_DEFINE_BUILDER_FIELD(Vector3i, ImageOffset, {});
+  RHI_DEFINE_BUILDER_FIELD(Vector3u, ImageExtent, {}); // 默认为0 表示会从Image获取宽高
 };

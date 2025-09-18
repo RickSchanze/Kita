@@ -188,6 +188,10 @@ VECTOR3_DECL(float, "Vector3f");
 typedef Vector3<float> Vector3f;
 VECTOR3_DECL(double, "Vector3d");
 typedef Vector3<double> Vector3d;
+VECTOR3_DECL(Int32, "Vector3i");
+typedef Vector3<Int32> Vector3i;
+VECTOR3_DECL(UInt32, "Vector3u");
+typedef Vector3<UInt32> Vector3u;
 #undef VECTOR3_DECL
 
 // =================== Vector4 ===================

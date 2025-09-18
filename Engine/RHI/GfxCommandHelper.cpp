@@ -11,9 +11,16 @@
 #include "Sync.h"
 #include "Vulkan/GfxContext_Vulkan.h"
 
-GfxCommandSyncHandle GfxCommandHelper::CopyAsync(RHIBuffer* Source, RHIBuffer* Dest, UInt64 Size, UInt64 SourceOffset, UInt64 DestOffset) {
+GfxCommandSyncHandle GfxCommandHelper::CopyAsync(RHIBuffer* Source, RHIBuffer* Dest, const UInt64 Size, const UInt64 SourceOffset, const UInt64 DestOffset) {
   GfxCommandSyncHandle Handle = CreateSingleTimeCommandBuffer(ERHIQueueFamilyType::Transfer);
   Handle.CommandBuffer->Copy(Source, Dest, Size, SourceOffset, DestOffset);
+  SubmitSingleTimeCommandBuffer(Handle);
+  return Handle;
+}
+
+GfxCommandSyncHandle GfxCommandHelper::CopyBufferToImageAsync(RHIBuffer* Source, RHIImage* Dest, const UInt64 BufferOffset, const Vector3i ImageOffset, const Vector3u ImageExtent) {
+  GfxCommandSyncHandle Handle = CreateSingleTimeCommandBuffer(ERHIQueueFamilyType::Transfer);
+  Handle.CommandBuffer->CopyBufferToImage(Source, Dest, BufferOffset, ImageOffset, ImageExtent);
   SubmitSingleTimeCommandBuffer(Handle);
   return Handle;
 }
