@@ -22,7 +22,6 @@ RHIImageView_Vulkan::RHIImageView_Vulkan(VkImage SwapchainImage, VkFormat Format
   if (const VkResult Result = vkCreateImageView(GetVulkanGfxContexRef().GetDevice(), &ImageViewInfo, nullptr, &mImageView); Result != VK_SUCCESS) {
     gLogger.Error("RHI", "创建交换链图像视图失败, 错误码={}", static_cast<Int32>(Result));
   }
-  mRelatedImage = nullptr;
 }
 
 RHIImageView_Vulkan::RHIImageView_Vulkan(const RHIImageViewDesc& Desc) {
@@ -32,23 +31,46 @@ RHIImageView_Vulkan::RHIImageView_Vulkan(const RHIImageViewDesc& Desc) {
   ImageViewInfo.image = Desc.SourceImage->GetNativeHandleT<VkImage>();
   ImageViewInfo.viewType = RHIImageDimensionToVkImageViewType(Desc.ViewType);
   ImageViewInfo.format = RHIFormatToVkFormat(Desc.Format == ERHIFormat::Count ? Desc.SourceImage->GetDesc().Format : Desc.Format);
-  ImageViewInfo.subresourceRange.aspectMask = RHIImageAspectToVkImageAspect(Desc.SubresourceRange.AspectMask);
-  ImageViewInfo.subresourceRange.baseMipLevel = Desc.SubresourceRange.BaseMipLevel;
-  ImageViewInfo.subresourceRange.levelCount = Desc.SubresourceRange.LevelCount;
-  ImageViewInfo.subresourceRange.baseArrayLayer = Desc.SubresourceRange.BaseArrayLayer;
-  ImageViewInfo.subresourceRange.layerCount = Desc.SubresourceRange.LayerCount;
-  ImageViewInfo.components.r = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping.R);
-  ImageViewInfo.components.g = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping.G);
-  ImageViewInfo.components.b = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping.B);
-  ImageViewInfo.components.a = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping.A);
+  VkImageSubresourceRange Range{};
+  if (Desc.SubresourceRange) {
+    auto& MyRange = *Desc.SubresourceRange;
+    Range.aspectMask = RHIImageAspectToVkImageAspect(MyRange.AspectMask);
+    Range.baseMipLevel = MyRange.BaseMipLevel;
+    Range.levelCount = MyRange.LevelCount;
+    Range.baseArrayLayer = MyRange.BaseArrayLayer;
+    Range.layerCount = MyRange.LayerCount;
+  } else {
+    auto& ImageDesc = Desc.SourceImage->GetDesc();
+    if (True(ImageDesc.Usage | ERHIImageUsage::DepthStencil)) {
+      Range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    } else if (True(ImageDesc.Usage | ERHIImageUsage::ShaderRead)) {
+      Range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+    Range.levelCount = ImageDesc.MipLevels;
+    Range.layerCount = ImageDesc.ArrayLayers;
+    Range.baseArrayLayer = 0;
+    Range.baseMipLevel = 0;
+  }
+  ImageViewInfo.subresourceRange = Range;
+  VkComponentMapping Mapping;
+  if (Desc.ComponentMapping) {
+    Mapping.r = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping->R);
+    Mapping.g = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping->G);
+    Mapping.b = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping->B);
+    Mapping.a = RHIComponentMappingElementToVkComponentSwizzle(Desc.ComponentMapping->A);
+  } else {
+    Mapping.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    Mapping.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    Mapping.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    Mapping.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+  }
+  ImageViewInfo.components = Mapping;
   if (const VkResult Result = vkCreateImageView(GetVulkanGfxContexRef().GetDevice(), &ImageViewInfo, nullptr, &mImageView); Result != VK_SUCCESS) {
     gLogger.Error("RHI", "创建图像视图失败, 错误码={}", Result);
   }
-  mRelatedImage = Desc.SourceImage;
 }
 
 RHIImageView_Vulkan::~RHIImageView_Vulkan() {
-  mRelatedImage = nullptr;
   if (mImageView) {
     vkDestroyImageView(GetVulkanGfxContexRef().GetDevice(), mImageView, nullptr);
     mImageView = nullptr;

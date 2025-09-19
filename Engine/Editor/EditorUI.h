@@ -6,6 +6,7 @@
 
 #include <imgui.h>
 
+class Texture2D;
 namespace Logcat {
 inline constexpr auto Editor = "Editor";
 }
@@ -242,15 +243,22 @@ public:
   }
   static void EndChild() { ImGui::EndChild(); }
 
-  enum class EEditorIcon {
-    Shader,
-    Mesh,
+  enum class EEditorImageIcon { Info, Warning, Error, Critical, Mesh, Shader, Count };
+
+  struct ImageIconUV {
+    Vector2f LT;
+    Vector2f RB;
   };
+  /// 如果ImageSize为默认 那么设为默认字体大小
+  static void ImageIcon(EEditorImageIcon Icon, Vector2i ImageSize = {});
 
 private:
-  static inline UInt32 SplitterNormal;
-  static inline UInt32 SplitterHovered;
-  static inline UInt32 SplitterActive;
+  static inline UInt32 sSplitterNormal;
+  static inline UInt32 sSplitterHovered;
+  static inline UInt32 sSplitterActive;
+  static inline float sDefaultFontSize;
+  static inline ImageIconUV sImageIconUV[ToUnderlying(EEditorImageIcon::Count)];
+  static inline Texture2D* sImageIconTexture;
 };
 
 ENABLE_BITMASK_OPERATORS(EditorUI::EChildFlags)

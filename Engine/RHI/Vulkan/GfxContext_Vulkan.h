@@ -20,6 +20,7 @@ public:
 
 
   virtual SharedPtr<RHIImageView> CreateImageViewS(const RHIImageViewDesc& Desc) override;
+  virtual UniquePtr<RHIImageView> CreateImageViewU(const struct RHIImageViewDesc& Desc) override;
   virtual SharedPtr<RHIFence> CreateFenceS(StringView DebugName) override;
   virtual UniquePtr<RHIFence> CreateFenceU(StringView DebugName) override;
   virtual UniquePtr<RHISemaphore> CreateSemaphoreU() override;

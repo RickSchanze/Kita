@@ -60,8 +60,10 @@ public:
 
   /// 根据路径自动导入资产, 如果资产已经存在则Warn
   /// 导入后会进行加载 返回一个任务句柄
-  static AssetLoadTaskHandle ImportAsync(const StringView Path) { return GetRef().ImportAsyncM(Path); }
-  AssetLoadTaskHandle ImportAsyncM(StringView Path);
+  /// @param Path 资产路径
+  /// @param Silent 如果已经导入过 是否进行log提示
+  static AssetLoadTaskHandle ImportAsync(const StringView Path, bool Silent = false) { return GetRef().ImportAsyncM(Path, Silent); }
+  AssetLoadTaskHandle ImportAsyncM(StringView Path, bool Silent);
 
   Optional<MeshMeta> QueryMeshMeta(StringView Path);
   Optional<MeshMeta> QueryMeshMeta(Int32 ObjectHandle);

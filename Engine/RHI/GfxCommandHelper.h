@@ -52,8 +52,17 @@ public:
   }
   static GfxCommandSyncHandle CopyBufferToImageAsync(RHIBuffer* Source, RHIImage* Dest, UInt64 BufferOffset = 0, Vector3i ImageOffset = {}, Vector3u ImageExtent = {});
 
+  /// 创建一个单次的CommandBuffer
+  ///  @param Family
+  ///  @return 创建的CommandBuffer已经调用了BeginRecord
   static GfxCommandSyncHandle CreateSingleTimeCommandBuffer(ERHIQueueFamilyType Family = ERHIQueueFamilyType::Graphics);
+
+  /// 对一个CommandBuffer EndRecord并且提交
+  /// @param Handle
   static void SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handle);
+
+  /// 对一个CommandBuffer EndRecord并且提交 然后等待所有操作完成
+  /// @param Handle
   static void SubmitSingleTimeCommandBufferAndWait(GfxCommandSyncHandle& Handle);
 
 private:

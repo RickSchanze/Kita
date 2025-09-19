@@ -21,16 +21,14 @@ struct RHIImageSubresourceRange {
 };
 
 struct RHIImageViewDesc {
-  RHI_DEFINE_BUILDER_FIELD(SharedPtr<RHIImage>, SourceImage, {});                    // 必填
-  RHI_DEFINE_BUILDER_FIELD(ERHIImageDimension, ViewType, ERHIImageDimension::D2); // ImageView的类型, 默认为2D图像
-  RHI_DEFINE_BUILDER_FIELD(ERHIFormat, Format, ERHIFormat::Count)                 // ImageView的格式, 填Count则会自动获取Image的格式
-  RHI_DEFINE_BUILDER_FIELD(::RHIComponentMapping, ComponentMapping, {});             // ImageView的组件映射
-  RHI_DEFINE_BUILDER_FIELD(RHIImageSubresourceRange, SubresourceRange, {});          // 必填
+  RHI_DEFINE_BUILDER_FIELD_PTR(RHIImage*, SourceImage, {});                           // 必填
+  RHI_DEFINE_BUILDER_FIELD(ERHIImageDimension, ViewType, ERHIImageDimension::D2);     // ImageView的类型, 默认为2D图像
+  RHI_DEFINE_BUILDER_FIELD(ERHIFormat, Format, ERHIFormat::Count)                     // ImageView的格式, 填Count则会自动获取Image的格式
+  RHI_DEFINE_BUILDER_FIELD(Optional<RHIComponentMapping>, ComponentMapping, {});      // ImageView的组件映射
+  RHI_DEFINE_BUILDER_FIELD(Optional<RHIImageSubresourceRange>, SubresourceRange, {}); // 必填
 };
 
 class RHIImageView : public IRHIResource {
 public:
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::ImageView; }
-  // 应返回关联的Image 如果是交换链图像应返回nullptr
-  [[nodiscard]] virtual SharedPtr<RHIImage> GetRelatedImage() const = 0;
 };

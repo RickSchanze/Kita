@@ -12,9 +12,6 @@ public:
 
   [[nodiscard]] virtual void* GetNativeHandle() const override { return mImageView; }
 
-  [[nodiscard]] virtual SharedPtr<RHIImage> GetRelatedImage() const override { return mRelatedImage; }
-
 private:
-  SharedPtr<RHIImage> mRelatedImage = {};
   VkImageView mImageView = VK_NULL_HANDLE;
 };

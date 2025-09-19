@@ -5,11 +5,15 @@
 #include "EditorUI.h"
 
 #include "Assets/Asset.h"
+#include "Assets/AssetsManager.h"
+#include "Core/Assert.h"
 #include "Core/Config/ConfigManager.h"
+#include "Core/FileSystem/File.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "RHI/ImGuiConfig.h"
 
 #include <imgui_internal.h>
+#include <nlohmann/json.hpp>
 
 void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction, const float MinSize1, const float MinSize2, const float Thickness) {
   const auto Size = ImGui::GetContentRegionAvail();
@@ -30,11 +34,11 @@ void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
 
     // 平滑颜色（简单插值，可改成更高级的动画系统）
-    UInt32 currentColor = SplitterNormal;
+    UInt32 currentColor = sSplitterNormal;
     if (Dragging)
-      currentColor = SplitterActive;
+      currentColor = sSplitterActive;
     else if (ImGui::IsItemHovered())
-      currentColor = SplitterHovered;
+      currentColor = sSplitterHovered;
 
     const auto p0 = ImGui::GetItemRectMin();
     const auto p1 = ImGui::GetItemRectMax();
@@ -55,11 +59,11 @@ void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction
     if (ImGui::IsItemHovered() || Dragging)
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
 
-    UInt32 CurrentColor = SplitterNormal;
+    UInt32 CurrentColor = sSplitterNormal;
     if (Dragging)
-      CurrentColor = SplitterActive;
+      CurrentColor = sSplitterActive;
     else if (ImGui::IsItemHovered())
-      CurrentColor = SplitterHovered;
+      CurrentColor = sSplitterHovered;
 
     const auto P0 = ImGui::GetItemRectMin();
     const auto P1 = ImGui::GetItemRectMax();
@@ -77,15 +81,43 @@ void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction
   ImGui::PopStyleVar();
 }
 
+// clang-format off
+static std::unordered_map<std::string, EditorUI::EEditorImageIcon> IconMap = {
+    {"Critical.png", EditorUI::EEditorImageIcon::Critical},
+    {"Warning.png", EditorUI::EEditorImageIcon::Warning},
+    {"Info.png", EditorUI::EEditorImageIcon::Info},
+    {"Error.png", EditorUI::EEditorImageIcon::Error},
+};
+// clang-format on
+
 void EditorUI::StartUp() {
   const auto& Config = ConfigManager::GetConfigRef<ImGuiConfig>();
-  SplitterNormal = ColorToImU32(Config.Theme.Separator);
-  SplitterHovered = ColorToImU32(Config.Theme.SeparatorHovered);
-  SplitterActive = ColorToImU32(Config.Theme.SeparatorActive);
+  sSplitterNormal = ColorToImU32(Config.Theme.Separator);
+  sSplitterHovered = ColorToImU32(Config.Theme.SeparatorHovered);
+  sSplitterActive = ColorToImU32(Config.Theme.SeparatorActive);
+  sDefaultFontSize = Config.FontSize;
+  auto ImportHandle = AssetsManager::ImportAsync("Assets/Texture/EditorIcon/EditorIconAtlas.png", true);
+  ImportHandle.WaitSync();
+  sImageIconTexture = ImportHandle.GetAssetObjectT<Texture2D>();
+
+  auto Text = File::ReadAllText("Assets/Texture/EditorIcon/EditorIconAtlas_UV.json");
+  ASSERT_MSG(Text, "无法获取EditorIconAtlas的UV信息: EditorIconAtlas_UV.json, Result={}", Text.Error())
+  nlohmann::json AtlasJson = nlohmann::json::parse(Text->GetStdString());
+
+  for (auto& [Name, UV] : AtlasJson.items()) {
+    auto it = IconMap.find(Name);
+    if (it != IconMap.end()) {
+      const auto IconType = it->second;
+      sImageIconUV[ToUnderlying(IconType)].LT.X() = UV["u0"].get<float>();
+      sImageIconUV[ToUnderlying(IconType)].LT.Y() = UV["v0"].get<float>();
+      sImageIconUV[ToUnderlying(IconType)].RB.X() = UV["u1"].get<float>();
+      sImageIconUV[ToUnderlying(IconType)].RB.Y() = UV["v1"].get<float>();
+    }
+  }
 }
 
 void EditorUI::ShutDown() {
-
+  // TODO: AssetManager Unload Texture
 }
 
 bool EditorUI::Button(const StringView Label, const Vector2f Size, Optional<UInt32> TextColor) {
@@ -98,3 +130,5 @@ bool EditorUI::Button(const StringView Label, const Vector2f Size, Optional<UInt
   }
   return Result;
 }
+
+void EditorUI::ImageIcon(EEditorImageIcon Icon, Vector2i ImageSize) {}

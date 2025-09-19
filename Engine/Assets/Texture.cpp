@@ -12,6 +12,8 @@
 #include "Core/FileSystem/Path.h"
 #include "Core/Performance/ProfilerMark.h"
 #include "RHI/Buffer.h"
+#include "RHI/CommandBuffer.h"
+#include "RHI/GfxCommandHelper.h"
 #include "RHI/GfxContext.h"
 #include "stb_image.h"
 
@@ -75,9 +77,26 @@ void Texture2D::Load() {
   RHIImageDesc ImageDesc{};
   ImageDesc.SetFormat(ERHIFormat::R8G8B8A8_SRGB).SetWidth(Width).SetHeight(Height).SetUsage(ERHIImageUsage::ShaderRead | ERHIImageUsage::TransferDst);
   mImage = GfxContext::GetRef().CreateImageU(ImageDesc);
+
+  GfxCommandSyncHandle Handle = GfxCommandHelper::CreateSingleTimeCommandBuffer();
+  Handle.CommandBuffer->ResourceBarrier(mImage.Get(), ERHIImageLayout::Undefined, ERHIImageLayout::TransferDst);
+  Handle.CommandBuffer->CopyBufferToImage(StagingBuffer.Get(), mImage.Get());
+  Handle.CommandBuffer->ResourceBarrier(mImage.Get(), ERHIImageLayout::TransferDst, ERHIImageLayout::ShaderReadOnly);
+  GfxCommandHelper::SubmitSingleTimeCommandBufferAndWait(Handle);
+
+  RHIImageViewDesc Desc{};
+  Desc.SetSourceImage(mImage.Get());
+  mImageView = GfxContext::GetRef().CreateImageViewU(Desc);
+
+  gLogger.Info(Logcat::Asset, "纹理资产 '{}' 加载成功.", mPath);
 }
 
-void Texture2D::Unload() {}
+void Texture2D::Unload() {
+  mImageView = nullptr;
+  mImage = nullptr;
+  mMeta = {};
+  gLogger.Info(Logcat::Asset, "纹理资产 '{}' 卸载成功.", mPath);
+}
 
 void TextureCube::Load() {}
 

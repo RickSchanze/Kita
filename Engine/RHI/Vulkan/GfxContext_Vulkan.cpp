@@ -65,6 +65,7 @@ SharedPtr<RHIImage> GfxContext_Vulkan::CreateImageS(const RHIImageDesc& Desc) { 
 UniquePtr<RHIImage> GfxContext_Vulkan::CreateImageU(const RHIImageDesc& Desc) { return nullptr; }
 
 SharedPtr<RHIImageView> GfxContext_Vulkan::CreateImageViewS(const RHIImageViewDesc& Desc) { return MakeShared<RHIImageView_Vulkan>(Desc); }
+UniquePtr<RHIImageView> GfxContext_Vulkan::CreateImageViewU(const struct RHIImageViewDesc& Desc) { return MakeUnique<RHIImageView_Vulkan>(Desc); }
 
 SharedPtr<RHIFence> GfxContext_Vulkan::CreateFenceS(StringView DebugName) { return MakeShared<RHIFence_Vulkan>(DebugName); }
 

@@ -251,14 +251,16 @@ static EAssetType GetAssetTypeByExtension(StringView Path) {
   return EAssetType::Count;
 }
 
-AssetLoadTaskHandle AssetsManager::ImportAsyncM(StringView Path) {
+AssetLoadTaskHandle AssetsManager::ImportAsyncM(StringView Path, bool Silent) {
   const EAssetType Type = GetAssetTypeByExtension(Path);
   if (Type == EAssetType::Count) {
     gLogger.Error(Logcat::Asset, "未知的资产类型 '{}'.", Path);
     return {};
   }
   if (auto OpIndex = mImpl->QueryMeta<AssetIndex>(Path)) {
-    gLogger.Warn(Logcat::Asset, "资产 '{}' 重复导入, 将跳过此次导入, 但仍会进行加载.", Path);
+    if (!Silent) {
+      gLogger.Warn(Logcat::Asset, "资产 '{}' 重复导入, 将跳过此次导入, 但仍会进行加载.", Path);
+    }
   } else {
     AssetIndex NewIndex{};
     NewIndex.ObjectHandle = ObjectTable::AssignHandle(true);
