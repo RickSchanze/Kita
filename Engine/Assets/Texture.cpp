@@ -12,6 +12,7 @@
 #include "Core/FileSystem/File.h"
 #include "Core/FileSystem/Path.h"
 #include "Core/Performance/ProfilerMark.h"
+#include "Editor/EditorUI.h"
 #include "RHI/Buffer.h"
 #include "RHI/CommandBuffer.h"
 #include "RHI/GfxCommandHelper.h"
@@ -89,6 +90,10 @@ void Texture2D::Load() {
   RHIImageViewDesc Desc{};
   Desc.SetSourceImage(mImage.Get());
   mImageView = GfxContext::GetRef().CreateImageViewU(Desc);
+
+#if KITA_EDITOR
+  mImGuiTexture = GfxContext::GetRef().CreateImGuiTexture(EditorUI::GetEditorUsedSampler(), mImageView.Get());
+#endif
 
   gLogger.Info(Logcat::Asset, "纹理资产 '{}' 加载成功.", mPath);
 }

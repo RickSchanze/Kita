@@ -75,9 +75,13 @@ public:
   virtual void Unload() override;
 
   RHIImageView* GetImageView() const { return mImageView.Get(); }
-
+  void* GetImGuiTexture() const { return mImGuiTexture; }
 private:
   UniquePtr<RHIImageView> mImageView;
+
+#if KITA_EDITOR
+  void* mImGuiTexture;
+#endif
 };
 
 KCLASS()

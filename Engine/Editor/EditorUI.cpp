@@ -115,12 +115,7 @@ void EditorUI::StartUp() {
   sSplitterHovered = ColorToImU32(Config.Theme.SeparatorHovered);
   sSplitterActive = ColorToImU32(Config.Theme.SeparatorActive);
   sDefaultFontSize = Config.FontSize;
-  auto ImportHandle = AssetsManager::ImportAsync("Assets/Texture/EditorIcon/EditorIconAtlas.png", true);
-  ImportHandle.WaitSync();
-
   sImpl = New<Impl>();
-  sImpl->ImageIconTexture = ImportHandle.GetAssetObjectT<Texture2D>();
-  ASSERT_MSG(sImpl->ImageIconTexture, "加载编辑器图标纹理图集失败.");
   RHISamplerDesc SamplerDesc;
   SamplerDesc.SetMagFilter(ERHIFilterMode::Linear)
       .SetMinFilter(ERHIFilterMode::Linear)
@@ -133,6 +128,11 @@ void EditorUI::StartUp() {
       .SetMinLod(0.0f)
       .SetMaxLod(0.0f); // 不使用 mipmap
   sImpl->Sampler = GfxContext::GetRef().CreateSamplerU(SamplerDesc);
+  auto ImportHandle = AssetsManager::ImportAsync("Assets/Texture/EditorIcon/EditorIconAtlas.png", true);
+  ImportHandle.WaitSync();
+  sImpl->ImageIconTexture = ImportHandle.GetAssetObjectT<Texture2D>();
+  ASSERT_MSG(sImpl->ImageIconTexture, "加载编辑器图标纹理图集失败.");
+
   sImpl->ImGuiTexture[ToUnderlying(EEditorUITexture::IconAtlas)] = GfxContext::GetRef().CreateImGuiTexture(sImpl->Sampler.Get(), sImpl->ImageIconTexture->GetImageView());
 
   auto Text = File::ReadAllText("Assets/Texture/EditorIcon/EditorIconAtlas_UV.json");

@@ -8,13 +8,6 @@
 #include "Editor/EditorUI.h"
 #include "RHI/GfxContext.h"
 
-TextureInspector::ScopedImGuiTexture::~ScopedImGuiTexture() {
-  if (ImGuiTexture != nullptr) {
-    GfxContext::GetRef().DestroyImGuiTexture(ImGuiTexture);
-    ImGuiTexture = nullptr;
-  }
-}
-
 TextureInspector::TextureInspector() {}
 
 void TextureInspector::DrawGUI() {
@@ -38,15 +31,5 @@ void TextureInspector::DrawGUI() {
     const float Scale = AvailWidth / ImageWidth;
     DrawSize = Vector2f(AvailWidth, ImageHeight * Scale);
   }
-  EditorUI::Image(mScopedImGuiTexture.ImGuiTexture, DrawSize);
-}
-
-void TextureInspector::OnSetInspectedObject(Object* NewObj) {
-  if (NewObj == nullptr) {
-    mScopedImGuiTexture = {};
-    return;
-  }
-  const auto Texture = static_cast<Texture2D*>(NewObj);
-  void* ImTex = GfxContext::GetRef().CreateImGuiTexture(EditorUI::GetEditorUsedSampler(), Texture->GetImageView());
-  mScopedImGuiTexture = ScopedImGuiTexture{ImTex};
+  EditorUI::Image(Texture->GetImGuiTexture(), DrawSize);
 }
