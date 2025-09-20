@@ -63,29 +63,39 @@ static void DrawDirectoryTreeRecursive(ContentBrowserWindow::DirectoryTreeNode* 
         DrawDirectoryTreeRecursive(Node.Get());
       }
     } else {
-      for (Int32 Index = 0; Index < Root->Indent; Index++) {
-        EditorUI::Indent();
-      }
-      EditorUI::PushID(Root->Name);
-      const bool IsFolderButtonClicked = EditorUI::Button(Root->IsOpened ? KITA_ICON_FOLDER_OPEN : KITA_ICON_FOLDER);
-      EditorUI::SameLine();
-      const bool IsFolderNameClicked = EditorUI::Button(Root->Name);
-      if (Root->IsOpened) {
-        for (const auto& Child : Root->Children) {
-          DrawDirectoryTreeRecursive(Child.Get());
+      const String ID = Format("##{}", Root->Name);
+      if (ImGui::TreeNode(ID.Data())) {
+        ImGui::SameLine();
+        const String Text = Format("{} {}", KITA_ICON_FOLDER_OPEN, Root->Name);
+        EditorUI::Text(Text.Data());
+        for (const auto& TreeNode : Root->Children) {
+          DrawDirectoryTreeRecursive(TreeNode.Get());
         }
-      }
-      if (IsFolderButtonClicked) {
-        if (!Root->Children.Empty()) {
-          Root->IsOpened = !Root->IsOpened;
+        for (const auto& File : Root->Files) {
+          EditorUI::Text("  ");
+          EditorUI::SameLine();
+          switch (File.Type) {
+          case EAssetType::Texture2D:
+            EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Texture);
+            break;
+          case EAssetType::Mesh:
+            EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Mesh);
+            break;
+          case EAssetType::Shader:
+            EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Shader);
+            break;
+          default:
+            EditorUI::ImageIcon(EditorUI::EEditorImageIcon::UnknownFile);
+            break;
+          }
+          EditorUI::SameLine();
+          EditorUI::Text(File.Name);
         }
-      }
-      if (IsFolderNameClicked) {
-        // TODO: 修改gSelection
-      }
-      EditorUI::PopID();
-      for (Int32 Index = 0; Index < Root->Indent; Index++) {
-        EditorUI::Unindent();
+        ImGui::TreePop();
+      } else {
+        ImGui::SameLine();
+        String Text = Format("{} {}", KITA_ICON_FOLDER, Root->Name);
+        EditorUI::Text(Text.Data());
       }
     }
   }

@@ -62,12 +62,16 @@ public:
   static bool BeginMenu(const StringView Name) { return ImGui::BeginMenu(Name.Data()); }
   static void EndMenu() { ImGui::EndMenu(); }
 
+  static void Space() { ImGui::Spacing(); }
+
   static bool MenuItem(const StringView Name) { return ImGui::MenuItem(Name.Data()); }
 
   template <typename... Args> static void Text(const char* fmt, Args&&... args) {
     // 先处理你自己的逻辑，比如颜色/前缀
     ImGui::Text(fmt, std::forward<Args>(args)...);
   }
+
+  static void Text(StringView Text) { ImGui::Text(Text.Data()); }
 
   template <typename... Args> static void TextColored(Color InColor, const char* fmt, Args&&... args) {
     // 先处理你自己的逻辑，比如颜色/前缀
@@ -245,7 +249,7 @@ public:
   }
   static void EndChild() { ImGui::EndChild(); }
 
-  enum class EEditorImageIcon { Info, Warning, Error, Critical, Mesh, Shader, Count };
+  enum class EEditorImageIcon { Info, Warning, Error, Critical, Mesh, Shader, Texture, UnknownFile, Count };
 
   struct ImageIconUV {
     Vector2f LT;

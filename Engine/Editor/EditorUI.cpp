@@ -93,6 +93,8 @@ static std::unordered_map<std::string, EditorUI::EEditorImageIcon> IconMap = {
     {"Error.png", EditorUI::EEditorImageIcon::Error},
   {"Shader.png", EditorUI::EEditorImageIcon::Shader},
   {"Mesh.png", EditorUI::EEditorImageIcon::Mesh},
+  {"Texture.png", EditorUI::EEditorImageIcon::Texture},
+  {"UnknownFile.png", EditorUI::EEditorImageIcon::UnknownFile},
 };
 // clang-format on
 
