@@ -6,6 +6,7 @@
 
 #include "Assets/AssetsManager.h"
 #include "Core/String/StringUtils.h"
+#include "Editor/Selection.h"
 #include "RHI/IconFontHeader.h"
 
 static void BuildAssetTreeNodeFromIndex(const AssetIndex& InAssetIndex, ContentBrowserWindow::DirectoryTreeNode* Root) {
@@ -72,8 +73,6 @@ static void DrawDirectoryTreeRecursive(ContentBrowserWindow::DirectoryTreeNode* 
           DrawDirectoryTreeRecursive(TreeNode.Get());
         }
         for (const auto& File : Root->Files) {
-          EditorUI::Text("  ");
-          EditorUI::SameLine();
           switch (File.Type) {
           case EAssetType::Texture2D:
             EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Texture);
@@ -89,7 +88,9 @@ static void DrawDirectoryTreeRecursive(ContentBrowserWindow::DirectoryTreeNode* 
             break;
           }
           EditorUI::SameLine();
-          EditorUI::Text(File.Name);
+          if (EditorUI::Button(File.Name)) {
+            // todo: gSelection
+          }
         }
         ImGui::TreePop();
       } else {
