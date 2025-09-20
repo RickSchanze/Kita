@@ -28,6 +28,10 @@ add_library(KitaEditor
         Windows/ContentBrowserWindow.h
         Selection.cpp
         Selection.h
+        Inspector/MeshInspector.cpp
+        Inspector/MeshInspector.h
+        Inspector/TextureInspector.cpp
+        Inspector/TextureInspector.h
 )
 
 target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets KitaRHI)

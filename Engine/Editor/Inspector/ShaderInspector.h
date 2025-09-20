@@ -3,12 +3,10 @@
 
 #include "ShaderInspector.generated.h"
 
-KCLASS(Inspector)
+KCLASS(Inspector=Shader)
 class ShaderInspector : public Inspector
 {
   GENERATED_BODY(ShaderInspector)
 public:
-  virtual const Type* GetInspectedType() override;
-
   virtual void DrawGUI() override;
 };

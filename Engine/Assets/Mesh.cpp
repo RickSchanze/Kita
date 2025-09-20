@@ -71,6 +71,8 @@ bool Mesh::LoadFromPath() {
   Array<Vertex> AllVertices;
   Array<UInt32> AllIndices;
   ProcessNode(Scene->mRootNode, Scene, AllVertices, AllIndices);
+  mIndexCount = AllIndices.Count();
+  mVertexCount = AllVertices.Count();
   // Vertex
   RHIBufferDesc VertexBufferDesc{};
   UInt64 Size = AllVertices.Count() * sizeof(Vertex);

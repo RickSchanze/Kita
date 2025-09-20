@@ -99,6 +99,7 @@ private:
   virtual UniquePtr<RHISampler> CreateSamplerU(const RHISamplerDesc& Desc) override;
   virtual SharedPtr<RHISampler> CreateSamplerS(const RHISamplerDesc& Desc) override;
   virtual void* CreateImGuiTexture(RHISampler* Sampler, RHIImageView* Image) override;
+  virtual void DestroyImGuiTexture(void* Texture) override;
 
 private:
   VkInstance mInstance = nullptr;

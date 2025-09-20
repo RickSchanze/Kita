@@ -15,3 +15,16 @@ Array<const Type*> ReflUtils::GetTypes(Function<bool(const Type*)> Predicate) {
   }
   return Result;
 }
+
+const Type* ReflUtils::GetType(Function<bool(const Type*)> Predicate) {
+  for (auto Type : GetTypeRegistry().GetAllTypes()) {
+    if (Predicate(Type)) {
+      return Type;
+    }
+  }
+  return nullptr;
+}
+
+const Type* ReflUtils::GetType(StringView TypeName) {
+  return GetType([TypeName](const Type* InType) { return InType->GetName() == TypeName; });
+}

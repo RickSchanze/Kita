@@ -811,3 +811,9 @@ void* GfxContext_Vulkan::CreateImGuiTexture(RHISampler* Sampler, RHIImageView* I
   }
   return ImGui_ImplVulkan_AddTexture(Sampler->GetNativeHandleT<VkSampler>(), Image->GetNativeHandleT<VkImageView>(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
+
+void GfxContext_Vulkan::DestroyImGuiTexture(void* Texture) {
+  if (Texture != nullptr) {
+    ImGui_ImplVulkan_RemoveTexture(static_cast<VkDescriptorSet>(Texture));
+  }
+}

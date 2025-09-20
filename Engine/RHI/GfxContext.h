@@ -123,6 +123,7 @@ public:
   /// @param Image Image必须处于ShaderReadOnly的Layout
   /// @return
   virtual void* CreateImGuiTexture(RHISampler* Sampler, RHIImageView* Image) = 0;
+  virtual void DestroyImGuiTexture(void* Texture) = 0;
 #endif
 
   /**

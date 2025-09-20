@@ -176,3 +176,11 @@ void EditorUI::ImageIcon(EEditorImageIcon Icon, Vector2f ImageSize) {
   ImVec2 UV1 = Vector2fToImVec2(sImageIconUV[ToUnderlying(Icon)].RB);
   ImGui::Image(reinterpret_cast<ImTextureID>(sImpl->ImGuiTexture[ToUnderlying(EEditorUITexture::IconAtlas)]), Vector2fToImVec2(Vector2f(ImageSize)), UV0, UV1);
 }
+
+void EditorUI::ImageIcon(EEditorImageIcon Icon, float Scale) { EditorUI::ImageIcon(Icon, Vector2f(sDefaultFontSize * Scale, sDefaultFontSize * Scale)); }
+
+void EditorUI::Image(void* Texture, Vector2f Size) { ImGui::Image(reinterpret_cast<ImTextureID>(Texture), Vector2fToImVec2(Size)); }
+
+void EditorUI::PushBorderColor(Color InColor) { ImGui::PushStyleColor(ImGuiCol_Border, InColor.ToUInt32()); }
+
+RHISampler* EditorUI::GetEditorUsedSampler() { return sImpl->Sampler.Get(); }

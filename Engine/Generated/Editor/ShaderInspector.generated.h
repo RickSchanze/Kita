@@ -20,7 +20,7 @@ TypeBuilder Builder{}; \
 Builder.CreateType<ShaderInspector>("ShaderInspector"); \
 Builder.AddParent<Inspector>(); \
 Builder.SetConstructor(ShaderInspector::ConstructSelf).SetDestructor(ShaderInspector::DestructSelf); \
-Builder.SetTypeAttribute("Inspector", "true"); \
+Builder.SetTypeAttribute("Inspector", "Shader"); \
 Builder.Register(); \
 } \
 }; \

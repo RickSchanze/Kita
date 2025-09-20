@@ -6,6 +6,7 @@
 
 #include <imgui.h>
 
+class RHISampler;
 class Texture2D;
 namespace Logcat {
 inline constexpr auto Editor = "Editor";
@@ -16,6 +17,14 @@ class EditorUI {
 public:
   EditorUI();
   ~EditorUI();
+
+  static void SetCursorPosX(float OffsetX) { ImGui::SetCursorPosX(OffsetX); }
+
+  static Vector2f GetCursorPos() {
+    ImVec2 Vec = ImGui::GetCursorPos();
+    return {Vec.x, Vec.y};
+  }
+
   static ImVec2 Vector2fToImVec2(const Vector2f Vec) { return ImVec2(Vec.X(), Vec.Y()); }
   static Vector2f ImVec2ToVector2f(const ImVec2 Vec) { return Vector2f(Vec.x, Vec.y); }
   static ImU32 ColorToImU32(const Color& InColor) { return ImGui::ColorConvertFloat4ToU32(ImVec4(InColor.Data.X(), InColor.Data.Y(), InColor.Data.Z(), InColor.Data.W())); }
@@ -66,6 +75,9 @@ public:
 
   static bool MenuItem(const StringView Name) { return ImGui::MenuItem(Name.Data()); }
 
+  static void BeginGroup() { ImGui::BeginGroup(); }
+  static void EndGroup() { ImGui::EndGroup(); }
+
   template <typename... Args> static void Text(const char* fmt, Args&&... args) {
     // 先处理你自己的逻辑，比如颜色/前缀
     ImGui::Text(fmt, std::forward<Args>(args)...);
@@ -77,6 +89,8 @@ public:
     // 先处理你自己的逻辑，比如颜色/前缀
     ImGui::TextColored(ImVec4(InColor.R(), InColor.G(), InColor.B(), InColor.A()), fmt, std::forward<Args>(args)...);
   }
+
+  static void TextColored(Color InColor, StringView Text) { ImGui::TextColored(ImVec4(InColor.R(), InColor.G(), InColor.B(), InColor.A()), Text.Data()); }
 
   static Vector2f GetContentRegionAvail() {
     ImVec2 Vec = ImGui::GetContentRegionAvail();
@@ -257,6 +271,18 @@ public:
   };
   /// 如果ImageSize为默认 那么设为默认字体大小
   static void ImageIcon(EEditorImageIcon Icon, Vector2f ImageSize = {});
+  /// Scale代表设为sDefaultSize * Scale的大小
+  static void ImageIcon(EEditorImageIcon Icon, float Scale);
+
+  static void Image(void* Texture, Vector2f Size);
+
+  static void SetFontScale(float NewSize);
+
+  static void PushBorderColor(Color InColor);
+  static void PopStyleColor(int Count = 1) { ImGui::PopStyleColor(Count); }
+  static float GetDefaultFontSize() { return sDefaultFontSize; }
+
+  static RHISampler* GetEditorUsedSampler();
 
 private:
   struct Impl;

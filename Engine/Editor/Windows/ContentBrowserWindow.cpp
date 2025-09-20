@@ -68,7 +68,7 @@ static void DrawDirectoryTreeRecursive(ContentBrowserWindow::DirectoryTreeNode* 
       if (ImGui::TreeNode(ID.Data())) {
         ImGui::SameLine();
         const String Text = Format("{} {}", KITA_ICON_FOLDER_OPEN, Root->Name);
-        EditorUI::Text(Text.Data());
+        EditorUI::Button(Text.Data());
         for (const auto& TreeNode : Root->Children) {
           DrawDirectoryTreeRecursive(TreeNode.Get());
         }
@@ -89,14 +89,15 @@ static void DrawDirectoryTreeRecursive(ContentBrowserWindow::DirectoryTreeNode* 
           }
           EditorUI::SameLine();
           if (EditorUI::Button(File.Name)) {
-            // todo: gSelection
+            // 选中了一个文件
+            Selection::SetSelected(File.ObjectHandle);
           }
         }
         ImGui::TreePop();
       } else {
         ImGui::SameLine();
         String Text = Format("{} {}", KITA_ICON_FOLDER, Root->Name);
-        EditorUI::Text(Text.Data());
+        EditorUI::Button(Text.Data());
       }
     }
   }

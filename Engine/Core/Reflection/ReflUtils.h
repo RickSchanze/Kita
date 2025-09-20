@@ -7,4 +7,6 @@ struct Type;
 class ReflUtils {
 public:
   static Array<const Type*> GetTypes(Function<bool(const Type*)> Predicate);
+  static const Type* GetType(Function<bool(const Type*)> Predicate);
+  static const Type* GetType(StringView TypeName);
 };

@@ -1,36 +1,47 @@
 #pragma once
-#include "Core/Reflection/MetaMark.h"
 #include "Vector.h"
 
-struct Color : InlinedOutput {
-  Color(const float R = 0, const float G = 0, const float B = 0, const float A = 1) : Data(R, G, B, A) {}
+#define COLOR_ORDER_ABGR
 
-  float& R() { return Data.X(); }
-  [[nodiscard]] const float& R() const { return Data.X(); }
-  float& G() { return Data.Y(); }
-  [[nodiscard]] const float& G() const { return Data.Y(); }
-  float& B() { return Data.Z(); }
-  [[nodiscard]] const float& B() const { return Data.Z(); }
-  float& A() { return Data.W(); }
-  [[nodiscard]] const float& A() const { return Data.W(); }
+struct Color : InlinedOutput {
+  constexpr Color(const float R = 0, const float G = 0, const float B = 0, const float A = 1) : Data(R, G, B, A) {}
+
+  constexpr float& R() { return Data.X(); }
+  [[nodiscard]] constexpr const float& R() const { return Data.X(); }
+  constexpr float& G() { return Data.Y(); }
+  [[nodiscard]] constexpr const float& G() const { return Data.Y(); }
+  constexpr float& B() { return Data.Z(); }
+  [[nodiscard]] constexpr const float& B() const { return Data.Z(); }
+  constexpr float& A() { return Data.W(); }
+  [[nodiscard]] constexpr const float& A() const { return Data.W(); }
 
   void WriteArchive(OutputArchive& Archive) const;
   void ReadArchive(InputArchive& Archive);
 
-  [[nodiscard]] UInt32 ToUInt32() const {
-    auto Clamp = [](const float v) -> UInt32 { return static_cast<UInt32>(std::round(std::clamp(v, 0.0f, 1.0f) * 255.0f)); };
+  [[nodiscard]] constexpr UInt32 ToUInt32() const {
+    auto Clamp = [](float v) constexpr -> UInt32 {
+      v = v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v); // clamp
+      // round + cast
+      return static_cast<UInt32>(static_cast<int>(v * 255.0f + 0.5f));
+    };
 
     const UInt32 r = Clamp(R());
     const UInt32 g = Clamp(G());
     const UInt32 b = Clamp(B());
     const UInt32 a = Clamp(A());
 
+#ifdef COLOR_ORDER_RGBA
     return (r << 24) | (g << 16) | (b << 8) | (a);
+#elifdef COLOR_ORDER_ABGR
+    return (a << 24) | (b << 16) | (g << 8) | (r);
+#endif
   }
 
   Vector4f Data;
 
   [[nodiscard]] String ToString() const { return Data.ToString(); }
+
+  static constexpr Color Highlight() { return Color(1.0f, 0.843f, 0); }
 };
 
 struct Z_Reflection_Color_Register {
