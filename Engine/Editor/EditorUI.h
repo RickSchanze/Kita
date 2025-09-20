@@ -14,6 +14,8 @@ inline constexpr auto Editor = "Editor";
 /// 封装了ImGui的UI
 class EditorUI {
 public:
+  EditorUI();
+  ~EditorUI();
   static ImVec2 Vector2fToImVec2(const Vector2f Vec) { return ImVec2(Vec.X(), Vec.Y()); }
   static Vector2f ImVec2ToVector2f(const ImVec2 Vec) { return Vector2f(Vec.x, Vec.y); }
   static ImU32 ColorToImU32(const Color& InColor) { return ImGui::ColorConvertFloat4ToU32(ImVec4(InColor.Data.X(), InColor.Data.Y(), InColor.Data.Z(), InColor.Data.W())); }
@@ -250,15 +252,17 @@ public:
     Vector2f RB;
   };
   /// 如果ImageSize为默认 那么设为默认字体大小
-  static void ImageIcon(EEditorImageIcon Icon, Vector2i ImageSize = {});
+  static void ImageIcon(EEditorImageIcon Icon, Vector2f ImageSize = {});
 
 private:
+  struct Impl;
+
   static inline UInt32 sSplitterNormal;
   static inline UInt32 sSplitterHovered;
   static inline UInt32 sSplitterActive;
   static inline float sDefaultFontSize;
   static inline ImageIconUV sImageIconUV[ToUnderlying(EEditorImageIcon::Count)];
-  static inline Texture2D* sImageIconTexture;
+  static inline Impl* sImpl = nullptr;
 };
 
 ENABLE_BITMASK_OPERATORS(EditorUI::EChildFlags)

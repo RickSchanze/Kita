@@ -6,6 +6,7 @@
 
 #include "RHI/Image.h"
 #include "RHI/ImageView.h"
+#include "RHI/Sync.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "Core/FileSystem/File.h"
@@ -52,10 +53,11 @@ Texture2D::~Texture2D() {}
 void Texture2D::ApplyMeta(const AssetMeta& Meta) {
   const auto TextureMeta = static_cast<const Texture2DMeta&>(Meta);
   mMeta = TextureMeta;
+  mPath = mMeta.Path;
 }
 
 void Texture2D::Load() {
-  if (mPath.Empty() || Path::IsExists(mPath) || Path::IsDirectory(mPath) || !((mPath.EndsWith(".png") || mPath.EndsWith(".jpg")))) {
+  if (mPath.Empty() || !Path::IsExists(mPath) || Path::IsDirectory(mPath) || !((mPath.EndsWith(".png") || mPath.EndsWith(".jpg")))) {
     gLogger.Error(Logcat::Asset, "纹理资产 '{}' 需要存在不为文件夹, 且支持的后缀为png,jpg.", mPath);
     return;
   }

@@ -62,7 +62,7 @@ GfxContext_Vulkan::~GfxContext_Vulkan() {
 
 SharedPtr<RHIImage> GfxContext_Vulkan::CreateImageS(const RHIImageDesc& Desc) { return nullptr; }
 
-UniquePtr<RHIImage> GfxContext_Vulkan::CreateImageU(const RHIImageDesc& Desc) { return nullptr; }
+UniquePtr<RHIImage> GfxContext_Vulkan::CreateImageU(const RHIImageDesc& Desc) { return MakeUnique<RHIImage_Vulkan>(Desc); }
 
 SharedPtr<RHIImageView> GfxContext_Vulkan::CreateImageViewS(const RHIImageViewDesc& Desc) { return MakeShared<RHIImageView_Vulkan>(Desc); }
 UniquePtr<RHIImageView> GfxContext_Vulkan::CreateImageViewU(const struct RHIImageViewDesc& Desc) { return MakeUnique<RHIImageView_Vulkan>(Desc); }
@@ -801,4 +801,13 @@ void GfxContext_Vulkan::Dyn_DestroyDebugUtilsMessengerEXT(const VkDebugUtilsMess
 
 void GfxContext_Vulkan::Dyn_GetSetObjectDebugNameFuncPtr() {
   mSetDebugUtilsObjectNameEXT = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(mInstance, "vkSetDebugUtilsObjectNameEXT"));
+}
+UniquePtr<RHISampler> GfxContext_Vulkan::CreateSamplerU(const RHISamplerDesc& Desc) { return MakeUnique<RHISampler_Vulkan>(Desc); }
+SharedPtr<RHISampler> GfxContext_Vulkan::CreateSamplerS(const RHISamplerDesc& Desc) { return MakeShared<RHISampler_Vulkan>(Desc); }
+
+void* GfxContext_Vulkan::CreateImGuiTexture(RHISampler* Sampler, RHIImageView* Image) {
+  if (!Sampler || !Image) {
+    return nullptr;
+  }
+  return ImGui_ImplVulkan_AddTexture(Sampler->GetNativeHandleT<VkSampler>(), Image->GetNativeHandleT<VkImageView>(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }

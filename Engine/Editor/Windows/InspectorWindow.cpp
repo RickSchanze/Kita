@@ -12,4 +12,6 @@ InspectorWindow::InspectorWindow() {
 
 InspectorWindow::~InspectorWindow() {}
 
-void InspectorWindow::DrawEditorUI() { EditorUI::Text("选择一个对象以查看其属性"); }
+void InspectorWindow::DrawEditorUI() {
+  EditorUI::Text("选择一个对象以查看其属性");
+}

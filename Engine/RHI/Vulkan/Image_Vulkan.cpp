@@ -51,3 +51,30 @@ RHIImage_Vulkan::~RHIImage_Vulkan() {
   mNativeImage = VK_NULL_HANDLE;
   mMemory = nullptr;
 }
+
+RHISampler_Vulkan::RHISampler_Vulkan(const RHISamplerDesc& Desc) {
+  VkSamplerCreateInfo SamplerInfo{};
+  SamplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+  SamplerInfo.magFilter = RHIFilterToVkFilter(Desc.MagFilter);
+  SamplerInfo.minFilter = RHIFilterToVkFilter(Desc.MinFilter);
+  SamplerInfo.addressModeU = RHISamplerAddressModeToVkSamplerAddressMode(Desc.AddressModeU);
+  SamplerInfo.addressModeV = RHISamplerAddressModeToVkSamplerAddressMode(Desc.AddressModeV);
+  SamplerInfo.addressModeW = RHISamplerAddressModeToVkSamplerAddressMode(Desc.AddressModeW);
+  SamplerInfo.anisotropyEnable = Desc.AnisotropyEnable;
+  SamplerInfo.maxAnisotropy = Desc.MaxAnisotropy;
+  SamplerInfo.borderColor = RHIBorderColorToVkBorderColor(Desc.BorderColor);
+  SamplerInfo.unnormalizedCoordinates = Desc.UnnormalizedCoordinates;
+  SamplerInfo.compareEnable = Desc.CompareEnable;
+  SamplerInfo.compareOp = RHICompareOpToVkCompareOp(Desc.CompareOp);
+  SamplerInfo.mipmapMode = RHIMipmapModeToVkSamplerMipmapMode(Desc.MipmapMode);
+  SamplerInfo.mipLodBias = Desc.MipLodBias;
+  SamplerInfo.minLod = Desc.MinLod;
+  SamplerInfo.maxLod = Desc.MaxLod;
+
+  if (auto Result = vkCreateSampler(GetVulkanGfxContexRef().GetDevice(), &SamplerInfo, nullptr, &mNativeSampler); Result != VK_SUCCESS) {
+    gLogger.Error(Logcat::RHI, "Failed to create sampler! '{}' Code={}.", Desc.DebugName, Result);
+    return;
+  }
+}
+
+RHISampler_Vulkan::~RHISampler_Vulkan() { vkDestroySampler(GetVulkanGfxContexRef().GetDevice(), mNativeSampler, nullptr); }

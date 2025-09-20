@@ -9,6 +9,8 @@
 
 #include "GfxContext.generated.h"
 
+class RHISampler;
+class RHIDescriptorSet;
 namespace Logcat {
 inline auto RHI = "RHI";
 }
@@ -111,7 +113,17 @@ public:
   virtual SharedPtr<RHIBuffer> CreateBufferS(const struct RHIBufferDesc& Desc) = 0;
   virtual SharedPtr<RHIImage> CreateImageS(const RHIImageDesc& Desc) = 0;
   virtual UniquePtr<RHIImage> CreateImageU(const RHIImageDesc& Desc) = 0;
+  virtual UniquePtr<RHISampler> CreateSamplerU(const struct RHISamplerDesc& Desc) = 0;
+  virtual SharedPtr<RHISampler> CreateSamplerS(const struct RHISamplerDesc& Desc) = 0;
   virtual void WaitDeviceIdle() = 0;
+
+#if KITA_EDITOR
+  /// 增加一个ImGui纹理
+  /// @param Sampler
+  /// @param Image Image必须处于ShaderReadOnly的Layout
+  /// @return
+  virtual void* CreateImGuiTexture(RHISampler* Sampler, RHIImageView* Image) = 0;
+#endif
 
   /**
    * 创建一个SurfaceWindow用于渲染

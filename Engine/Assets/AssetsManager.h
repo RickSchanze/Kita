@@ -5,6 +5,8 @@
 #include "Core/Singleton/Singleton.h"
 #include "Core/TaskGraph/TaskHandle.h"
 #include "Mesh.h"
+#include "Shader.h"
+#include "Texture.h"
 
 struct ShaderMeta;
 
@@ -67,6 +69,10 @@ public:
 
   Optional<MeshMeta> QueryMeshMeta(StringView Path);
   Optional<MeshMeta> QueryMeshMeta(Int32 ObjectHandle);
+  Optional<ShaderMeta> QueryShaderMeta(StringView Path);
+  Optional<ShaderMeta> QueryShaderMeta(Int32 ObjectHandle);
+  Optional<Texture2DMeta> QueryTextureMeta(StringView Path);
+  Optional<Texture2DMeta> QueryTextureMeta(Int32 ObjectHandle);
 
   static bool IsAssetLoading(Int32 Handle);
   static bool IsAssetLoaded(Int32 Handle);
@@ -88,6 +94,10 @@ private:
 template <typename T> Optional<AssetMetaType<T>> AssetsManager::QueryMeta(const StringView Path) {
   if constexpr (Traits::SameAs<T, Mesh>) {
     return QueryMeshMeta(Path);
+  } else if constexpr (Traits::SameAs<T, Shader>) {
+    return QueryShaderMeta(Path);
+  } else if constexpr (Traits::SameAs<T, Texture2D>) {
+    return QueryTextureMeta(Path);
   } else {
     static_assert(false, "Unsupported Asset Type");
   }
@@ -97,6 +107,10 @@ template <typename T> Optional<AssetMetaType<T>> AssetsManager::QueryMeta(const 
 template <typename T> Optional<AssetMetaType<T>> AssetsManager::QueryMeta(const Int32 ObjectHandle) {
   if constexpr (Traits::SameAs<T, Mesh>) {
     return QueryMeshMeta(ObjectHandle);
+  } else if constexpr (Traits::SameAs<T, Shader>) {
+    return QueryShaderMeta(ObjectHandle);
+  } else if constexpr (Traits::SameAs<T, Texture2D>) {
+    return QueryTextureMeta(ObjectHandle);
   } else {
     static_assert(false, "Unsupported Asset Type");
   }

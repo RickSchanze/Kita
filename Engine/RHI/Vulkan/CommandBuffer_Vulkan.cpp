@@ -176,9 +176,10 @@ public:
     const auto CmdCopyBufferToImage = static_cast<RHICmd_CopyBufferToImage*>(Cmd);
     VkBufferImageCopy CopyRegion{};
     CopyRegion.bufferOffset = CmdCopyBufferToImage->BufferOffset;
-    if (True(CmdCopyBufferToImage->Dest->GetDesc().Usage | ERHIImageUsage::DepthStencil)) {
-      CopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-    } else if (True(CmdCopyBufferToImage->Dest->GetDesc().Usage | ERHIImageUsage::ShaderRead)) {
+    if (True(CmdCopyBufferToImage->Dest->GetDesc().Usage & ERHIImageUsage::DepthStencil)) {
+      // TODO: aspectMask只允许用一个
+      CopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    } else if (True(CmdCopyBufferToImage->Dest->GetDesc().Usage & ERHIImageUsage::ShaderRead)) {
       CopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     }
     CopyRegion.imageSubresource.baseArrayLayer = 0;

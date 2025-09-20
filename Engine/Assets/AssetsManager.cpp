@@ -89,12 +89,18 @@ static auto MakeShaderMetaTable() {
   return make_table("Shader", make_column("Id", &ShaderMeta::Id, primary_key().autoincrement()), make_column("ObjectHandle", &ShaderMeta::ObjectHandle), make_column("Path", &ShaderMeta::Path));
 }
 
+static auto MakeTexture2DMetaTable() {
+  return make_table("Texture2D", make_column("Format", &Texture2DMeta::Format), make_column("Id", &Texture2DMeta::Id, primary_key().autoincrement()),
+                    make_column("ObjectHandle", &Texture2DMeta::ObjectHandle), make_column("Path", &Texture2DMeta::Path), make_column("EnableMipmap", &Texture2DMeta::EnableMipMap));
+}
+
 static auto MakeStorage() {
   const auto LibPath = Project::GetLibraryPath();
   const auto Path = ::Path::Combine(LibPath, ASSET_DATABASE_NAME);
-  return make_storage(Path.Data(), MakeAssetIndexTable(), MakeMeshMetaTable(), MakeShaderMetaTable());
+  return make_storage(Path.Data(), MakeAssetIndexTable(), MakeMeshMetaTable(), MakeShaderMetaTable(), MakeTexture2DMetaTable());
 }
 
+// TODO: 更改接口
 struct AssetsManager::Impl {
   Impl()
       : mStorage(MakeStorage()) // NOLINT(*-use-equals-default, *-pro-type-member-init)
@@ -248,6 +254,9 @@ static EAssetType GetAssetTypeByExtension(StringView Path) {
   if (Ext == "slang") {
     return EAssetType::Shader;
   }
+  if (Ext == "png" || Ext == "jpg" || Ext == "jpeg") {
+    return EAssetType::Texture2D;
+  }
   return EAssetType::Count;
 }
 
@@ -281,6 +290,12 @@ AssetLoadTaskHandle AssetsManager::ImportAsyncM(StringView Path, bool Silent) {
       NewMeshMeta.Path = NewIndex.Path;
       mImpl->Insert(NewMeshMeta);
     } break;
+    case EAssetType::Texture2D: {
+      Texture2DMeta NewTextureMeta{};
+      NewTextureMeta.ObjectHandle = NewIndex.ObjectHandle;
+      NewTextureMeta.Path = NewIndex.Path;
+      mImpl->Insert(NewTextureMeta);
+    } break;
     case EAssetType::Material:
       break;
     case EAssetType::Scene:
@@ -301,8 +316,11 @@ AssetLoadTaskHandle AssetsManager::ImportAsyncM(StringView Path, bool Silent) {
 }
 
 Optional<MeshMeta> AssetsManager::QueryMeshMeta(const StringView Path) { return mImpl->QueryMeta<MeshMeta>(Path); }
-
 Optional<MeshMeta> AssetsManager::QueryMeshMeta(const Int32 ObjectHandle) { return mImpl->QueryMeta<MeshMeta>(ObjectHandle); }
+Optional<ShaderMeta> AssetsManager::QueryShaderMeta(StringView Path) { return mImpl->QueryMeta<ShaderMeta>(Path); }
+Optional<ShaderMeta> AssetsManager::QueryShaderMeta(Int32 ObjectHandle) { return mImpl->QueryMeta<ShaderMeta>(ObjectHandle); }
+Optional<Texture2DMeta> AssetsManager::QueryTextureMeta(StringView Path) { return mImpl->QueryMeta<Texture2DMeta>(Path); }
+Optional<Texture2DMeta> AssetsManager::QueryTextureMeta(Int32 ObjectHandle) { return mImpl->QueryMeta<Texture2DMeta>(ObjectHandle); }
 
 bool AssetsManager::IsAssetLoading(const Int32 Handle) { return GetRef().mImpl->IsLoading(Handle); }
 
@@ -379,6 +397,13 @@ static AssetLoadTaskHandle LoadAssetByIndex(const AssetIndex& Index, AssetsManag
       return {};
     }
     return LoadAssetAsync<Shader>(*OpShaderMeta, Impl);
+  }
+  case EAssetType::Texture2D: {
+    auto OpTextureMeta = Impl->QueryMeta<Texture2DMeta>(Index.ObjectHandle);
+    if (!OpTextureMeta) {
+      return {};
+    }
+    return LoadAssetAsync<Texture2D>(*OpTextureMeta, Impl);
   }
   default:
     return {};

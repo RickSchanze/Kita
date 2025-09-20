@@ -14,9 +14,9 @@ private:
   VkDescriptorSetLayout mLayout = VK_NULL_HANDLE;
 };
 
-class VulkanDescriptorSet : public RHIDescriptorSet {
+class RHIDescriptorSet_Vulkan : public RHIDescriptorSet {
 public:
-  explicit VulkanDescriptorSet(VkDescriptorSet Set) : mSet(Set) {}
+  explicit RHIDescriptorSet_Vulkan(VkDescriptorSet Set) : mSet(Set) {}
 
   [[nodiscard]] virtual void* GetNativeHandle() const override { return mSet; }
 

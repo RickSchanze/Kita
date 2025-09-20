@@ -102,3 +102,6 @@ VkMemoryPropertyFlags RHIBufferMemoryPropertyToVkMemoryPropertyFlags(ERHIBufferM
 ERHIBufferMemoryProperty VkMemoryPropertyFlagsToRHIBufferMemoryProperty(VkMemoryPropertyFlags Props);
 // 单个 ERHIBufferMemoryPropertyBits -> 单个 VkMemoryPropertyFlagBits
 VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERHIBufferMemoryProperty Prop);
+
+VkBorderColor RHIBorderColorToVkBorderColor(ERHIBorderColor BorderColor);
+VkSamplerMipmapMode RHIMipmapModeToVkSamplerMipmapMode(ERHIMipmapMode MipmapMode);

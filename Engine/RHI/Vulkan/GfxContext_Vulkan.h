@@ -96,6 +96,11 @@ private:
   void Dyn_DestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT DebugMessenger, const VkAllocationCallbacks* pAllocator) const;
   void Dyn_GetSetObjectDebugNameFuncPtr();
 
+  virtual UniquePtr<RHISampler> CreateSamplerU(const RHISamplerDesc& Desc) override;
+  virtual SharedPtr<RHISampler> CreateSamplerS(const RHISamplerDesc& Desc) override;
+  virtual void* CreateImGuiTexture(RHISampler* Sampler, RHIImageView* Image) override;
+
+private:
   VkInstance mInstance = nullptr;
   VkDebugUtilsMessengerEXT mDebugMessenger{};
   PFN_vkSetDebugUtilsObjectNameEXT mSetDebugUtilsObjectNameEXT = nullptr;

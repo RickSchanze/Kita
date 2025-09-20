@@ -41,9 +41,9 @@ RHIImageView_Vulkan::RHIImageView_Vulkan(const RHIImageViewDesc& Desc) {
     Range.layerCount = MyRange.LayerCount;
   } else {
     auto& ImageDesc = Desc.SourceImage->GetDesc();
-    if (True(ImageDesc.Usage | ERHIImageUsage::DepthStencil)) {
+    if (True(ImageDesc.Usage & ERHIImageUsage::DepthStencil)) {
       Range.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-    } else if (True(ImageDesc.Usage | ERHIImageUsage::ShaderRead)) {
+    } else if (True(ImageDesc.Usage & ERHIImageUsage::ShaderRead)) {
       Range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     }
     Range.levelCount = ImageDesc.MipLevels;

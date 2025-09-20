@@ -268,6 +268,20 @@ enum class ERHISamplerAddressMode {
   Count,
 };
 
+enum class ERHIMipmapMode : uint8_t {
+  Nearest = 0, // VK_SAMPLER_MIPMAP_MODE_NEAREST
+  Linear  = 1  // VK_SAMPLER_MIPMAP_MODE_LINEAR
+};
+
+enum class ERHIBorderColor : uint8_t {
+  FloatTransparentBlack = 0, // VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK
+  IntTransparentBlack   = 1, // VK_BORDER_COLOR_INT_TRANSPARENT_BLACK
+  FloatOpaqueBlack      = 2, // VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+  IntOpaqueBlack        = 3, // VK_BORDER_COLOR_INT_OPAQUE_BLACK
+  FloatOpaqueWhite      = 4, // VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE
+  IntOpaqueWhite        = 5  // VK_BORDER_COLOR_INT_OPAQUE_WHITE
+};
+
 enum class ERHIBlendFactor {
   Zero,
   One,

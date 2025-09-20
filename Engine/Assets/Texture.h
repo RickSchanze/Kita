@@ -24,7 +24,7 @@ struct Texture2DMeta : AssetMeta {
   bool EnableMipMap = false;
 
   KPROPERTY()
-  ERHIFormat Format;
+  ERHIFormat Format = ERHIFormat::R8G8B8A8_SRGB;
 };
 
 KSTRUCT()
@@ -73,6 +73,8 @@ public:
 
   virtual void Load() override;
   virtual void Unload() override;
+
+  RHIImageView* GetImageView() const { return mImageView.Get(); }
 
 private:
   UniquePtr<RHIImageView> mImageView;

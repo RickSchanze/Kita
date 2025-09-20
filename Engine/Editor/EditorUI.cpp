@@ -10,11 +10,15 @@
 #include "Core/Config/ConfigManager.h"
 #include "Core/FileSystem/File.h"
 #include "Core/Performance/ProfilerMark.h"
+#include "RHI/GfxContext.h"
 #include "RHI/ImGuiConfig.h"
+#include "RHI/Image.h"
 
 #include <imgui_internal.h>
 #include <nlohmann/json.hpp>
 
+EditorUI::EditorUI() {}
+EditorUI::~EditorUI() {}
 void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction, const float MinSize1, const float MinSize2, const float Thickness) {
   const auto Size = ImGui::GetContentRegionAvail();
   if (S1 == 0 || S2 == 0) {
@@ -87,8 +91,21 @@ static std::unordered_map<std::string, EditorUI::EEditorImageIcon> IconMap = {
     {"Warning.png", EditorUI::EEditorImageIcon::Warning},
     {"Info.png", EditorUI::EEditorImageIcon::Info},
     {"Error.png", EditorUI::EEditorImageIcon::Error},
+  {"Shader.png", EditorUI::EEditorImageIcon::Shader},
+  {"Mesh.png", EditorUI::EEditorImageIcon::Mesh},
 };
 // clang-format on
+
+enum class EEditorUITexture {
+  IconAtlas,
+  Count,
+};
+
+struct EditorUI::Impl {
+  Texture2D* ImageIconTexture;
+  UniquePtr<RHISampler> Sampler;
+  void* ImGuiTexture[ToUnderlying(EEditorUITexture::Count)];
+};
 
 void EditorUI::StartUp() {
   const auto& Config = ConfigManager::GetConfigRef<ImGuiConfig>();
@@ -98,7 +115,23 @@ void EditorUI::StartUp() {
   sDefaultFontSize = Config.FontSize;
   auto ImportHandle = AssetsManager::ImportAsync("Assets/Texture/EditorIcon/EditorIconAtlas.png", true);
   ImportHandle.WaitSync();
-  sImageIconTexture = ImportHandle.GetAssetObjectT<Texture2D>();
+
+  sImpl = New<Impl>();
+  sImpl->ImageIconTexture = ImportHandle.GetAssetObjectT<Texture2D>();
+  ASSERT_MSG(sImpl->ImageIconTexture, "加载编辑器图标纹理图集失败.");
+  RHISamplerDesc SamplerDesc;
+  SamplerDesc.SetMagFilter(ERHIFilterMode::Linear)
+      .SetMinFilter(ERHIFilterMode::Linear)
+      .SetMipmapMode(ERHIMipmapMode::Linear)
+      .SetAddressModeU(ERHISamplerAddressMode::ClampToEdge)
+      .SetAddressModeV(ERHISamplerAddressMode::ClampToEdge)
+      .SetAddressModeW(ERHISamplerAddressMode::ClampToEdge)
+      .SetAnisotropyEnable(false)
+      .SetMaxAnisotropy(1.0f)
+      .SetMinLod(0.0f)
+      .SetMaxLod(0.0f); // 不使用 mipmap
+  sImpl->Sampler = GfxContext::GetRef().CreateSamplerU(SamplerDesc);
+  sImpl->ImGuiTexture[ToUnderlying(EEditorUITexture::IconAtlas)] = GfxContext::GetRef().CreateImGuiTexture(sImpl->Sampler.Get(), sImpl->ImageIconTexture->GetImageView());
 
   auto Text = File::ReadAllText("Assets/Texture/EditorIcon/EditorIconAtlas_UV.json");
   ASSERT_MSG(Text, "无法获取EditorIconAtlas的UV信息: EditorIconAtlas_UV.json, Result={}", Text.Error())
@@ -118,6 +151,7 @@ void EditorUI::StartUp() {
 
 void EditorUI::ShutDown() {
   // TODO: AssetManager Unload Texture
+  Delete(sImpl);
 }
 
 bool EditorUI::Button(const StringView Label, const Vector2f Size, Optional<UInt32> TextColor) {
@@ -131,4 +165,12 @@ bool EditorUI::Button(const StringView Label, const Vector2f Size, Optional<UInt
   return Result;
 }
 
-void EditorUI::ImageIcon(EEditorImageIcon Icon, Vector2i ImageSize) {}
+void EditorUI::ImageIcon(EEditorImageIcon Icon, Vector2f ImageSize) {
+  if (ImageSize.X() == 0 || ImageSize.Y() == 0) {
+    ImageSize.SetX(sDefaultFontSize);
+    ImageSize.SetY(sDefaultFontSize);
+  }
+  ImVec2 UV0 = Vector2fToImVec2(sImageIconUV[ToUnderlying(Icon)].LT);
+  ImVec2 UV1 = Vector2fToImVec2(sImageIconUV[ToUnderlying(Icon)].RB);
+  ImGui::Image(reinterpret_cast<ImTextureID>(sImpl->ImGuiTexture[ToUnderlying(EEditorUITexture::IconAtlas)]), Vector2fToImVec2(Vector2f(ImageSize)), UV0, UV1);
+}

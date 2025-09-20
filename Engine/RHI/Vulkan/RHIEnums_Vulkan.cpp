@@ -1077,3 +1077,31 @@ VkMemoryPropertyFlagBits RHIBufferMemoryPropertyBitToVkMemoryPropertyFlagBit(ERH
     return static_cast<VkMemoryPropertyFlagBits>(0); // 未知返回0
   }
 }
+
+VkBorderColor RHIBorderColorToVkBorderColor(ERHIBorderColor BorderColor) {
+  switch (BorderColor) {
+  case ERHIBorderColor::FloatOpaqueBlack:
+    return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+  case ERHIBorderColor::FloatOpaqueWhite:
+    return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+  case ERHIBorderColor::FloatTransparentBlack:
+    return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+  case ERHIBorderColor::IntOpaqueBlack:
+    return VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+  case ERHIBorderColor::IntOpaqueWhite:
+    return VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+  case ERHIBorderColor::IntTransparentBlack:
+    return VK_BORDER_COLOR_INT_TRANSPARENT_BLACK;
+  }
+  return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+}
+
+VkSamplerMipmapMode RHIMipmapModeToVkSamplerMipmapMode(ERHIMipmapMode MipmapMode) {
+  switch (MipmapMode) {
+  case ERHIMipmapMode::Nearest:
+    return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+  case ERHIMipmapMode::Linear:
+    return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+  }
+  return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+}

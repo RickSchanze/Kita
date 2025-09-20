@@ -77,7 +77,7 @@ Array<UniquePtr<RHIDescriptorSet>> RHIDescriptorPool_Vulkan::CreateDescriptorSet
     return {};
   }
 
-  auto Sets = RawSets | Ranges::Views::Transform([](const VkDescriptorSet& Set) -> UniquePtr<RHIDescriptorSet> { return MakeUnique<VulkanDescriptorSet>(Set); }) |
+  auto Sets = RawSets | Ranges::Views::Transform([](const VkDescriptorSet& Set) -> UniquePtr<RHIDescriptorSet> { return MakeUnique<RHIDescriptorSet_Vulkan>(Set); }) |
               Ranges::To<Array<UniquePtr<RHIDescriptorSet>>>();
   return Sets;
 }

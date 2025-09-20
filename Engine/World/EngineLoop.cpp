@@ -62,7 +62,6 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   mSurfaceWindow->CreateSwapchain();
   // RenderContext
   RenderContext::StartUp(mSurfaceWindow);
-  EditorUI::StartUp();
   // Input
   mInputTicker = New<InputTicker>(mSurfaceWindow);
 
@@ -73,12 +72,14 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
 
   MenuActionManager::StartUp();
   AssetsManager::StartUp();
+  EditorUI::StartUp();
   EditorWindowManager::StartUp();
 }
 
 void EngineLoop::ShutDownSystemsM() {
   // EditorWindowManager
   EditorWindowManager::ShutDown();
+  EditorUI::ShutDown();
   AssetsManager::ShutDown();
   // MenuAction
   MenuActionManager::ShutDown();
@@ -89,7 +90,6 @@ void EngineLoop::ShutDownSystemsM() {
 
   // Input
   mInputTicker = {};
-  EditorUI::ShutDown();
   // RenderContext
   RenderContext::ShutDown();
 
