@@ -32,6 +32,8 @@ add_library(KitaEditor
         Inspector/MeshInspector.h
         Inspector/TextureInspector.cpp
         Inspector/TextureInspector.h
+        Windows/ViewportWindow.cpp
+        Windows/ViewportWindow.h
 )
 
 target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets KitaRHI)

@@ -10,6 +10,8 @@ add_library(KitaRender
         RenderContext.h
         RenderPipeline.cpp
         RenderPipeline.h
+        RenderTarget.cpp
+        RenderTarget.h
 )
 
 target_link_libraries(KitaRender PRIVATE KitaCore KitaMath KitaRHI KitaWorld KitaEditor KitaObject)
