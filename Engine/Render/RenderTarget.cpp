@@ -4,6 +4,10 @@
 
 #include "RenderTarget.h"
 
+#include "RHI/FrameBuffer.h"
+#include "RHI/Image.h"
+#include "RHI/ImageView.h"
+
 RenderTarget::RenderTarget(UInt32 Width, UInt32 Height, ERHIFormat Format) {}
 
 RenderTarget::~RenderTarget() {
