@@ -15,16 +15,16 @@ void Inspector::SetInspectedObject(Object* InObject) {
 }
 
 void Inspector::Header(StringView Path, Int32 ObjectHandle) {
-  EditorUI::PushBorderColor(Color::Highlight());
+  EditorUI::PushBorderColor(Color::HighlightText());
   EditorUI::BeginChild("Header", {0, 2.7f * EditorUI::GetDefaultFontSize()}, EditorUI::EChildFlags::Borders);
-  EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Shader, 2);
+  EditorUI::ImageIcon(EEditorImageIcon::Shader, 2);
   EditorUI::SameLine();
   EditorUI::BeginGroup();
   {
-    EditorUI::TextColored(Color::Highlight(), "路径: ");
+    EditorUI::TextColored(Color::HighlightText(), "路径: ");
     EditorUI::SameLine();
     EditorUI::Text(Path);
-    EditorUI::TextColored(Color::Highlight(), "句柄: ");
+    EditorUI::TextColored(Color::HighlightText(), "句柄: ");
     EditorUI::SameLine();
     EditorUI::Text("%d", ObjectHandle);
   }
@@ -34,7 +34,7 @@ void Inspector::Header(StringView Path, Int32 ObjectHandle) {
 }
 
 void Inspector::Property(StringView Name, StringView Value) {
-  EditorUI::TextColored(Color::Highlight(), Name);
+  EditorUI::TextColored(Color::HighlightText(), Name);
   EditorUI::SameLine();
   EditorUI::Text(Value);
 }

@@ -24,6 +24,7 @@ public:
     ~DirectoryTreeNode();
 
     Array<UniquePtr<DirectoryTreeNode>> Children{};
+    DirectoryTreeNode* Parent{};
     Array<FileEntry> Files{};
     bool IsOpened{false};
     Int8 Indent{};
@@ -31,9 +32,12 @@ public:
   };
 
 private:
+  void SetCurrentSelectedFolder(DirectoryTreeNode* Node);
+  void DrawDirectoryContent(DirectoryTreeNode* Node);
   float mLeftPanelWidth = 100.f;
   float mRightPanelWidth = 0.f;
   UniquePtr<DirectoryTreeNode> mAssetTreeRoot{};
+  DirectoryTreeNode* mCurrentSelectedTreeNode = nullptr;
 };
 
 KCLASS(MenuActionItem = "窗口/内容浏览器")

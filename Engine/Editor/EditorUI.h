@@ -1,4 +1,5 @@
 #pragma once
+#include "Assets/Asset.h"
 #include "Core/Container/Stack.h"
 #include "Core/String/StringView.h"
 #include "Math/Color.h"
@@ -12,13 +13,44 @@ namespace Logcat {
 inline constexpr auto Editor = "Editor";
 }
 
+enum class EEditorImageIcon { Info, Warning, Error, Critical, Mesh, Shader, Texture, UnknownFile, Folder, Count };
+
+class EditorUIDrawList {
+public:
+  explicit EditorUIDrawList(ImDrawList* InDrawList) : mDrawList(InDrawList) {}
+
+  void AddImage(void* Texture, Vector2f Min, Vector2f Max) const;
+  void AddText(StringView Text, Vector2f Pos) const;
+  void AddImageIcon(EEditorImageIcon Icon, Vector2f Min, Vector2f Max) const;
+  void AddRect(Vector2f Min, Vector2f Max, UInt32 Color, float Rounding, float Thickness = 1.0f) const;
+  void AddRect(const Vector2f Min, const Vector2f Max, const Color Color, const float Rounding, const float Thickness = 1.0f) const { AddRect(Min, Max, Color.ToUInt32(), Rounding, Thickness); }
+
+private:
+  ImDrawList* mDrawList;
+};
+
 /// 封装了ImGui的UI
 class EditorUI {
 public:
   EditorUI();
   ~EditorUI();
+  static void TreePop() { ImGui::TreePop(); }
+  static void SetTooltip(const StringView Text) { ImGui::SetTooltip(Text.Data()); }
+  static bool IsItemHovered() { return ImGui::IsItemHovered(); }
+  static bool IsLeftMouseDoubleClicked() { return ImGui::IsMouseDoubleClicked(0); }
+  static bool InvisibleButton(StringView StrId, Vector2f Size);
+  static void PushButtonNormalColor(Color InColor) { ImGui::PushStyleColor(ImGuiCol_Button, InColor.ToUInt32()); }
+  static void PushButtonHoverColor(Color InColor) { ImGui::PushStyleColor(ImGuiCol_ButtonHovered, InColor.ToUInt32()); }
+  static void PushButtonActiveColor(Color InColor) { ImGui::PushStyleColor(ImGuiCol_ButtonActive, InColor.ToUInt32()); }
+  static void PushButtonColor(Color InColor) {
+    ImGui::PushStyleColor(ImGuiCol_Button, InColor.ToUInt32());
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, InColor.ToUInt32() * 1.1f);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, InColor.ToUInt32() * 0.8f);
+  }
+  static void PopButtonColor() { ImGui::PopStyleColor(3); }
 
-  static void SetCursorPosX(float OffsetX) { ImGui::SetCursorPosX(OffsetX); }
+  static void SetCursorPosX(const float OffsetX) { ImGui::SetCursorPosX(OffsetX); }
+  static bool ColoButton(const StringView Str, Color InColor) { return ImGui::ColorButton(Str.Data(), ImColor{InColor.R(), InColor.G(), InColor.B(), InColor.A()}); }
 
   static Vector2f GetCursorPos() {
     ImVec2 Vec = ImGui::GetCursorPos();
@@ -30,6 +62,7 @@ public:
   static ImU32 ColorToImU32(const Color& InColor) { return ImGui::ColorConvertFloat4ToU32(ImVec4(InColor.Data.X(), InColor.Data.Y(), InColor.Data.Z(), InColor.Data.W())); }
   static void Indent() { ImGui::Indent(); }
   static void Unindent() { ImGui::Unindent(); }
+  static void TableNextColumn() { ImGui::TableNextColumn(); }
 
   enum class EWindowFlags {
     None = 0,
@@ -83,19 +116,21 @@ public:
     ImGui::Text(fmt, std::forward<Args>(args)...);
   }
 
-  static void Text(StringView Text) { ImGui::Text(Text.Data()); }
+  static void Text(const StringView Text) { ImGui::Text(Text.Data()); }
 
   template <typename... Args> static void TextColored(Color InColor, const char* fmt, Args&&... args) {
     // 先处理你自己的逻辑，比如颜色/前缀
     ImGui::TextColored(ImVec4(InColor.R(), InColor.G(), InColor.B(), InColor.A()), fmt, std::forward<Args>(args)...);
   }
 
-  static void TextColored(Color InColor, StringView Text) { ImGui::TextColored(ImVec4(InColor.R(), InColor.G(), InColor.B(), InColor.A()), Text.Data()); }
+  static void TextColored(Color InColor, const StringView Text) { ImGui::TextColored(ImVec4(InColor.R(), InColor.G(), InColor.B(), InColor.A()), Text.Data()); }
 
   static Vector2f GetContentRegionAvail() {
     ImVec2 Vec = ImGui::GetContentRegionAvail();
     return {Vec.x, Vec.y};
   }
+
+  static EditorUIDrawList GetDrawList() { return EditorUIDrawList(ImGui::GetWindowDrawList()); }
 
   enum class ETableFlags {
     // Features
@@ -263,8 +298,6 @@ public:
   }
   static void EndChild() { ImGui::EndChild(); }
 
-  enum class EEditorImageIcon { Info, Warning, Error, Critical, Mesh, Shader, Texture, UnknownFile, Count };
-
   struct ImageIconUV {
     Vector2f LT;
     Vector2f RB;
@@ -279,10 +312,57 @@ public:
   static void SetFontScale(float NewSize);
 
   static void PushBorderColor(Color InColor);
-  static void PopStyleColor(int Count = 1) { ImGui::PopStyleColor(Count); }
+  static void PopStyleColor(const int Count = 1) { ImGui::PopStyleColor(Count); }
   static float GetDefaultFontSize() { return sDefaultFontSize; }
 
   static RHISampler* GetEditorUsedSampler();
+
+  static Vector2f CalcTextSize(const StringView Text) {
+    auto Size = ImGui::CalcTextSize(Text.Data());
+    return {Size.x, Size.y};
+  }
+
+  static Vector2f GetItemSpacing() { return sSpacing; }
+
+  static Vector2f GetItemRectMin() {
+    auto Size = ImGui::GetItemRectMin();
+    return {Size.x, Size.y};
+  }
+
+  static Color GetTextColor() { return sTextColor; }
+  static UInt32 GetTextColorUInt32() { return sTextColorUInt32; }
+
+  static void* GetIconImage();
+  static ImageIconUV GetImageIconUV(EEditorImageIcon Icon);
+
+  static String TruncateText(StringView StringOrig, const float MaxWidth);
+
+  static EEditorImageIcon GetIconFromAsseType(EAssetType Type);
+
+  enum class ETreeNodeFlags {
+    None = 0,
+    Selected = 1 << 0,          // Draw as selected
+    Framed = 1 << 1,            // Draw frame with background (e.g. for CollapsingHeader)
+    AllowOverlap = 1 << 2,      // Hit testing to allow subsequent widgets to overlap this one
+    NoTreePushOnOpen = 1 << 3,  // Don't do a TreePush() when open (e.g. for CollapsingHeader) = no extra indent nor pushing on ID stack
+    NoAutoOpenOnLog = 1 << 4,   // Don't automatically and temporarily open node when Logging is active (by default logging will automatically open tree nodes)
+    DefaultOpen = 1 << 5,       // Default node to be open
+    OpenOnDoubleClick = 1 << 6, // Open on double-click instead of simple click (default for multi-select unless any _OpenOnXXX behavior is set explicitly). Both behaviors may be combined.
+    OpenOnArrow = 1 << 7,       // Open when clicking on the arrow part (default for multi-select unless any _OpenOnXXX behavior is set explicitly). Both behaviors may be combined.
+    Leaf = 1 << 8,              // No collapsing, no arrow (use as a convenience for leaf nodes).
+    Bullet = 1 << 9,            // Display a bullet instead of arrow. IMPORTANT: node can still be marked open/close if you don't set the _Leaf flag!
+    FramePadding =
+        1 << 10, // Use FramePadding (even for an unframed text node) to vertically align text baseline to regular widget height. Equivalent to calling AlignTextToFramePadding() before the node.
+    SpanAvailWidth =
+        1 << 11, // Extend hit box to the right-most edge, even if not framed. This is not the default in order to allow adding other items on the same line without using AllowOverlap mode.
+    SpanFullWidth = 1 << 12,        // Extend hit box to the left-most and right-most edges (cover the indent area).
+    SpanLabelWidth = 1 << 13,       // Narrow hit box + narrow hovering highlight, will only cover the label text.
+    SpanAllColumns = 1 << 14,       // Frame will span all columns of its container table (label will still fit in current column)
+    LabelSpanAllColumns = 1 << 15,  // Label will span all columns of its container table
+    NavLeftJumpsBackHere = 1 << 17, // (WIP) Nav: left direction may move to this TreeNode() from any of its child (items submitted between TreeNode and TreePop)
+    CollapsingHeader = Framed | NoTreePushOnOpen | NoAutoOpenOnLog,
+  };
+  static bool TreeNode(const StringView Label, ETreeNodeFlags Flags = ETreeNodeFlags::None) { return ImGui::TreeNodeEx(Label.Data(), static_cast<ImGuiTreeNodeFlags>(Flags)); }
 
 private:
   struct Impl;
@@ -290,7 +370,10 @@ private:
   static inline UInt32 sSplitterNormal;
   static inline UInt32 sSplitterHovered;
   static inline UInt32 sSplitterActive;
+  static inline Vector2f sSpacing;
   static inline float sDefaultFontSize;
+  static inline Color sTextColor;
+  static inline UInt32 sTextColorUInt32;
   static inline ImageIconUV sImageIconUV[ToUnderlying(EEditorImageIcon::Count)];
   static inline Impl* sImpl = nullptr;
 };
@@ -301,3 +384,4 @@ ENABLE_BITMASK_OPERATORS(EditorUI::ESelectableFlags)
 ENABLE_BITMASK_OPERATORS(EditorUI::ETableColumnFlags)
 ENABLE_BITMASK_OPERATORS(EditorUI::ETableFlags)
 ENABLE_BITMASK_OPERATORS(EditorUI::EComboFlags)
+ENABLE_BITMASK_OPERATORS(EditorUI::ETreeNodeFlags)

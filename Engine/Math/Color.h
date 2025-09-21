@@ -41,8 +41,20 @@ struct Color : InlinedOutput {
 
   [[nodiscard]] String ToString() const { return Data.ToString(); }
 
-  static constexpr Color Highlight() { return Color(1.0f, 0.843f, 0); }
+  static constexpr Color HighlightText() { return Color(1.0f, 0.843f, 0); }
+  static constexpr Color HighlightBackground() { return Color(0.26f, 0.59f, 0.98f); }
+  static constexpr Color Mul(Color Left, Color Right, const bool Clamped) {
+    if (Clamped) {
+      return Color(std::min(Left.R() * Right.R(), 1.0f), std::min(Left.G() * Right.G(), 1.0f), std::min(Left.B() * Right.B(), 1.0f), std::min(Left.A() * Right.A(), 1.0f));
+    } else {
+      return Color(Left.R() * Right.R(), Left.G() * Right.G(), Left.B() * Right.B(), Left.A() * Right.A());
+    }
+  }
 };
+
+inline Color operator*(const Color Left, const Color Right) {
+  return Color::Mul(Left, Right, true);
+}
 
 struct Z_Reflection_Color_Register {
   Z_Reflection_Color_Register() {

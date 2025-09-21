@@ -33,6 +33,8 @@ public:
 
   [[nodiscard]] const char* Data() const { return mStr.data(); }
 
+  [[nodiscard]] SizeType Count() const { return mStr.size(); }
+
   [[nodiscard]] bool EndsWith(const StringView Suffix) const { return mStr.ends_with(Suffix.GetStdStringView()); }
 
   [[nodiscard]] bool Empty() const { return mStr.empty(); }

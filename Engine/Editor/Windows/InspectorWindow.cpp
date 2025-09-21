@@ -25,7 +25,7 @@ void InspectorWindow::DrawEditorUI() {
     SetCurrentObjectHandle(Selection::GetFirstSelectedObjectHandle());
   }
   if (mCurrentSelectedHandle == 0) {
-    EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Warning);
+    EditorUI::ImageIcon(EEditorImageIcon::Warning);
     EditorUI::SameLine();
     EditorUI::Text("选择一个对象以查看其细节属性");
     return;
@@ -34,7 +34,7 @@ void InspectorWindow::DrawEditorUI() {
     mCurrentSelectedObject = nullptr;
   }
   if (mCurrentSelectedObject == nullptr) {
-    EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Warning);
+    EditorUI::ImageIcon(EEditorImageIcon::Warning);
     EditorUI::SameLine();
     EditorUI::Text("选择一个对象以查看其细节属性");
     return;
@@ -56,7 +56,7 @@ void InspectorWindow::DrawEditorUI() {
     mInspector->SetInspectedObject(mCurrentSelectedObject);
     mInspector->DrawGUI();
   } else {
-    EditorUI::ImageIcon(EditorUI::EEditorImageIcon::Error);
+    EditorUI::ImageIcon(EEditorImageIcon::Error);
     EditorUI::SameLine();
     EditorUI::Text("未找到该对象的Inspector('%d')", mCurrentSelectedHandle);
   }

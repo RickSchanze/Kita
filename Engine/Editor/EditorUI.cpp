@@ -4,12 +4,10 @@
 
 #include "EditorUI.h"
 
-#include "Assets/Asset.h"
 #include "Assets/AssetsManager.h"
 #include "Core/Assert.h"
 #include "Core/Config/ConfigManager.h"
 #include "Core/FileSystem/File.h"
-#include "Core/Performance/ProfilerMark.h"
 #include "RHI/GfxContext.h"
 #include "RHI/ImGuiConfig.h"
 #include "RHI/Image.h"
@@ -19,6 +17,11 @@
 
 EditorUI::EditorUI() {}
 EditorUI::~EditorUI() {}
+
+static ImVec2 Vector2fToImVec2(const Vector2f Vec) { return ImVec2(Vec.X(), Vec.Y()); }
+
+bool EditorUI::InvisibleButton(const StringView StrId, const Vector2f Size) { return ImGui::InvisibleButton(StrId.GetStdStringView().data(), Vector2fToImVec2(Size)); }
+
 void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction, const float MinSize1, const float MinSize2, const float Thickness) {
   const auto Size = ImGui::GetContentRegionAvail();
   if (S1 == 0 || S2 == 0) {
@@ -86,15 +89,16 @@ void EditorUI::Splitter(float& S1, float& S2, const ESplitterDirection Direction
 }
 
 // clang-format off
-static std::unordered_map<std::string, EditorUI::EEditorImageIcon> IconMap = {
-    {"Critical.png", EditorUI::EEditorImageIcon::Critical},
-    {"Warning.png", EditorUI::EEditorImageIcon::Warning},
-    {"Info.png", EditorUI::EEditorImageIcon::Info},
-    {"Error.png", EditorUI::EEditorImageIcon::Error},
-  {"Shader.png", EditorUI::EEditorImageIcon::Shader},
-  {"Mesh.png", EditorUI::EEditorImageIcon::Mesh},
-  {"Texture.png", EditorUI::EEditorImageIcon::Texture},
-  {"UnknownFile.png", EditorUI::EEditorImageIcon::UnknownFile},
+static std::unordered_map<std::string, EEditorImageIcon> IconMap = {
+    {"Critical.png", EEditorImageIcon::Critical},
+    {"Warning.png", EEditorImageIcon::Warning},
+    {"Info.png", EEditorImageIcon::Info},
+    {"Error.png", EEditorImageIcon::Error},
+  {"Shader.png", EEditorImageIcon::Shader},
+  {"Mesh.png", EEditorImageIcon::Mesh},
+  {"Texture.png", EEditorImageIcon::Texture},
+  {"UnknownFile.png", EEditorImageIcon::UnknownFile},
+  {"Folder.png", EEditorImageIcon::Folder},
 };
 // clang-format on
 
@@ -104,9 +108,9 @@ enum class EEditorUITexture {
 };
 
 struct EditorUI::Impl {
-  Texture2D* ImageIconTexture;
+  Texture2D* ImageIconTexture{};
   UniquePtr<RHISampler> Sampler;
-  void* ImGuiTexture[ToUnderlying(EEditorUITexture::Count)];
+  void* ImGuiTexture[ToUnderlying(EEditorUITexture::Count)]{};
 };
 
 void EditorUI::StartUp() {
@@ -114,7 +118,10 @@ void EditorUI::StartUp() {
   sSplitterNormal = ColorToImU32(Config.Theme.Separator);
   sSplitterHovered = ColorToImU32(Config.Theme.SeparatorHovered);
   sSplitterActive = ColorToImU32(Config.Theme.SeparatorActive);
+  sSpacing = Config.Theme.ItemSpacing;
   sDefaultFontSize = Config.FontSize;
+  sTextColor = Config.Theme.Text;
+  sTextColorUInt32 = sTextColor.ToUInt32();
   sImpl = New<Impl>();
   RHISamplerDesc SamplerDesc;
   SamplerDesc.SetMagFilter(ERHIFilterMode::Linear)
@@ -167,7 +174,7 @@ bool EditorUI::Button(const StringView Label, const Vector2f Size, Optional<UInt
   return Result;
 }
 
-void EditorUI::ImageIcon(EEditorImageIcon Icon, Vector2f ImageSize) {
+void EditorUI::ImageIcon(const EEditorImageIcon Icon, Vector2f ImageSize) {
   if (ImageSize.X() == 0 || ImageSize.Y() == 0) {
     ImageSize.SetX(sDefaultFontSize);
     ImageSize.SetY(sDefaultFontSize);
@@ -177,10 +184,99 @@ void EditorUI::ImageIcon(EEditorImageIcon Icon, Vector2f ImageSize) {
   ImGui::Image(reinterpret_cast<ImTextureID>(sImpl->ImGuiTexture[ToUnderlying(EEditorUITexture::IconAtlas)]), Vector2fToImVec2(Vector2f(ImageSize)), UV0, UV1);
 }
 
-void EditorUI::ImageIcon(EEditorImageIcon Icon, float Scale) { EditorUI::ImageIcon(Icon, Vector2f(sDefaultFontSize * Scale, sDefaultFontSize * Scale)); }
+void EditorUI::ImageIcon(const EEditorImageIcon Icon, const float Scale) { EditorUI::ImageIcon(Icon, Vector2f(sDefaultFontSize * Scale, sDefaultFontSize * Scale)); }
 
-void EditorUI::Image(void* Texture, Vector2f Size) { ImGui::Image(reinterpret_cast<ImTextureID>(Texture), Vector2fToImVec2(Size)); }
+void EditorUI::Image(void* Texture, const Vector2f Size) { ImGui::Image(reinterpret_cast<ImTextureID>(Texture), Vector2fToImVec2(Size)); }
 
-void EditorUI::PushBorderColor(Color InColor) { ImGui::PushStyleColor(ImGuiCol_Border, InColor.ToUInt32()); }
+void EditorUI::PushBorderColor(const Color InColor) { ImGui::PushStyleColor(ImGuiCol_Border, InColor.ToUInt32()); }
 
 RHISampler* EditorUI::GetEditorUsedSampler() { return sImpl->Sampler.Get(); }
+
+void* EditorUI::GetIconImage() { return sImpl->ImGuiTexture[0]; }
+
+EditorUI::ImageIconUV EditorUI::GetImageIconUV(const EEditorImageIcon Icon) { return sImageIconUV[ToUnderlying(Icon)]; }
+
+String EditorUI::TruncateText(const StringView StringOrig, const float MaxWidth) {
+  // 计算完整文本宽度
+  Vector2f FullTextSize = CalcTextSize(StringOrig);
+  const float FullTextWidth = FullTextSize.X();
+
+  // 如果文本不超出最大宽度，直接返回原文本
+  if (FullTextWidth <= MaxWidth) {
+    return StringOrig.ToString();
+  }
+
+  // 计算省略号的宽度
+  Vector2f EllipsisSize = EditorUI::CalcTextSize("...");
+  const float EllipsisWidth = EllipsisSize.X();
+  const float AvailableWidth = MaxWidth - EllipsisWidth;
+
+  // 如果可用宽度太小，只返回省略号
+  if (AvailableWidth <= 0) {
+    return "...";
+  }
+
+  // 通过二分查找找到合适的截断位置
+  int Left = 0;
+  int Right = static_cast<int>(StringOrig.Count());
+  int BestLength = 0;
+
+  while (Left <= Right) {
+    const int Mid = (Left + Right) / 2;
+    String TestText = StringOrig.SubStr(0, Mid).ToString();
+    Vector2f TestSize = EditorUI::CalcTextSize(TestText);
+
+    if (TestSize.X() <= AvailableWidth) {
+      BestLength = Mid;
+      Left = Mid + 1;
+    } else {
+      Right = Mid - 1;
+    }
+  }
+
+  return StringOrig.SubStr(0, BestLength).ToString() + "...";
+}
+EEditorImageIcon EditorUI::GetIconFromAsseType(const EAssetType Type) {
+  switch (Type) {
+  case EAssetType::Shader:
+    return EEditorImageIcon::Shader;
+  case EAssetType::Mesh:
+    return EEditorImageIcon::Mesh;
+  case EAssetType::Texture2D:
+    return EEditorImageIcon::Texture;
+  case EAssetType::TextureCube:
+    return EEditorImageIcon::UnknownFile;
+  case EAssetType::Material:
+    return EEditorImageIcon::UnknownFile;
+  case EAssetType::Scene:
+    return EEditorImageIcon::UnknownFile;
+  case EAssetType::Animation:
+    return EEditorImageIcon::UnknownFile;
+  case EAssetType::Audio:
+    return EEditorImageIcon::UnknownFile;
+  case EAssetType::Font:
+    return EEditorImageIcon::UnknownFile;
+  case EAssetType::Prefab:
+    return EEditorImageIcon::UnknownFile;
+  case EAssetType::Count:
+    return EEditorImageIcon::UnknownFile;
+  }
+  return EEditorImageIcon::UnknownFile;
+}
+
+void EditorUIDrawList::AddImage(void* Texture, const Vector2f Min, const Vector2f Max) const {
+  mDrawList->AddImage(reinterpret_cast<ImTextureID>(Texture), Vector2fToImVec2(Min), Vector2fToImVec2(Max));
+}
+
+void EditorUIDrawList::AddText(const StringView Text, const Vector2f Pos) const { mDrawList->AddText(Vector2fToImVec2(Pos), EditorUI::GetTextColorUInt32(), Text.Data()); }
+
+void EditorUIDrawList::AddImageIcon(const EEditorImageIcon Icon, const Vector2f Min, const Vector2f Max) const {
+  const EditorUI::ImageIconUV UV = EditorUI::GetImageIconUV(Icon);
+  ImTextureID Texture = reinterpret_cast<ImTextureID>(EditorUI::GetIconImage());
+  mDrawList->AddImage(Texture, Vector2fToImVec2(Min), Vector2fToImVec2(Max), Vector2fToImVec2(UV.LT), Vector2fToImVec2(UV.RB));
+}
+
+void EditorUIDrawList::AddRect(const Vector2f Min, const Vector2f Max, const UInt32 Color, const float Rounding, const float Thickness) const {
+  mDrawList->AddRect(Vector2fToImVec2(Min), Vector2fToImVec2(Max), Color, Rounding, 0, Thickness);
+}
+
