@@ -18,6 +18,11 @@ struct RHIImageDesc {
 #endif
 };
 
+inline bool operator==(const RHIImageDesc& lhs, const RHIImageDesc& rhs) {
+  return lhs.Width == rhs.Width && lhs.Height == rhs.Height && lhs.Depth == rhs.Depth && lhs.Dimension == rhs.Dimension && lhs.Format == rhs.Format && lhs.MipLevels == rhs.MipLevels &&
+         lhs.ArrayLayers == rhs.ArrayLayers && lhs.Usage == rhs.Usage && lhs.InitialLayout == rhs.InitialLayout;
+}
+
 class RHIImage : public IRHIResource {
 public:
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::Image; }

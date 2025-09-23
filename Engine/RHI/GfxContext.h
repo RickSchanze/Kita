@@ -177,3 +177,6 @@ struct WindowBackendSupport {
   static void TickFrameInputData();
   static void ShouldWindowClose(RHISurfaceWindow* MyWindow, bool& OutResult);
 };
+
+inline GfxContext* GetGfxContext() { return GfxContext::Get(); }
+inline GfxContext& GetGfxContextRef() { return GfxContext::GetRef(); }

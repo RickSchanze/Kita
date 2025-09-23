@@ -10,6 +10,10 @@ class RHISemaphore;
 class RHICommandPool;
 constexpr Int32 MAX_FRAMES_INFLIGHT = 2;
 
+namespace Logcat {
+constexpr auto Render = "Render";
+}
+
 class RenderContext : public Singleton<RenderContext> {
 public:
   RenderContext();
@@ -23,16 +27,14 @@ public:
 
   RenderTicker* GetRenderTicker() { return mRenderTicker.Get(); }
 
-  static void SetRenderPipeline(UniquePtr<RenderPipeline> InNewPipeline) { GetRef().mRenderPipeline = std::move(InNewPipeline); }
-
   /// 更新并且获知当前Window有没有进行Resize
   bool IsWindowResized();
 
+  Callback<void, const RenderPipelineDrawParams&> OnRenderPipelineRender;
+  using CHT_OnRenderPipelineRender = Callback<void, const RenderPipelineDrawParams&>::Handle;
+
 private:
   UniquePtr<RenderTicker> mRenderTicker{};
-
-  /// 默认的RenderPipeline是一个只绘制ImGui的RenderPipeline
-  UniquePtr<RenderPipeline> mRenderPipeline{};
 
   RHISurfaceWindow* mSurfaceWindow = nullptr;
   UniquePtr<RHICommandPool> mCommandPool;

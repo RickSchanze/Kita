@@ -11,12 +11,12 @@
 #include "Render/RenderTicker.h"
 
 #if KITA_EDITOR
-#include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
 #endif
 
 RenderContext::RenderContext() = default;
 RenderContext::~RenderContext() = default;
+
 void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
   auto& Self = GetRef();
   Self.mGfxContext = GfxContext::Get();
@@ -27,22 +27,18 @@ void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
     Self.mImageAvailableSemaphores[Index] = Self.mGfxContext->CreateSemaphoreU();
     Self.mRenderFinishedSemaphores[Index] = Self.mGfxContext->CreateSemaphoreU();
 #if KITA_DEBUG
-    String DebugName = Format("FrameFence_{}",  Index);
+    String DebugName = Format("FrameFence_{}", Index);
 #else
     StringView DebugName = "";
 #endif
     Self.mInFlightFences[Index] = Self.mGfxContext->CreateFenceU(DebugName);
     Self.mCommandBuffers[Index] = Self.mCommandPool->CreateCommandBuffer();
   }
-
-  // TODO: 可配置RenderPipeline
-  Self.mRenderPipeline = MakeUnique<RenderPipeline>();
 }
 
 void RenderContext::ShutDown() {
   GfxContext::GetRef().WaitDeviceIdle();
   auto& Self = GetRef();
-  Self.mRenderPipeline = nullptr;
   for (Int32 Index = 0; Index < KITA_MAX_FRAMES_IN_FLIGHT; Index++) {
     Self.mImageAvailableSemaphores[Index] = nullptr;
     Self.mRenderFinishedSemaphores[Index] = nullptr;
@@ -90,10 +86,10 @@ void RenderContext::Render(double Time) {
   RenderPipelineDrawParams Params = {};
   Params.DeltaSeconds = Time;
   Params.Cmd = mCommandBuffers[FrameIndex].Get();
-  Params.TargetFramebuffer = mSurfaceWindow->GetImGuiFrameBuffer(ImageIndex);
+  Params.TargetFramebuffer = mSurfaceWindow->GetImGuiFrameBuffer(static_cast<Int32>(ImageIndex));
   Params.Width = mSurfaceWindow->GetSize().X();
   Params.Height = mSurfaceWindow->GetSize().Y();
-  mRenderPipeline->Draw(Params);
+  OnRenderPipelineRender.Invoke(Params);
 
   mCommandBuffers[FrameIndex]->EndRecord();
   // TODO: 提交也应该异步
@@ -121,7 +117,7 @@ void RenderContext::Render(double Time) {
   }
 }
 
-bool RenderContext::ShouldRender() const { return mRenderPipeline && mWindowSize.X() != 0 && mWindowSize.Y() != 0; }
+bool RenderContext::ShouldRender() const { return mWindowSize.X() != 0 && mWindowSize.Y() != 0; }
 
 bool RenderContext::IsWindowResized() {
   Vector2i NewSize = mSurfaceWindow->GetSize();

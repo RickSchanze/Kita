@@ -13,11 +13,10 @@ static FORCE_INLINE constexpr bool IsReflected() { return true; } \
 virtual const Type* GetType(); \
 virtual void WriteArchive(OutputArchive& Archive) const;\
 virtual void ReadArchive(InputArchive& Archive);\
-static void ConstructSelf(void* Ptr) { new (Ptr) RenderPipeline(); }static void DestructSelf(void* Ptr) { ((RenderPipeline*)(Ptr))->~RenderPipeline(); }struct Z_TypeRegister_RenderPipeline { \
+struct Z_TypeRegister_RenderPipeline { \
 Z_TypeRegister_RenderPipeline() { \
 TypeBuilder Builder{}; \
 Builder.CreateType<RenderPipeline>("RenderPipeline"); \
-Builder.SetConstructor(RenderPipeline::ConstructSelf).SetDestructor(RenderPipeline::DestructSelf); \
 Builder.Register(); \
 } \
 }; \

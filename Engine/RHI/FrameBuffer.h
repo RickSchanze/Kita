@@ -15,4 +15,9 @@ struct RHIFrameBufferDesc {
 class RHIFrameBuffer : public IRHIResource {
 public:
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::FrameBuffer; }
+
+  [[nodiscard]] RHIRenderPass* GetBoundRenderPass() const { return mRenderPass; }
+
+protected:
+  RHIRenderPass* mRenderPass = nullptr;
 };
