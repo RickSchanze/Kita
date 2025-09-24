@@ -27,6 +27,8 @@ public:
   void SetBackBuffer(const SharedPtr<RenderTarget>& BackBuffer) { mBackBuffer = BackBuffer; }
   SharedPtr<RenderTarget> GetBackBuffer() const { return mBackBuffer; }
 
+  virtual void OnBackBufferSet() {}
+
   /// Resize你需要的东西 BackBuffer不需要你来Resize
   virtual void Resize(UInt32 NewWidth, UInt32 NewHeight) = 0;
 

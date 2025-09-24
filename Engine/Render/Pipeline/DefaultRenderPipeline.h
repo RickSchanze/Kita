@@ -11,9 +11,11 @@ public:
 
   virtual void Resize(UInt32 NewWidth, UInt32 NewHeight) override;
 
+  virtual void OnBackBufferSet() override;
+
 private:
   UniquePtr<RenderTarget> mDepthTarget;
 
-  UInt32 Width;
-  UInt32 Height;
+  UInt32 Width{};
+  UInt32 Height{};
 };

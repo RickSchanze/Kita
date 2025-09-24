@@ -21,6 +21,7 @@ void ViewportWindow::SetRenderPipeline(UniquePtr<RenderPipeline>&& NewRenderPipe
   if (!NewRenderPipeline) {
     gLogger.Error(Logcat::Editor, "企图设置空RenderPipeline, 跳过此次操作.");
   }
+  GetGfxContextRef().WaitDeviceIdle();
   mRenderPipeline = std::move(NewRenderPipeline);
 }
 

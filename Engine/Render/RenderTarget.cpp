@@ -10,7 +10,7 @@
 #include "RHI/ImageView.h"
 #include "RenderContext.h"
 
-RenderTarget::RenderTarget(const RHIImageDesc& ImageDesc) { Resize(ImageDesc); }
+RenderTarget::RenderTarget(const RHIImageDesc& ImageDesc) { Recreate(ImageDesc); }
 
 RenderTarget::~RenderTarget() {
   mFrameBuffer = nullptr;
@@ -18,7 +18,7 @@ RenderTarget::~RenderTarget() {
   mImage = nullptr;
 }
 
-void RenderTarget::Resize(const RHIImageDesc& ImageDesc) {
+void RenderTarget::Recreate(const RHIImageDesc& ImageDesc) {
   if (mImage) {
     if (mImage->GetDesc() == ImageDesc) {
       return;
@@ -28,10 +28,19 @@ void RenderTarget::Resize(const RHIImageDesc& ImageDesc) {
   RHIImageViewDesc ViewDesc{};
   ViewDesc.SourceImage = NewImage.Get();
   UniquePtr<RHIImageView> NewView = GfxContext::GetRef().CreateImageViewU(ViewDesc);
-  GfxContext::GetRef().WaitDeviceIdle();
   mImage = std::move(NewImage);
   mView = std::move(NewView);
   mFrameBuffer = nullptr;
+}
+
+void RenderTarget::Resize(const UInt32 NewWidth, const UInt32 NewHeight) {
+  auto Desc = mImage->GetDesc();
+  if (Desc.Width == NewWidth && Desc.Height == NewHeight) {
+    return;
+  }
+  Desc.Width = NewWidth;
+  Desc.Height = NewHeight;
+  Recreate(Desc);
 }
 
 bool RenderTarget::SetRenderPass(RHIRenderPass* RenderPass) {
@@ -57,3 +66,6 @@ bool RenderTarget::SetRenderPass(RHIRenderPass* RenderPass) {
     return false;
   }
 }
+
+UInt32 RenderTarget::GetWidth() const { return mImage->GetDesc().Width; }
+UInt32 RenderTarget::GetHeight() const { return mImage->GetDesc().Height; }

@@ -6,6 +6,7 @@
 
 #include "RHI/GfxContext.h"
 #include "RHI/Image.h"
+#include "Render/RenderTarget.h"
 
 DefaultRenderPipeline::DefaultRenderPipeline() = default;
 
@@ -14,19 +15,21 @@ DefaultRenderPipeline::~DefaultRenderPipeline() {
   mDepthTarget = nullptr;
 }
 
-void DefaultRenderPipeline::Resize(UInt32 NewWidth, UInt32 NewHeight) {
-  if (Width == NewWidth && Height == NewHeight) {
-    return;
+void DefaultRenderPipeline::Resize(const UInt32 NewWidth, const UInt32 NewHeight) {
+  if (mDepthTarget) {
+    mDepthTarget->Resize(NewWidth, NewHeight);
   }
+}
+
+void DefaultRenderPipeline::OnBackBufferSet() {
+  RHIImageDesc ImageDesc{};
   RHIImageDesc DepthTargetDesc = {};
-  DepthTargetDesc.Width = NewWidth;
-  DepthTargetDesc.Height = NewHeight;
+  DepthTargetDesc.Width = GetBackBuffer()->GetWidth();
+  DepthTargetDesc.Height = GetBackBuffer()->GetHeight();
   DepthTargetDesc.Format = ERHIFormat::D32_Float;
   DepthTargetDesc.ArrayLayers = 1;
   DepthTargetDesc.Dimension = ERHIImageDimension::D2;
   DepthTargetDesc.Depth = 1;
   DepthTargetDesc.Usage = ERHIImageUsage::DepthStencil;
-  UniquePtr<RenderTarget> DepthTarget = MakeUnique<RenderTarget>(DepthTargetDesc);
-  GetGfxContextRef().WaitDeviceIdle();
-  mDepthTarget = std::move(DepthTarget);
+  mDepthTarget = MakeUnique<RenderTarget>(DepthTargetDesc);
 }
