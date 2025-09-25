@@ -25,6 +25,13 @@ GfxCommandSyncHandle GfxCommandHelper::CopyBufferToImageAsync(RHIBuffer* Source,
   return Handle;
 }
 
+GfxCommandSyncHandle GfxCommandHelper::ResourceBarrierAsync(RHIImage* Image, ERHIImageLayout Old, ERHIImageLayout New) {
+  GfxCommandSyncHandle Handle = CreateSingleTimeCommandBuffer();
+  Handle.CommandBuffer->ResourceBarrier(Image, Old, New);
+  SubmitSingleTimeCommandBuffer(Handle);
+  return Handle;
+}
+
 GfxCommandSyncHandle GfxCommandHelper::CreateSingleTimeCommandBuffer(const ERHIQueueFamilyType Family) {
   GfxCommandSyncHandle Handle;
   Handle.CommandPool = GfxContext::GetRef().CreateCommandPoolU(Family, false);
@@ -48,6 +55,7 @@ void GfxCommandHelper::SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handl
   Params.WaitSemaphores = {};
   Params.SignalSemaphores = {};
   Params.Fence = Handle.GpuExecuteFence.Get();
+  // TODO: 这里一定会造成死锁 怀疑是Handle.CommitHandle已经执行完了 但是RemainingDependencies == 1
   Handle.CommitHandle = GfxContext::GetRef().SubmitAsync(Params, {Handle.CommitHandle});
 }
 
@@ -62,8 +70,13 @@ GfxCommandSyncHandle::~GfxCommandSyncHandle() { WaitAll(); }
 
 void GfxCommandSyncHandle::WaitAll() {
   CPU_PROFILING_SCOPE;
+  gLogger.Info(Logcat::Test, "CommiteHandleWait BEFORE");
+  TaskGraph::GetRef().Dump();
   CommitHandle.WaitSync();
+  gLogger.Info(Logcat::Test, "CommiteHandleWait AFTER");
+  gLogger.Info(Logcat::Test, "GpuExecuteFenceWait BEFORE");
   GpuExecuteFence->Wait(UINT64_MAX);
+  gLogger.Info(Logcat::Test, "GpuExecuteFenceWait AFTER");
 }
 
 void GfxCommandSyncHandle::WaitGpuFinished() {

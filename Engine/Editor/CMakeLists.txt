@@ -36,7 +36,7 @@ add_library(KitaEditor
         Windows/ViewportWindow.h
 )
 
-target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets KitaRHI)
+target_link_libraries(KitaEditor PRIVATE KitaCore KitaObject KitaRender KitaAssets KitaRHI KitaWorld)
 
 find_package(glfw3 CONFIG REQUIRED)
 target_link_libraries(KitaEditor PRIVATE glfw)

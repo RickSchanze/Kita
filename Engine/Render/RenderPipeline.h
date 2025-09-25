@@ -21,21 +21,19 @@ class RenderPipeline {
   GENERATED_BODY(RenderPipeline)
 public:
   virtual ~RenderPipeline() = default;
-  virtual void Draw(const RenderPipelineDrawParams& Params);
-  void DrawImGui(const RenderPipelineDrawParams& Params);
+  virtual void Draw(const RenderPipelineDrawParams& Params) = 0;
 
-  void SetBackBuffer(const SharedPtr<RenderTarget>& BackBuffer) { mBackBuffer = BackBuffer; }
+  void SetBackBuffer(const SharedPtr<RenderTarget>& BackBuffer) {
+    mBackBuffer = BackBuffer;
+    OnBackBufferSet();
+  }
+
   SharedPtr<RenderTarget> GetBackBuffer() const { return mBackBuffer; }
 
   virtual void OnBackBufferSet() {}
 
   /// Resize你需要的东西 BackBuffer不需要你来Resize
   virtual void Resize(UInt32 NewWidth, UInt32 NewHeight) = 0;
-
-#if KITA_EDITOR
-protected:
-  TaskHandle RecordImGuiCommands(const RenderPipelineDrawParams& Params);
-#endif
 
 private:
   SharedPtr<RenderTarget> mBackBuffer;

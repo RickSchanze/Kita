@@ -158,17 +158,19 @@ public:
     Barrier.srcAccessMask = Src.accessMask;
     Barrier.dstAccessMask = Dst.accessMask;
     Barrier.image = CmdResourceBarrier->Image->GetNativeHandleT<VkImage>();
-    if (True(CmdResourceBarrier->Image->GetDesc().Usage | ERHIImageUsage::DepthStencil)) {
-      Barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    auto& Desc = CmdResourceBarrier->Image->GetDesc();
+    if (True(Desc.Usage & ERHIImageUsage::DepthStencil)) {
+      if (Desc.Format == ERHIFormat::D32_Float) {
+        Barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+      }
     }
-    if (True(CmdResourceBarrier->Image->GetDesc().Usage | ERHIImageUsage::ShaderRead)) {
+    if (True(Desc.Usage & ERHIImageUsage::ShaderRead)) {
       Barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     }
-    Barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     Barrier.subresourceRange.baseArrayLayer = 0;
-    Barrier.subresourceRange.layerCount = CmdResourceBarrier->Image->GetDesc().GetArrayLayers();
+    Barrier.subresourceRange.layerCount = Desc.GetArrayLayers();
     Barrier.subresourceRange.baseMipLevel = 0;
-    Barrier.subresourceRange.levelCount = CmdResourceBarrier->Image->GetDesc().GetMipLevels();
+    Barrier.subresourceRange.levelCount = Desc.GetMipLevels();
     vkCmdPipelineBarrier(CmdBuffer, Src.stageMask, Dst.stageMask, 0, 0, nullptr, 0, nullptr, 1, &Barrier);
   }
 

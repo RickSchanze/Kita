@@ -52,6 +52,9 @@ public:
   }
   static GfxCommandSyncHandle CopyBufferToImageAsync(RHIBuffer* Source, RHIImage* Dest, UInt64 BufferOffset = 0, Vector3i ImageOffset = {}, Vector3u ImageExtent = {});
 
+  static void ResourceBarrier(RHIImage* Image, ERHIImageLayout Old, ERHIImageLayout New) { ResourceBarrierAsync(Image, Old, New).WaitAll(); }
+  static GfxCommandSyncHandle ResourceBarrierAsync(RHIImage* Image, ERHIImageLayout Old, ERHIImageLayout New);
+
   /// 创建一个单次的CommandBuffer
   ///  @param Family
   ///  @return 创建的CommandBuffer已经调用了BeginRecord

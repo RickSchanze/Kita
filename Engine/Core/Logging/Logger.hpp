@@ -19,6 +19,10 @@ struct Log {
   ELogLevel Level;
 };
 
+namespace Logcat {
+constexpr auto Test = "Test";
+}
+
 class Logger {
 public:
   using CallbackHandle = Callback<void, const Log&>::Handle;

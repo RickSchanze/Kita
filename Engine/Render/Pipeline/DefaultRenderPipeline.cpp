@@ -21,15 +21,22 @@ void DefaultRenderPipeline::Resize(const UInt32 NewWidth, const UInt32 NewHeight
   }
 }
 
+void DefaultRenderPipeline::Draw(const RenderPipelineDrawParams& Params) {}
+
 void DefaultRenderPipeline::OnBackBufferSet() {
   RHIImageDesc ImageDesc{};
   RHIImageDesc DepthTargetDesc = {};
-  DepthTargetDesc.Width = GetBackBuffer()->GetWidth();
-  DepthTargetDesc.Height = GetBackBuffer()->GetHeight();
+  if (GetBackBuffer()) {
+    DepthTargetDesc.Width = GetBackBuffer()->GetWidth();
+    DepthTargetDesc.Height = GetBackBuffer()->GetHeight();
+  } else {
+    DepthTargetDesc.Width = 1;
+    DepthTargetDesc.Height = 1;
+  }
   DepthTargetDesc.Format = ERHIFormat::D32_Float;
   DepthTargetDesc.ArrayLayers = 1;
   DepthTargetDesc.Dimension = ERHIImageDimension::D2;
   DepthTargetDesc.Depth = 1;
   DepthTargetDesc.Usage = ERHIImageUsage::DepthStencil;
-  mDepthTarget = MakeUnique<RenderTarget>(DepthTargetDesc);
+  mDepthTarget = MakeUnique<RenderTarget>(DepthTargetDesc, ERHIImageLayout::DepthStencilAttachment, "DepthTarget");
 }

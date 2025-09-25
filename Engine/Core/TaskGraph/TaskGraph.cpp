@@ -109,6 +109,12 @@ void TaskGraph::WaitTaskSync(SharedPtr<TaskInstance>& InInstance) const {
   InInstance->CV.wait(Lock, [InInstance] { return InInstance->GetState(false) == ETaskState::Finished; });
 }
 
+void TaskGraph::Dump() const {
+  mInstances.ForEach([](const SharedPtr<TaskInstance>& InInstance) { //
+    gLogger.Info(Logcat::Test, "Task {} {:p} State {}", InInstance->DebugName, Ptr(InInstance->Node), InInstance->GetState());
+  });
+}
+
 void TaskGraph::ScheduleTask(const SharedPtr<TaskInstance>& InInstance) {
   switch (InInstance->Node->GetDesiredThread()) {
   case ENamedThread::Render:

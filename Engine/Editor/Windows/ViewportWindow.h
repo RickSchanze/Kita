@@ -21,10 +21,14 @@ public:
   void Render(const RenderPipelineDrawParams& Params);
 
 protected:
+  void CreateBackBuffer(UInt32 W, UInt32 H);
+
   SharedPtr<RenderTarget> mBackBuffer;
   Vector2f mWindowSize;
   UniquePtr<RenderPipeline> mRenderPipeline;
   RenderContext::CHT_OnRenderPipelineRender mRenderPipelineRenderHandle;
+  void* mImGuiBackBufferID = nullptr;
+  bool mWindowResized;
 };
 
 KCLASS(MenuActionItem = "窗口/视口")

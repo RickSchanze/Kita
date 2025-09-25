@@ -9,8 +9,8 @@ template <typename Result, typename... Args> struct Callback {
 
   Handle Add(Result (*Fn)(Args...)) { return mCallbackList.append(Fn); }
 
-  template <typename T, typename... OtherArgs> Handle Add(T* Obj, Result (T::*Fn)(Args...)) {
-    return mCallbackList.append([Obj, Fn](OtherArgs&&... args) -> Result { return (Obj->*Fn)(std::forward<OtherArgs>(args)...); });
+  template <typename T> Handle Add(T* Obj, Result (T::*Fn)(Args...)) {
+    return mCallbackList.append([Obj, Fn](Args... args) -> Result { return (Obj->*Fn)(std::forward<Args>(args)...); });
   }
 
   template <typename... OtherArgs>

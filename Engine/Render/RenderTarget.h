@@ -10,7 +10,7 @@ class RHIImage;
 
 class RenderTarget {
 public:
-  explicit RenderTarget(const RHIImageDesc& ImageDesc);
+  explicit RenderTarget(const RHIImageDesc& ImageDesc, ERHIImageLayout Layout, StringView Name = "");
   ~RenderTarget();
 
   /// 重新设定尺寸 方法是销毁重建
@@ -26,8 +26,18 @@ public:
   [[nodiscard]] UInt32 GetWidth() const;
   [[nodiscard]] UInt32 GetHeight() const;
 
+  [[nodiscard]] StringView GetName() const { return mName; }
+  void SetName(const StringView Name) { mName = Name.ToString(); }
+
+  [[nodiscard]] RHIImage* GetImage() const { return mImage.Get(); }
+  [[nodiscard]] RHIImageView* GetView() const { return mView.Get(); }
+  [[nodiscard]] RHIFrameBuffer* GetFrameBuffer() const { return mFrameBuffer.Get(); }
+
 private:
   UniquePtr<RHIImage> mImage;
   UniquePtr<RHIImageView> mView;
   UniquePtr<RHIFrameBuffer> mFrameBuffer;
+  ERHIImageLayout mResourceBarrierLayout;
+
+  String mName;
 };

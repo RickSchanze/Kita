@@ -133,6 +133,8 @@ public:
   /// 等待任务完成
   void WaitTaskSync(SharedPtr<TaskInstance>& InInstance) const;
 
+  void Dump() const;
+
 private:
   void ScheduleTask(const SharedPtr<TaskInstance>& InInstance);
   // 管理所有的TaskInstance

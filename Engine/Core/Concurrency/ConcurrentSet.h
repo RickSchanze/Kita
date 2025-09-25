@@ -1,9 +1,11 @@
 #pragma once
+#include "Core/Macros.h"
 #include "Core/Memory/Malloc.h"
 #include "Core/Ranges.h"
 #include "Core/String/StringTraits.h"
 #include "Core/String/ToString.h"
-#include "Core/Macros.h"
+
+#include <functional>
 
 #if not KITA_DEBUG
 #include "absl/container/flat_hash_set.h"
@@ -62,7 +64,7 @@ public:
   }
 
   [[nodiscard]] String ToString() const
-  requires(Traits::IStringable<K>)
+    requires(Traits::IStringable<K>)
   {
     std::lock_guard<std::mutex> lock(mMutex);
     String Result = "{";
@@ -82,6 +84,13 @@ public:
 
     Result += "}";
     return Result;
+  }
+
+  void ForEach(const std::function<void(const K&)>& InFunc) const {
+    std::lock_guard Lock(mMutex);
+    for (const auto& Item : mData) {
+      InFunc(Item);
+    }
   }
 
 private:

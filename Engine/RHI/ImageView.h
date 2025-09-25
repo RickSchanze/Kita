@@ -32,3 +32,5 @@ class RHIImageView : public IRHIResource {
 public:
   [[nodiscard]] virtual ERHIResourceType GetResourceType() const override final { return ERHIResourceType::ImageView; }
 };
+
+RHIImageSubresourceRange GetImageSubresourceRangeFromImage(const RHIImage* Image);

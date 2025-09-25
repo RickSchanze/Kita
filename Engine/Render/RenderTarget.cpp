@@ -4,13 +4,19 @@
 
 #include "RenderTarget.h"
 
+#include "RHI/CommandBuffer.h"
 #include "RHI/FrameBuffer.h"
+#include "RHI/GfxCommandHelper.h"
 #include "RHI/GfxContext.h"
 #include "RHI/Image.h"
 #include "RHI/ImageView.h"
+#include "RHI/Sync.h" // NECESSARY
 #include "RenderContext.h"
 
-RenderTarget::RenderTarget(const RHIImageDesc& ImageDesc) { Recreate(ImageDesc); }
+RenderTarget::RenderTarget(const RHIImageDesc& ImageDesc, ERHIImageLayout Layout, const StringView Name) : mResourceBarrierLayout(Layout) {
+  Recreate(ImageDesc);
+  SetName(Name);
+}
 
 RenderTarget::~RenderTarget() {
   mFrameBuffer = nullptr;
@@ -27,7 +33,9 @@ void RenderTarget::Recreate(const RHIImageDesc& ImageDesc) {
   UniquePtr<RHIImage> NewImage = GfxContext::GetRef().CreateImageU(ImageDesc);
   RHIImageViewDesc ViewDesc{};
   ViewDesc.SourceImage = NewImage.Get();
+  ViewDesc.SubresourceRange = GetImageSubresourceRangeFromImage(NewImage.Get());
   UniquePtr<RHIImageView> NewView = GfxContext::GetRef().CreateImageViewU(ViewDesc);
+  GfxCommandHelper::ResourceBarrier(NewImage.Get(), ERHIImageLayout::Undefined, mResourceBarrierLayout);
   mImage = std::move(NewImage);
   mView = std::move(NewView);
   mFrameBuffer = nullptr;
@@ -35,6 +43,10 @@ void RenderTarget::Recreate(const RHIImageDesc& ImageDesc) {
 
 void RenderTarget::Resize(const UInt32 NewWidth, const UInt32 NewHeight) {
   auto Desc = mImage->GetDesc();
+  if (NewWidth == 0 || NewHeight == 0) {
+    gLogger.Error(Logcat::Render, "Resize RenderTarget '{}' 失败, Width或Height等于0.", mName);
+    return;
+  }
   if (Desc.Width == NewWidth && Desc.Height == NewHeight) {
     return;
   }

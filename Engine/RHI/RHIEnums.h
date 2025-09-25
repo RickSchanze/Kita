@@ -85,14 +85,14 @@ enum class ERHISampleCount {
 };
 
 // 指示要访问图像的哪些"方面"
-enum ERHIImageAspectBits {
-  IA_Color = 0b1,     // 颜色
-  IA_Depth = 0b10,    // 深度
-  IA_Stencil = 0b100, // 模板
-  IA_Max,
+enum class ERHIImageAspect {
+  None = 0,
+  Color = 0b1,     // 颜色
+  Depth = 0b10,    // 深度
+  Stencil = 0b100, // 模板
+  Max,
 };
-
-typedef UInt32 ERHIImageAspect;
+ENABLE_BITMASK_OPERATORS(ERHIImageAspect)
 
 enum class ERHIBufferUsage {
   None = 0,
@@ -270,16 +270,16 @@ enum class ERHISamplerAddressMode {
 
 enum class ERHIMipmapMode : uint8_t {
   Nearest = 0, // VK_SAMPLER_MIPMAP_MODE_NEAREST
-  Linear  = 1  // VK_SAMPLER_MIPMAP_MODE_LINEAR
+  Linear = 1   // VK_SAMPLER_MIPMAP_MODE_LINEAR
 };
 
 enum class ERHIBorderColor : uint8_t {
   FloatTransparentBlack = 0, // VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK
-  IntTransparentBlack   = 1, // VK_BORDER_COLOR_INT_TRANSPARENT_BLACK
-  FloatOpaqueBlack      = 2, // VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
-  IntOpaqueBlack        = 3, // VK_BORDER_COLOR_INT_OPAQUE_BLACK
-  FloatOpaqueWhite      = 4, // VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE
-  IntOpaqueWhite        = 5  // VK_BORDER_COLOR_INT_OPAQUE_WHITE
+  IntTransparentBlack = 1,   // VK_BORDER_COLOR_INT_TRANSPARENT_BLACK
+  FloatOpaqueBlack = 2,      // VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+  IntOpaqueBlack = 3,        // VK_BORDER_COLOR_INT_OPAQUE_BLACK
+  FloatOpaqueWhite = 4,      // VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE
+  IntOpaqueWhite = 5         // VK_BORDER_COLOR_INT_OPAQUE_WHITE
 };
 
 enum class ERHIBlendFactor {

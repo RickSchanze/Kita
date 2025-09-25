@@ -5,6 +5,8 @@
 #include "RenderContext.h"
 
 #include "Core/Performance/ProfilerMark.h"
+#include "Editor/EditorWindowManager.h"
+#include "Editor/MenuActionManager.h"
 #include "RHI/CommandBuffer.h"
 #include "RHI/GfxContext.h"
 #include "RHI/Sync.h"
@@ -51,6 +53,42 @@ void RenderContext::ShutDown() {
   Self.mSurfaceWindow = nullptr;
 }
 
+static void StaticDrawImGui() {
+  CPU_PROFILING_SCOPE;
+  ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  const ImGuiViewport* Viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(Viewport->WorkPos);
+  ImGui::SetNextWindowSize(Viewport->WorkSize);
+  ImGui::SetNextWindowViewport(Viewport->ID);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+  WindowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+  WindowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+  WindowFlags |= ImGuiWindowFlags_NoBackground;
+  static ImGuiDockNodeFlags DockSpaceFlags = ImGuiDockNodeFlags_None;
+  bool pOpen;
+  ImGui::Begin("DockSpace Demo", &pOpen, WindowFlags);
+  ImGuiID DockSpaceId = ImGui::GetID("MyDockSpace");
+  ImGui::DockSpace(DockSpaceId, ImVec2(0.0f, 0.0f), DockSpaceFlags);
+  ImGui::PopStyleVar(2);
+  MenuActionManager::Render();
+  ImGui::End();
+}
+
+static TaskHandle RecordImGuiCommands(const RenderPipelineDrawParams& Params) {
+  CPU_PROFILING_SCOPE;
+  return GfxContext::GetRef().DrawImGui(Params.Cmd, Params.TargetFramebuffer, Params.Width, Params.Height);
+}
+
+static void DrawImGui(const RenderPipelineDrawParams& Params) {
+  ImGui_ImplVulkan_NewFrame();
+  ImGui::NewFrame();
+  StaticDrawImGui();
+  EditorWindowManager::Render();
+  ImGui::Render();
+  RecordImGuiCommands(Params);
+}
+
 void RenderContext::Render(double Time) {
   CPU_PROFILING_SCOPE;
   if (IsWindowResized()) {
@@ -90,6 +128,7 @@ void RenderContext::Render(double Time) {
   Params.Width = mSurfaceWindow->GetSize().X();
   Params.Height = mSurfaceWindow->GetSize().Y();
   OnRenderPipelineRender.Invoke(Params);
+  DrawImGui(Params);
 
   mCommandBuffers[FrameIndex]->EndRecord();
   // TODO: 提交也应该异步

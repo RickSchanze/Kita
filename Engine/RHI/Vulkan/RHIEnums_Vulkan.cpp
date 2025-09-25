@@ -207,28 +207,28 @@ ERHISampleCount VkSampleCountToRHISampleCount(const VkSampleCountFlagBits sample
 
 VkImageAspectFlags RHIImageAspectToVkImageAspect(const ERHIImageAspect aspect) {
   VkImageAspectFlags flags = 0;
-  if (aspect & ERHIImageAspectBits::IA_Color) {
+  if (True(aspect & ERHIImageAspect::Color)) {
     flags |= VK_IMAGE_ASPECT_COLOR_BIT;
   }
-  if (aspect & ERHIImageAspectBits::IA_Depth) {
+  if (True(aspect & ERHIImageAspect::Depth)) {
     flags |= VK_IMAGE_ASPECT_DEPTH_BIT;
   }
-  if (aspect & ERHIImageAspectBits::IA_Stencil) {
+  if (True(aspect & ERHIImageAspect::Stencil)) {
     flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
   }
   return flags;
 }
 
 ERHIImageAspect VkImageAspectToRHIImageAspect(VkImageAspectFlags aspect) {
-  int rtn = 0;
-  if (rtn & VK_IMAGE_ASPECT_COLOR_BIT) {
-    rtn |= ERHIImageAspectBits::IA_Color;
+  auto rtn = ERHIImageAspect::None;
+  if (aspect & VK_IMAGE_ASPECT_COLOR_BIT) {
+    rtn |= ERHIImageAspect::Color;
   }
-  if (rtn & VK_IMAGE_ASPECT_DEPTH_BIT) {
-    rtn |= ERHIImageAspectBits::IA_Depth;
+  if (aspect & VK_IMAGE_ASPECT_DEPTH_BIT) {
+    rtn |= ERHIImageAspect::Depth;
   }
-  if (rtn & VK_IMAGE_ASPECT_STENCIL_BIT) {
-    rtn |= ERHIImageAspectBits::IA_Stencil;
+  if (aspect & VK_IMAGE_ASPECT_STENCIL_BIT) {
+    rtn |= ERHIImageAspect::Stencil;
   }
   return rtn;
 }
