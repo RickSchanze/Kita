@@ -111,6 +111,13 @@ struct EditorUI::Impl {
   Texture2D* ImageIconTexture{};
   UniquePtr<RHISampler> Sampler;
   void* ImGuiTexture[ToUnderlying(EEditorUITexture::Count)]{};
+
+  ~Impl() {
+    GetGfxContext()->WaitDeviceIdle();
+    for (auto Texture : ImGuiTexture) {
+      GetGfxContext()->DestroyImGuiTexture(Texture);
+    }
+  }
 };
 
 void EditorUI::StartUp() {

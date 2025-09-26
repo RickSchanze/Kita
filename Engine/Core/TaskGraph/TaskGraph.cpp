@@ -8,6 +8,16 @@
 #include "Core/Logging/Logger.hpp"
 #include "ThreadUtils.h"
 
+void TaskInstance::SetState(const ETaskState NewState, bool LockSelf) {
+  if (LockSelf) {
+    std::lock_guard Lock(Mutex);
+    State = NewState;
+  } else {
+    State = NewState;
+  }
+  CV.notify_all();
+}
+
 ETaskState TaskInstance::GetState(const bool InLock) const {
   if (!InLock) {
     return State;
@@ -38,28 +48,30 @@ void TaskGraph::ShutDown() {
 void TaskGraph::NotifyTaskCompleted(SharedPtr<TaskInstance>& InInstance) {
   ASSERT_MSG(InInstance != nullptr, "TaskGraph::NotifyTaskCompleted called with nullptr");
   ASSERT_MSG(mInstances.Contains(InInstance), "TaskGraph::NotifyTaskCompleted called with invalid instance(instance not be managed). Name=\"{}\", Ptr={}", InInstance->DebugName, Ptr(InInstance));
-  Array<SharedPtr<TaskInstance>> SubsequenceCopy;
-  {
-    AutoLock Lock(InInstance->Mutex);
-    SubsequenceCopy = InInstance->Subsequence;
+  AutoLock Lock(InInstance->Mutex);
+  for (auto& TaskInstance : InInstance->Subsequence) {
+    TaskInstance->Lock();
   }
-  for (auto& DependentInstance : SubsequenceCopy) {
+  for (auto& DependentInstance : InInstance->Subsequence) {
     if (DependentInstance == nullptr) {
       continue;
     }
     if (const int Remaining = --DependentInstance->RemainingDependencies; Remaining == 0) {
       // 依赖此时应该要么Lazy 要么Pending
-      if (DependentInstance->GetState() == ETaskState::Lazy) {
+      if (DependentInstance->GetState(false) == ETaskState::Lazy) {
         // Lazy则不管它 因为前面已经减少其依赖counter了
-      } else if (DependentInstance->GetState() == ETaskState::Pending) {
+      } else if (DependentInstance->GetState(false) == ETaskState::Pending) {
         // Pending则加入其DesiredThread进行执行
         ScheduleTask(DependentInstance);
       } else {
         gLogger.Error("TaskGraph", "任务\"{}\"状态错误, ptr={}.", InInstance->DebugName, Ptr(InInstance));
       }
     }
+    for (auto& TaskInstance : InInstance->Subsequence) {
+      TaskInstance->Unlock();
+    }
   }
-  InInstance->SetState(ETaskState::Finished);
+  InInstance->SetState(ETaskState::Finished, false);
   mInstances.Remove(InInstance);
 }
 
@@ -82,15 +94,15 @@ void TaskGraph::StartLazyTask(SharedPtr<TaskInstance>& InInstance) {
   if (InInstance == nullptr) {
     return;
   }
+  TaskInstanceLock Lock(InInstance);
   if UNLIKELY (!IsTaskExists(InInstance)) {
     gLogger.Error("TaskGraph", "任务\"{}\"({})不存在", InInstance->DebugName, Ptr(InInstance));
     return;
   }
-  if (InInstance->GetState() != ETaskState::Lazy) {
+  if (InInstance->GetState(false) != ETaskState::Lazy) {
     gLogger.Error("TaskGraph", "任务\"{}\"({})状态错误(不为Lazy), 不能启动", InInstance->DebugName, Ptr(InInstance));
     return;
   }
-  TaskInstanceLock Lock(InInstance);
   InInstance->State = ETaskState::Pending;
   if (InInstance->RemainingDependencies == 0) {
     ScheduleTask(InInstance);
@@ -107,12 +119,6 @@ void TaskGraph::WaitTaskSync(SharedPtr<TaskInstance>& InInstance) const {
   }
   std::unique_lock Lock(InInstance->Mutex);
   InInstance->CV.wait(Lock, [InInstance] { return InInstance->GetState(false) == ETaskState::Finished; });
-}
-
-void TaskGraph::Dump() const {
-  mInstances.ForEach([](const SharedPtr<TaskInstance>& InInstance) { //
-    gLogger.Info(Logcat::Test, "Task {} {:p} State {}", InInstance->DebugName, Ptr(InInstance->Node), InInstance->GetState());
-  });
 }
 
 void TaskGraph::ScheduleTask(const SharedPtr<TaskInstance>& InInstance) {

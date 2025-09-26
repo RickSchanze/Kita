@@ -62,7 +62,7 @@ public:
 #endif
 
   virtual void Submit(const RHICommandBufferSubmitParams& Params) override;
-  virtual TaskHandle SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies) override;
+  virtual TaskHandle SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies, StringView DebugName) override;
 
   [[nodiscard]] VkDevice GetDevice() const { return mDevice; }
 

@@ -338,8 +338,8 @@ public:
   }
 };
 
-TaskHandle GfxContext_Vulkan::SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies) {
-  return TaskGraph::CreateTask<Task_SubmitAsync>("", Dependencies, Params);
+TaskHandle GfxContext_Vulkan::SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies, StringView DebugName) {
+  return TaskGraph::CreateTask<Task_SubmitAsync>(DebugName, Dependencies, Params);
 }
 
 bool GfxContext_Vulkan::IsLayerSupported(const char* LayerName) {

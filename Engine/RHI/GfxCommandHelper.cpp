@@ -44,7 +44,7 @@ void GfxCommandHelper::SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handl
   Handle.CommandBuffer->EndRecord();
   Handle.CommitHandle = Handle.CommandBuffer->Execute("");
 #if KITA_DEBUG
-  String DebugName = Format("SingleTimeCmdBufferFence_{}", sNameCounter++);
+  String DebugName = Format("SingleTimeCmdBufferFence_{}", sNameCounter);
 #else
   StringView DebugName = "";
 #endif
@@ -55,8 +55,7 @@ void GfxCommandHelper::SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handl
   Params.WaitSemaphores = {};
   Params.SignalSemaphores = {};
   Params.Fence = Handle.GpuExecuteFence.Get();
-  // TODO: 这里一定会造成死锁 怀疑是Handle.CommitHandle已经执行完了 但是RemainingDependencies == 1
-  Handle.CommitHandle = GfxContext::GetRef().SubmitAsync(Params, {Handle.CommitHandle});
+  Handle.CommitHandle = GfxContext::GetRef().SubmitAsync(Params, {Handle.CommitHandle}, Format("SubmitSingle_{}", sNameCounter++));
 }
 
 void GfxCommandHelper::SubmitSingleTimeCommandBufferAndWait(GfxCommandSyncHandle& Handle) {
@@ -70,13 +69,8 @@ GfxCommandSyncHandle::~GfxCommandSyncHandle() { WaitAll(); }
 
 void GfxCommandSyncHandle::WaitAll() {
   CPU_PROFILING_SCOPE;
-  gLogger.Info(Logcat::Test, "CommiteHandleWait BEFORE");
-  TaskGraph::GetRef().Dump();
   CommitHandle.WaitSync();
-  gLogger.Info(Logcat::Test, "CommiteHandleWait AFTER");
-  gLogger.Info(Logcat::Test, "GpuExecuteFenceWait BEFORE");
   GpuExecuteFence->Wait(UINT64_MAX);
-  gLogger.Info(Logcat::Test, "GpuExecuteFenceWait AFTER");
 }
 
 void GfxCommandSyncHandle::WaitGpuFinished() {

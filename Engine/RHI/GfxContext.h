@@ -144,7 +144,7 @@ public:
   virtual UInt32 GetNextImage(RHISurfaceWindow* Window, RHISemaphore* WaitSemaphore, RHIFence* WaitFence, bool& NeedRecreation) = 0;
 
   virtual void Submit(const struct RHICommandBufferSubmitParams& Params) = 0;
-  virtual TaskHandle SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies) = 0;
+  virtual TaskHandle SubmitAsync(const struct RHICommandBufferSubmitParams& Params, const Array<TaskHandle>& Dependencies, StringView DebugName) = 0;
 
   /// 呈现 返回是否需要重建交换链
   virtual bool Present(const RHIPresentParams& Params) = 0;

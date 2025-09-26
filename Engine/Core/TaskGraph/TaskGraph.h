@@ -21,13 +21,7 @@ struct TaskInstance {
 
   String DebugName;
 
-  void SetState(const ETaskState NewState) {
-    {
-      std::lock_guard Lock(Mutex);
-      State = NewState;
-    }
-    CV.notify_all();
-  }
+  void SetState(const ETaskState NewState, bool LockSelf = true);
 
   ~TaskInstance() { Delete(Node); }
 
@@ -132,8 +126,6 @@ public:
 
   /// 等待任务完成
   void WaitTaskSync(SharedPtr<TaskInstance>& InInstance) const;
-
-  void Dump() const;
 
 private:
   void ScheduleTask(const SharedPtr<TaskInstance>& InInstance);
