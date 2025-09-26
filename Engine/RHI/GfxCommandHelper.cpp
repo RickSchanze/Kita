@@ -55,13 +55,11 @@ void GfxCommandHelper::SubmitSingleTimeCommandBuffer(GfxCommandSyncHandle& Handl
   Params.WaitSemaphores = {};
   Params.SignalSemaphores = {};
   Params.Fence = Handle.GpuExecuteFence.Get();
-  Handle.CommitHandle = GfxContext::GetRef().SubmitAsync(Params, {Handle.CommitHandle},
 #if KITA_DEBUG
-                                                         Format("SubmitSingle_{}", sNameCounter++)
+  Handle.CommitHandle = GfxContext::GetRef().SubmitAsync(Params, {Handle.CommitHandle}, Format("SubmitSingle_{}", sNameCounter++));
 #else
-                                                         ""
+  Handle.CommitHandle = GfxContext::GetRef().SubmitAsync(Params, {Handle.CommitHandle}, "");
 #endif
-  );
 }
 
 void GfxCommandHelper::SubmitSingleTimeCommandBufferAndWait(GfxCommandSyncHandle& Handle) {
