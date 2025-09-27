@@ -35,4 +35,7 @@ RHIFrameBuffer_Vulkan::RHIFrameBuffer_Vulkan(const RHIFrameBufferDesc& Desc) {
     gLogger.Error("RHI", "创建FrameBuffer失败, 错误码={}", Result);
   }
   mRenderPass = Desc.RenderPass;
+#if KITA_DEBUG_NAME
+  GetVulkanGfxContexRef().SetDebugName(Format("FrameBuffer_{}", Desc.DebugName), VK_OBJECT_TYPE_FRAMEBUFFER, reinterpret_cast<UInt64>(mFramebuffer));
+#endif
 }

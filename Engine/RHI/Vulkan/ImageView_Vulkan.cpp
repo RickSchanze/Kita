@@ -68,6 +68,9 @@ RHIImageView_Vulkan::RHIImageView_Vulkan(const RHIImageViewDesc& Desc) {
   if (const VkResult Result = vkCreateImageView(GetVulkanGfxContexRef().GetDevice(), &ImageViewInfo, nullptr, &mImageView); Result != VK_SUCCESS) {
     gLogger.Error("RHI", "创建图像视图失败, 错误码={}", Result);
   }
+#if KITA_DEBUG_NAME
+  GetVulkanGfxContexRef().SetDebugName(Format("ImageView_{}", Desc.DebugName), VK_OBJECT_TYPE_IMAGE_VIEW, reinterpret_cast<UInt64>(mImageView));
+#endif
 }
 
 RHIImageView_Vulkan::~RHIImageView_Vulkan() {

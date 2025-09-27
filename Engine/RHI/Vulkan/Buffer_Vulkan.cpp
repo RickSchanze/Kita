@@ -33,6 +33,10 @@ RHIBuffer_Vulkan::RHIBuffer_Vulkan(const RHIBufferDesc& Desc) {
     return;
   }
   vkBindBufferMemory(Device, mBuffer, mBufferMemory, 0);
+#if KITA_DEBUG_NAME
+  GetVulkanGfxContexRef().SetDebugName(Format("Buffer_{}", Desc.DebugName), VK_OBJECT_TYPE_BUFFER, reinterpret_cast<UInt64>(mBuffer));
+  GetVulkanGfxContexRef().SetDebugName(Format("BufferMemory_{}", Desc.DebugName), VK_OBJECT_TYPE_DEVICE_MEMORY, reinterpret_cast<UInt64>(mBufferMemory));
+#endif
 }
 
 RHIBuffer_Vulkan::~RHIBuffer_Vulkan() {

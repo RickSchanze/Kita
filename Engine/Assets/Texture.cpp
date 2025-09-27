@@ -79,6 +79,9 @@ void Texture2D::Load() {
 
   RHIImageDesc ImageDesc{};
   ImageDesc.SetFormat(ERHIFormat::R8G8B8A8_SRGB).SetWidth(Width).SetHeight(Height).SetUsage(ERHIImageUsage::ShaderRead | ERHIImageUsage::TransferDst);
+#if KITA_DEBUG_NAME
+  ImageDesc.SetDebgName(mPath);
+#endif
   mImage = GfxContext::GetRef().CreateImageU(ImageDesc);
 
   GfxCommandSyncHandle Handle = GfxCommandHelper::CreateSingleTimeCommandBuffer();
@@ -89,6 +92,9 @@ void Texture2D::Load() {
 
   RHIImageViewDesc Desc{};
   Desc.SetSourceImage(mImage.Get());
+#if KITA_DEBUG_NAME
+  Desc.SetDebugName(mPath);
+#endif
   mImageView = GfxContext::GetRef().CreateImageViewU(Desc);
 
 #if KITA_EDITOR

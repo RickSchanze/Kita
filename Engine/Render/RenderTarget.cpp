@@ -33,6 +33,7 @@ void RenderTarget::Recreate(const RHIImageDesc& ImageDesc) {
   UniquePtr<RHIImage> NewImage = GfxContext::GetRef().CreateImageU(ImageDesc);
   RHIImageViewDesc ViewDesc{};
   ViewDesc.SourceImage = NewImage.Get();
+  ViewDesc.DebugName = ImageDesc.DebgName;
   ViewDesc.SubresourceRange = GetImageSubresourceRangeFromImage(NewImage.Get());
   UniquePtr<RHIImageView> NewView = GfxContext::GetRef().CreateImageViewU(ViewDesc);
   GfxCommandHelper::ResourceBarrier(NewImage.Get(), ERHIImageLayout::Undefined, mResourceBarrierLayout);
@@ -69,6 +70,7 @@ bool RenderTarget::SetRenderPass(RHIRenderPass* RenderPass) {
     Desc.SetLayers(ImageDesc.ArrayLayers);
     Desc.SetRenderPass(RenderPass);
     Desc.Attachments.Add(mView.Get());
+    Desc.DebugName = mName;
     auto NewFrameBuffer = GfxContext::GetRef().CreateFrameBufferU(Desc);
     GfxContext::GetRef().WaitDeviceIdle();
     mFrameBuffer = std::move(NewFrameBuffer);

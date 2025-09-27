@@ -41,8 +41,8 @@ void EditorWindowManager::StartUp() {
 }
 
 void EditorWindowManager::ShutDown() {
-  for (auto& [Type, Window] : GetRef().mEditorWindows) {
-    Delete(Window);
+  while (!GetRef().mEditorWindows.Empty()) {
+    Close(GetRef().mEditorWindows.begin()->first);
   }
   GetRef().mEditorWindows.Clear();
 }

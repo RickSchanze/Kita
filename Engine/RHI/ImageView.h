@@ -26,6 +26,10 @@ struct RHIImageViewDesc {
   RHI_DEFINE_BUILDER_FIELD(ERHIFormat, Format, ERHIFormat::Count)                     // ImageView的格式, 填Count则会自动获取Image的格式
   RHI_DEFINE_BUILDER_FIELD(Optional<RHIComponentMapping>, ComponentMapping, {});      // ImageView的组件映射
   RHI_DEFINE_BUILDER_FIELD(Optional<RHIImageSubresourceRange>, SubresourceRange, {}); // 必填
+
+#if KITA_DEBUG_NAME
+  RHI_DEFINE_BUILDER_FIELD(String, DebugName, "");
+#endif
 };
 
 class RHIImageView : public IRHIResource {

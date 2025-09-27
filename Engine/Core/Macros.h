@@ -64,3 +64,5 @@ constexpr auto ToEnum(std::underlying_type_t<T> Value) {
 }
 
 bool CheckDebuggerPresent();
+
+#define KITA_DEBUG_NAME 1

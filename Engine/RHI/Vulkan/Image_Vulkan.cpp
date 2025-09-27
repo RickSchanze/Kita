@@ -32,6 +32,9 @@ RHIImage_Vulkan::RHIImage_Vulkan(const RHIImageDesc& Desc) {
     gLogger.Error(Logcat::RHI, "Failed to create image! '{}' code={}.", Desc.DebgName, Result);
     return;
   }
+#if KITA_DEBUG_NAME
+  GetVulkanGfxContexRef().SetDebugName(Format("Image_{}", Desc.DebgName), VK_OBJECT_TYPE_IMAGE, reinterpret_cast<UInt64>(mNativeImage));
+#endif
 
   mMemory = GetVulkanGfxContexRef().AllocateMemory(mNativeImage, RHIMemoryPropertyToVkMemoryProperty(ERHIBufferMemoryProperty::DeviceLocal));
   if (mMemory == nullptr) {
@@ -42,6 +45,9 @@ RHIImage_Vulkan::RHIImage_Vulkan(const RHIImageDesc& Desc) {
     return;
   }
   vkBindImageMemory(GetVulkanGfxContexRef().GetDevice(), mNativeImage, mMemory, 0);
+#if KITA_DEBUG_NAME
+  GetVulkanGfxContexRef().SetDebugName(Format("ImageMemory_{}", Desc.DebgName), VK_OBJECT_TYPE_DEVICE_MEMORY, reinterpret_cast<UInt64>(mMemory));
+#endif
 }
 
 RHIImage_Vulkan::~RHIImage_Vulkan() {

@@ -15,7 +15,6 @@ LoggingWindow::LoggingWindow() {
 }
 
 LoggingWindow::~LoggingWindow() {
-  gLogger.Info("Editor", "销毁日志窗口");
   gLogger.Evt_Log.Remove(mLoggingCallbackHandle);
   mLoggingCallbackHandle = {};
 }

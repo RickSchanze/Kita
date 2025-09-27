@@ -77,8 +77,14 @@ bool Mesh::LoadFromPath() {
   RHIBufferDesc VertexBufferDesc{};
   UInt64 Size = AllVertices.Count() * sizeof(Vertex);
   VertexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::HostVisible | ERHIBufferMemoryProperty::HostCoherent).SetSize(Size).SetUsage(ERHIBufferUsage::TransferSrc);
+#if KITA_DEBUG_NAME
+  VertexBufferDesc.SetDebugName(Format("StagingVertex-{}", mPath));
+#endif
   UniquePtr<RHIBuffer> TempVertexBuffer = GfxContext::GetRef().CreateBufferU(VertexBufferDesc);
   VertexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::DeviceLocal).SetUsage(ERHIBufferUsage::VertexBuffer | ERHIBufferUsage::TransferDst);
+#if KITA_DEBUG_NAME
+  VertexBufferDesc.SetDebugName(Format("Vertex-{}", mPath));
+#endif
   mVertexBuffer = GfxContext::GetRef().CreateBufferU(VertexBufferDesc);
   auto VertexHandle = GfxCommandHelper::CopyAsync(TempVertexBuffer.Get(), mVertexBuffer.Get(), Size, 0, 0);
 
@@ -86,8 +92,14 @@ bool Mesh::LoadFromPath() {
   RHIBufferDesc IndexBufferDesc{};
   Size = AllIndices.Count() * sizeof(UInt32);
   IndexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::HostVisible | ERHIBufferMemoryProperty::HostCoherent).SetSize(Size).SetUsage(ERHIBufferUsage::TransferSrc);
+#if KITA_DEBUG_NAME
+  IndexBufferDesc.SetDebugName(Format("StagingIndex-{}", mPath));
+#endif
   UniquePtr<RHIBuffer> TempIndexBuffer = GfxContext::GetRef().CreateBufferU(IndexBufferDesc);
   IndexBufferDesc.SetMemoryProperty(ERHIBufferMemoryProperty::DeviceLocal).SetUsage(ERHIBufferUsage::IndexBuffer | ERHIBufferUsage::TransferDst);
+#if KITA_DEBUG_NAME
+  IndexBufferDesc.SetDebugName(Format("Index-{}", mPath));
+#endif
   mIndexBuffer = GfxContext::GetRef().CreateBufferU(IndexBufferDesc);
   auto IndexHandle = GfxCommandHelper::CopyAsync(TempIndexBuffer.Get(), mIndexBuffer.Get(), Size, 0, 0);
   VertexHandle.WaitAll();

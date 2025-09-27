@@ -13,7 +13,7 @@ struct RHIImageDesc {
   RHI_DEFINE_BUILDER_FIELD(ERHIImageUsage, Usage, ERHIImageUsage::Max) // necessary
   RHI_DEFINE_BUILDER_FIELD(ERHIImageLayout, InitialLayout, ERHIImageLayout::Undefined)
 
-#ifdef KITA_DEBUG
+#if KITA_DEBUG_NAME
   RHI_DEFINE_BUILDER_FIELD(String, DebgName, "<Unnamed Image>");
 #endif
 };

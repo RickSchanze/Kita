@@ -7,6 +7,10 @@ struct RHIBufferDesc {
   RHI_DEFINE_BUILDER_FIELD(UInt32, Size, 0);                                                                 // Size in bytes necessary
   RHI_DEFINE_BUILDER_FIELD(ERHIBufferUsage, Usage, ERHIBufferUsage::None);                                   // Usage flags necessary
   RHI_DEFINE_BUILDER_FIELD(ERHIBufferMemoryProperty, MemoryProperty, ERHIBufferMemoryProperty::DeviceLocal); // Memory property flags 默认是DeviceLocal 只有CPU可以访问
+
+#if KITA_DEBUG_NAME
+  RHI_DEFINE_BUILDER_FIELD(String, DebugName, "")
+#endif
 };
 
 class RHIBuffer : public IRHIResource {
