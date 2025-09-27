@@ -7,6 +7,10 @@
 #include "OutputArchive.h"
 #include "SerializationError.h"
 
+class InputArchive;
+
+template <typename T1, typename T2> ESerializationError ReadArchive(InputArchive& Ar, KeyValuePair<T1, T2>& Value);
+
 class InputArchive {
 public:
   virtual ~InputArchive() = default;
@@ -38,18 +42,24 @@ namespace Traits {
 
 template <typename T>
 concept HasGlobalInputArchiveFunc = requires(T& Value, InputArchive& Ar) {
-  { ReadArchive(Ar, Value) } -> SameAs<ESerializationError>;
+  { ReadArchive(Ar, Value) };
 };
 
 template <typename T>
 concept HasMemberInputArchiveFunc = requires(T& Value, InputArchive& Ar) {
-  { Value.ReadArchive(Ar) } -> SameAs<ESerializationError>;
+  { Value.ReadArchive(Ar) };
 };
 
 template <typename T>
 concept HasInputArchiveFunc = HasGlobalInputArchiveFunc<T> || HasMemberInputArchiveFunc<T>;
 
 } // namespace Traits
+
+template <typename T1, typename T2> ESerializationError ReadArchive(InputArchive& Ar, KeyValuePair<T1, T2>& Value) {
+  Ar.ReadType("Key", Value.Key);
+  Ar.ReadType("Value", Value.Value);
+  return ESerializationError::Ok;
+}
 
 template <typename T> void InputArchive::ReadType(StringView Key, T& Value) {
   if constexpr (Traits::AnyOf<Traits::Pure<T>, StringView, String, Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Float32, Float64, bool>) {
@@ -66,17 +76,33 @@ template <typename T> void InputArchive::ReadType(StringView Key, T& Value) {
     }
     EndArray();
   } else if constexpr (Traits::IsMap<T>) {
-    static_assert(false, "TOMLOutputArchive does not support map. Use struct instead.");
+    using Type = KeyValuePair<typename Traits::MapTraits<T>::KeyType, typename Traits::MapTraits<T>::ValueType>;
+    Array<Type> MyArray;
+    BeginArray(Key);
+    if (SizeType S = GetCurrentArraySize(); S == INVALID_SIZE) {
+      gLogger.Error("Serialization", "Map具有异常大小. Key=[{}]", Key);
+      EndArray();
+      return;
+    } else {
+      MyArray.Resize(S);
+      for (SizeType I = 0; I < S; ++I) {
+        ReadType("", MyArray[I]);
+      }
+    }
+    EndArray();
+    for (const auto& Item : MyArray) {
+      Value.Add(Item.Key, Item.Value);
+    }
   } else if constexpr (Traits::IsEnum<T>) {
     String EnumString;
     Read(Key, EnumString);
     Value = StringToEnum<T>(EnumString);
   } else {
-    if constexpr (Traits::HasGlobalOutputArchiveFunc<T>) {
+    if constexpr (Traits::HasGlobalInputArchiveFunc<T>) {
       BeginObject(Key);
       ReadArchive(*this, Value);
       EndObject();
-    } else if constexpr (Traits::HasMemberOutputArchiveFunc<T>) {
+    } else if constexpr (Traits::HasMemberInputArchiveFunc<T>) {
       ESerializationError Error = BeginObject(Key);
       if (Error == ESerializationError::Ok) {
         Value.ReadArchive(*this);

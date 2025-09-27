@@ -91,6 +91,7 @@ add_library(KitaCore
         Container/Byte.h
         FileSystem/InputFileStream.cpp
         FileSystem/InputFileStream.h
+        Serialization/SerializationError.cpp
 )
 
 find_package(spdlog CONFIG REQUIRED)

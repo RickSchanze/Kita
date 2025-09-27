@@ -42,3 +42,11 @@ template <typename T> void ExtractReferencingObjectHandle(const Array<ObjectPtr<
     }
   }
 }
+
+template <typename K, typename T> void ExtractReferencingObjectHandle(const Map<K, ObjectPtr<T>>& PtrMap, Array<Int32>& Out) {
+  for (auto& Ptr : PtrMap) {
+    if (Ptr.second.GetHandle() != 0) {
+      Out.Add(Ptr.second.GetHandle());
+    }
+  }
+}

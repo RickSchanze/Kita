@@ -25,7 +25,7 @@ public:
     return mInstancePtr->Count();
   }
 
-  virtual void SetInstancePtr(void* Ptr) override { mInstancePtr = Ptr; }
+  virtual void SetInstancePtr(void* Ptr) override { mInstancePtr = static_cast<Map<K, V>*>(Ptr); }
   [[nodiscard]] virtual void* GetInstancePtr() const override { return mInstancePtr; }
   [[nodiscard]] virtual const Type* GetKeyType() const override { return Pri::GetTypeByHashCode(GetTypeStaticHashCode<K>()); }
   [[nodiscard]] virtual const Type* GetValueType() const override { return Pri::GetTypeByHashCode(GetTypeStaticHashCode<V>()); }
@@ -43,6 +43,18 @@ public:
     auto& MyValue = *Value.Cast<V>().Value();
     mInstancePtr->Add(MyKey, MyValue);
     return {};
+  }
+
+  virtual Result<AnyRef, EReflectionError> Get(const AnyRef& Key) override {
+    if (!mInstancePtr) {
+      return EReflectionError::NullPointer;
+    }
+    if (Key.GetType() != GetKeyType()) {
+      return EReflectionError::TypeMismatch;
+    }
+    auto& MyKey = *Key.Cast<K>().Value();
+    AnyRef Ref = AnyRef{mInstancePtr->At(MyKey)};
+    return Ref;
   }
 
 private:

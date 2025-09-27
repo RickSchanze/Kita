@@ -15,6 +15,8 @@ add_library(KitaAssets
         AssetsConfig.h
         Texture.cpp
         Texture.h
+        Material.cpp
+        Material.h
 )
 
 target_link_libraries(KitaAssets PRIVATE KitaCore KitaObject KitaRHI KitaProject)

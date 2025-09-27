@@ -1,16 +1,20 @@
 #pragma once
 #include "Core/Container/Array.h"
 #include "Core/Container/Map.h"
+#include "Core/Macros.h"
 #include "Core/Reflection/EnumString.h"
 #include "Core/String/StringView.h"
 #include "Core/Traits.h"
-#include "Core/Macros.h"
+#include "SerializationError.h"
 
+class OutputArchive;
 enum class EOutputArchiveFlag {
   None = 0,
   Inline = 1 << 0, // for toml yaml
 };
 ENABLE_BITMASK_OPERATORS(EOutputArchiveFlag)
+
+template <typename T1, typename T2> void WriteArchive(OutputArchive& Ar, const KeyValuePair<T1, T2>& Value);
 
 // 继承此结构体, 使结构体Inline
 struct InlinedOutput {};
@@ -55,6 +59,11 @@ template <typename T>
 concept HasOutputArchiveFunc = HasGlobalOutputArchiveFunc<T> || HasMemberOutputArchiveFunc<T>;
 } // namespace Traits
 
+template <typename T1, typename T2> void WriteArchive(OutputArchive& Ar, const KeyValuePair<T1, T2>& Value) {
+  Ar.WriteType("Key", Value.Key);
+  Ar.WriteType("Value", Value.Value);
+}
+
 template <typename T> void OutputArchive::WriteType(StringView Key, const T& Value) {
   if constexpr (Traits::AnyOf<Traits::Pure<T>, StringView, String, Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64, Float32, Float64, bool>) {
     Write(Key, Value);
@@ -65,7 +74,14 @@ template <typename T> void OutputArchive::WriteType(StringView Key, const T& Val
     }
     EndArray();
   } else if constexpr (Traits::IsMap<T>) {
-    static_assert(false, "TOMLOutputArchive does not support map. Use struct instead.");
+    BeginArray(Key);
+    for (const auto& [Key, Value] : Value) {
+      KeyValuePair<typename Traits::MapTraits<T>::KeyType, typename Traits::MapTraits<T>::ValueType> Item;
+      Item.Key = Key;
+      Item.Value = Value;
+      WriteType("", Item);
+    }
+    EndArray();
   } else if constexpr (Traits::IsEnum<T>) {
     Write(Key, EnumToString(Value));
   } else {

@@ -47,9 +47,8 @@ public:
     if (Index >= mInstancePtr->Count()) {
       return EReflectionError::OutOfRange;
     }
-    // AnyRef Ref = AnyRef((*mInstancePtr)[Index]);
-    Int32 a;
-    AnyRef Ref = AnyRef{a};
+    T& Item = (*mInstancePtr)[Index];
+    AnyRef Ref = AnyRef(Item);
     return Ref;
   }
 

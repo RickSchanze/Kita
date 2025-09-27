@@ -8,6 +8,7 @@
 #include "Core/Performance/ProfilerMark.h"
 #include "Core/TaskGraph/TaskGraph.h"
 #include "Core/TaskGraph/TaskNode.h"
+#include "Material.h"
 #include "Mesh.h"
 #include "Object/ObjectTable.h"
 #include "Project/Project.h"
@@ -94,10 +95,15 @@ static auto MakeTexture2DMetaTable() {
                     make_column("ObjectHandle", &Texture2DMeta::ObjectHandle), make_column("Path", &Texture2DMeta::Path), make_column("EnableMipmap", &Texture2DMeta::EnableMipMap));
 }
 
+static auto MakeMaterialMetaTable() {
+  return make_table("Material", make_column("Id", &MaterialMeta::Id, primary_key().autoincrement()), make_column("ObjectHandle", &MaterialMeta::ObjectHandle),
+                    make_column("Path", &MaterialMeta::Path));
+}
+
 static auto MakeStorage() {
   const auto LibPath = Project::GetLibraryPath();
   const auto Path = ::Path::Combine(LibPath, ASSET_DATABASE_NAME);
-  return make_storage(Path.Data(), MakeAssetIndexTable(), MakeMeshMetaTable(), MakeShaderMetaTable(), MakeTexture2DMetaTable());
+  return make_storage(Path.Data(), MakeAssetIndexTable(), MakeMeshMetaTable(), MakeShaderMetaTable(), MakeTexture2DMetaTable(), MakeMaterialMetaTable());
 }
 
 // TODO: 更改接口
