@@ -135,6 +135,8 @@ public:
   [[nodiscard]] bool IsCompute() const;
   [[nodiscard]] bool IsGraphics() const;
 
+  [[nodiscard]] const Array<ShaderParameterInfo>& GetParameterInfo() const { return mParameterInfos; }
+
 protected:
   /// 是否需要重新将Shader编译为spirv
   bool NeedReTranslate();
@@ -151,6 +153,7 @@ private:
   /// 那么会直接从二进制文件读
   /// 否则重新编译Shader 并写入而二进制
   ShaderBinaryData mShaderData;
+  Array<ShaderParameterInfo> mParameterInfos;
   const char* mEntryPointNames[std::to_underlying(EShaderStage::Count)] = {"VertexMain", "FragmentMain"};
 
   static inline Map<String, ShaderCache> sCache;

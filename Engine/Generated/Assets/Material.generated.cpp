@@ -22,8 +22,8 @@ Super::WriteArchive(Archive);
 Archive.WriteType("mShader", mShader); 
 Archive.WriteType("mTextures", mTextures); 
 } 
-void Material::ReadArchive(InputArchive& Archive) {
-  Super::ReadArchive(Archive);
-  Archive.ReadType("mShader", mShader);
-  Archive.ReadType("mTextures", mTextures);
-}
+void Material::ReadArchive(InputArchive& Archive) { 
+Super::ReadArchive(Archive); 
+Archive.ReadType("mShader", mShader); 
+Archive.ReadType("mTextures", mTextures); 
+} 

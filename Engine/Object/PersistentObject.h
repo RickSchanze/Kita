@@ -26,6 +26,8 @@ public:
 
   [[nodiscard]] StringView GetPath() const { return mPath; }
 
+  [[nodiscard]] virtual UInt64 GetHashCode() const { return mPath.GetHashCode(); }
+
 protected:
   KPROPERTY()
   String mPath;

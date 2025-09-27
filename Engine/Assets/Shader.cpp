@@ -60,6 +60,10 @@ static SlangShaderTranslater& GetTranslater() {
   return Translater;
 }
 
+Array<ShaderParameterInfo> ShaderBinaryData::ParseParameterInfo() {
+  return {};
+}
+
 void Shader::Load() {
   if (mPath.Empty() || !mPath.EndsWith(".slang")) {
     gLogger.Error(Logcat::Asset, "无效的Shader路径.");
@@ -72,6 +76,7 @@ void Shader::Load() {
     mLoaded = ReadBinary();
   }
   if (mLoaded) {
+    mParameterInfos = mShaderData.ParseParameterInfo();
     gLogger.Info(Logcat::Asset, "Shader '{}' 加载成功[ObjectHandle = {}].", mPath, GetHandle());
   } else {
     gLogger.Error(Logcat::Asset, "Shader '{}' 加载失败[ObjectHandle = {}].", mPath, GetHandle());
