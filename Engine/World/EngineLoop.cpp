@@ -70,19 +70,13 @@ void EngineLoop::StartUpSystemsM(const char** ArgV, int ArgC) {
   Ref.SetRenderTickInstance(RenderContext::GetRef().GetRenderTicker());
   Ref.SetTickInstance(mInputTicker);
 
-  MenuActionManager::StartUp();
   AssetsManager::StartUp();
   EditorUI::StartUp();
-  EditorWindowManager::StartUp();
 }
 
 void EngineLoop::ShutDownSystemsM() {
-  // EditorWindowManager
-  EditorWindowManager::ShutDown();
   EditorUI::ShutDown();
   AssetsManager::ShutDown();
-  // MenuAction
-  MenuActionManager::ShutDown();
   // 清理Ticker
   auto& TickManagerRef = TickManager::GetRef();
   TickManagerRef.SetTickInstance(nullptr);

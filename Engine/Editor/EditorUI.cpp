@@ -8,6 +8,8 @@
 #include "Core/Assert.h"
 #include "Core/Config/ConfigManager.h"
 #include "Core/FileSystem/File.h"
+#include "EditorWindowManager.h"
+#include "MenuActionManager.h"
 #include "RHI/GfxContext.h"
 #include "RHI/ImGuiConfig.h"
 #include "RHI/Image.h"
@@ -15,8 +17,8 @@
 #include <imgui_internal.h>
 #include <nlohmann/json.hpp>
 
-EditorUI::EditorUI() {}
-EditorUI::~EditorUI() {}
+EditorUI::EditorUI() = default;
+EditorUI::~EditorUI() = default;
 
 static ImVec2 Vector2fToImVec2(const Vector2f Vec) { return ImVec2(Vec.X(), Vec.Y()); }
 
@@ -163,9 +165,14 @@ void EditorUI::StartUp() {
       sImageIconUV[ToUnderlying(IconType)].RB.Y() = UV["v1"].get<float>();
     }
   }
+
+  MenuActionManager::StartUp();
+  EditorWindowManager::StartUp();
 }
 
 void EditorUI::ShutDown() {
+  EditorWindowManager::ShutDown();
+  MenuActionManager::ShutDown();
   // TODO: AssetManager Unload Texture
   Delete(sImpl);
 }

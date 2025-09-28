@@ -5,6 +5,7 @@
 
 namespace Logcat {
 inline auto Asset = "Asset";
+inline auto Asset_Material = "Asset.Material";
 } // namespace Logcat
 
 /**

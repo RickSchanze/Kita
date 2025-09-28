@@ -24,6 +24,14 @@ public:
 
   operator bool() const { return mData.has_value(); }
 
+  [[nodiscard]] UInt64 GetHashCode() const
+    requires IHashable<T>
+  {
+    if (!HasValue())
+      return 0xFFFFFFFFFFFFFFFFULL;
+    return ::GetHashCode(*Value);
+  }
+
 private:
   std::optional<T> mData;
 };

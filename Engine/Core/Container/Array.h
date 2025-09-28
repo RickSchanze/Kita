@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/HashUtils.h"
 #include "Core/Memory/Malloc.h"
 #include "Core/String/String.h"
 #include "Core/String/StringTraits.h"
@@ -107,6 +108,17 @@ public:
 
   T* Data() { return mData.data(); }
   const T* Data() const { return mData.data(); }
+
+  // 只有 T 满足 IHashable 时，才提供这个成员函数
+  [[nodiscard]] UInt64 GetHashCode() const
+    requires IHashable<T>
+  {
+    uint64_t Hash = HashUtils::FNV_OFFSET_BASIS;
+    for (const auto& E : mData) {
+      Hash = HashUtils::HashCombine(Hash, ::GetHashCode(E));
+    }
+    return Hash;
+  }
 
 private:
   std::vector<T, STLAllocator<T, Label>> mData;

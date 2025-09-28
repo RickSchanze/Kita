@@ -18,14 +18,26 @@ void Material::ApplyMeta(const AssetMeta& Meta) {
   mMeta = MatMeta;
 }
 
-SharedMaterialImpl::SharedMaterialImpl() {}
+SharedMaterialImpl::SharedMaterialImpl() = default;
 
 SharedMaterialImpl::~SharedMaterialImpl() {
   mPipelineLayout = nullptr;
   mPipeline = nullptr;
 }
 
-SharedMaterial SharedMaterialManager::Create(Shader* InShader) {}
+SharedMaterialImpl::SharedMaterialImpl(const Shader* InShader) {
+  if (InShader == nullptr) {
+    return;
+  }
+  const auto& Params = InShader->GetParameterInfo();
+
+}
+
+bool SharedMaterialImpl::IsValid() const { return mPipeline->IsValid(); }
+
+SharedMaterial::~SharedMaterial() = default;
+
+SharedMaterial SharedMaterialManager::Create(Shader* InShader) { return SharedMaterial{nullptr}; }
 
 SharedMaterial SharedMaterialManager::Get(const Shader* InShader) {
   if (InShader == nullptr) {

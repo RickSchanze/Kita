@@ -116,7 +116,7 @@ public:
 
   [[nodiscard]] const ShaderBinaryData& GetBinaryData() const { return mShaderData; }
 
-  String GetBinaryPath();
+  String GetBinaryPath() const;
 
   static void ReadCache();
   static void WriteCache();
@@ -139,7 +139,7 @@ public:
 
 protected:
   /// 是否需要重新将Shader编译为spirv
-  bool NeedReTranslate();
+  bool NeedReTranslate() const;
 
   /// 将slang shader编译为spirv二进制数据
   bool Translate();

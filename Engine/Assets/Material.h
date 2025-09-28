@@ -32,6 +32,10 @@ public:
   SharedMaterialImpl();
   ~SharedMaterialImpl();
 
+  explicit SharedMaterialImpl(const Shader* InShader);
+
+  [[nodiscard]] bool IsValid() const;
+
 private:
   UniquePtr<RHIPipelineLayout> mPipelineLayout;
   UniquePtr<RHIPipeline> mPipeline;
@@ -40,7 +44,7 @@ private:
 class SharedMaterial {
 public:
   explicit SharedMaterial(const SharedPtr<SharedMaterialImpl>& Mat) : mImpl(Mat) {}
-  SharedMaterial(const SharedMaterial& Other) : mImpl(Other.mImpl) {}
+  SharedMaterial(const SharedMaterial& Other) = default;
 
   // 通知SharedMaterialManager SharedMaterial被销毁
   ~SharedMaterial();

@@ -11,6 +11,7 @@
 #include "RHI/GfxContext.h"
 #include "RHI/Sync.h"
 #include "Render/RenderTicker.h"
+#include "RenderPassManager.h"
 
 #if KITA_EDITOR
 #include "imgui_impl_vulkan.h"
@@ -36,10 +37,12 @@ void RenderContext::StartUp(RHISurfaceWindow* InWindow) {
     Self.mInFlightFences[Index] = Self.mGfxContext->CreateFenceU(DebugName);
     Self.mCommandBuffers[Index] = Self.mCommandPool->CreateCommandBuffer();
   }
+  RenderPassManager::StartUp();
 }
 
 void RenderContext::ShutDown() {
   GfxContext::GetRef().WaitDeviceIdle();
+  RenderPassManager::ShutDown();
   auto& Self = GetRef();
   for (Int32 Index = 0; Index < KITA_MAX_FRAMES_IN_FLIGHT; Index++) {
     Self.mImageAvailableSemaphores[Index] = nullptr;

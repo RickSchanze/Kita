@@ -61,7 +61,48 @@ static SlangShaderTranslater& GetTranslater() {
 }
 
 Array<ShaderParameterInfo> ShaderBinaryData::ParseParameterInfo() {
-  return {};
+  if (Data.Count() < 8) {
+    return {};
+  }
+  Int32 ParamLength = *reinterpret_cast<Int32*>(Data.Data() + 4);
+  if (ParamLength <= 0 || Data.Count() < 8 + ParamLength) {
+    return {};
+  }
+  StringView ParameterInfoString(reinterpret_cast<const char*>(Data.Data() + 8), ParamLength);
+  try {
+    nlohmann::json Json = nlohmann::json::parse(ParameterInfoString.GetStdStringView());
+    Array<ShaderParameterInfo> Infos{};
+    Infos.Reserve(Json.size());
+    for (const auto& Param : Json) {
+      ShaderParameterInfo Info{};
+      Info.Name = Param["A"].get<std::string>();
+      Info.Type = static_cast<EShaderParameterType>(Param["B"].get<Int32>());
+      Info.Size = Param["C"].get<Int32>();
+      Info.Space = Param["D"].get<Int32>();
+      Info.IsDynamic = Param["E"].get<bool>();
+      Info.IsHideInEditor = Param["F"].get<bool>();
+      Info.Label = Param["G"].get<std::string>();
+      Info.SharedName = Param["H"].get<std::string>();
+      if (Param.contains("I")) {
+        for (const auto& Member : Param["I"]) {
+          ShaderMemberInfo MemberInfo{};
+          MemberInfo.Name = Member["A"].get<std::string>();
+          MemberInfo.Type = static_cast<EShaderParameterType>(Member["B"].get<Int32>());
+          MemberInfo.Offset = Member["C"].get<Int32>();
+          MemberInfo.Size = Member["D"].get<Int32>();
+          MemberInfo.Binding = Member["E"].get<Int32>();
+          MemberInfo.IsHideInEditor = Member["F"].get<bool>();
+          MemberInfo.Label = Member["G"].get<std::string>();
+          Info.Members.Add(MemberInfo);
+        }
+      }
+      Infos.Add(Info);
+    }
+    return Infos;
+  } catch (std::exception& E) {
+    gLogger.Error(Logcat::Asset, "解析Shader参数出错: {}.", E.what());
+    return {};
+  }
 }
 
 void Shader::Load() {
@@ -97,7 +138,7 @@ void Shader::ApplyMeta(const AssetMeta& Meta) {
 
 constexpr auto ShaderCacheFolder = "Shader/Cache";
 
-String Shader::GetBinaryPath() {
+String Shader::GetBinaryPath() const {
   const auto ThisShaderBinaryFileName = mPath.Replace(".slang", ".shaderbin");
   return Path::Combine(Path::Combine(Project::GetIntermediatePath(), ShaderCacheFolder), ThisShaderBinaryFileName);
 }
@@ -155,7 +196,7 @@ bool Shader::IsCompute() const { return mShaderData.IsGraphicsShader(); }
 
 bool Shader::IsGraphics() const { return !mShaderData.IsGraphicsShader(); }
 
-bool Shader::NeedReTranslate() {
+bool Shader::NeedReTranslate() const {
   if (sCache.Contains(mPath)) {
     const ShaderCache& OldCache = sCache[mPath];
     if (const auto NewTime = File::GetLastModifiedTime(mPath)) {
@@ -536,7 +577,7 @@ bool Shader::Translate() {
     const String BinaryPath = GetBinaryPath();
     {
       OutputFileStream OutputFile(BinaryPath, std::ios::out | std::ios::binary);
-      OutputFile.WriteBytes(reinterpret_cast<const char*>(mShaderData.Data.Data()), mShaderData.Data.Count());
+      OutputFile.WriteBytes(reinterpret_cast<const char*>(mShaderData.Data.Data()), static_cast<std::streamsize>(mShaderData.Data.Count()));
     }
     const UInt64 BinaryModifiedTime = *File::GetLastModifiedTime(BinaryPath);
     const UInt64 TextModifiedTime = *File::GetLastModifiedTime(mPath);
