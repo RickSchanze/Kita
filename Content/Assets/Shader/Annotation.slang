@@ -5,6 +5,9 @@ public struct CullModeAttribute {
   bool UseBackface;
 }
 
+[__AttributeUsage(_AttributeTargets.Function)]
+public struct DisableDepthTest {}
+
 /// 用于标注ParameterBlock 表示此Set是否被共享
 [__AttributeUsage(_AttributeTargets.Var)]
 public struct SharedAttribute {

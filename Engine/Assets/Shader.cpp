@@ -468,6 +468,7 @@ static bool TranslateGraphics(const Slang::ComPtr<slang::ISession>& Session, sla
   Byte FirstByte{};
   FirstByte.Set(0); // 设置图像管线为true
   FirstByte.Set(1); // 默认使用CullMode为backface
+  FirstByte.Set(2); // 默认使用Depth为true
   // 前四个字节为管线属性 先占个位
   OutBinaryData.Data.Add(FirstByte);
   Byte SecondByte{};

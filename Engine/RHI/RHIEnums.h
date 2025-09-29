@@ -177,15 +177,14 @@ enum class ERHICompareOp {
   Count,
 };
 
-enum ERHIShaderStageBits {
-  SSB_Vertex = 1,
-  SSB_Fragment = 1 << 1,
-  SSB_Compute = 1 << 2,
-  SSB_MAX = 0x7FFFFFFF,
+enum class ERHIShaderStage {
+  Vertex = 1,
+  Fragment = 1 << 1,
+  Compute = 1 << 2,
+  MAX = 0x7FFFFFFF,
 };
-
-typedef UInt32 ERHIShaderStage;
-constexpr ERHIShaderStage KITA_RHI_ALL_GRAPHICS_SHADER_STAGES = SSB_Vertex | SSB_Fragment;
+ENABLE_BITMASK_OPERATORS(ERHIShaderStage)
+constexpr ERHIShaderStage KITA_RHI_ALL_GRAPHICS_SHADER_STAGES = ERHIShaderStage::Fragment | ERHIShaderStage::Vertex;
 
 enum class ERHIDescriptorType {
   Sampler,

@@ -4,6 +4,7 @@
 
 #include "Material.h"
 
+#include "RHI/DescriptorSet.h"
 #include "RHI/Pipeline.h"
 #include "Shader.h"
 
@@ -29,6 +30,13 @@ SharedMaterialImpl::SharedMaterialImpl(const Shader* InShader) {
   if (InShader == nullptr) {
     return;
   }
+  if (!InShader->IsLoaded()) {
+    gLogger.Error(Logcat::Asset_Material, "Shader '{}' 未加载.", InShader->GetPath());
+    return;
+  }
+  RHIPipelineLayoutDesc LayoutDesc{};
+  RHIDescriptorSetLayoutDesc SetLayoutDesc{};
+  SetLayoutDesc.
   const auto& Params = InShader->GetParameterInfo();
 
 }

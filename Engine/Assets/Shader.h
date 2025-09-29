@@ -81,6 +81,7 @@ struct ShaderBinaryData {
   /// 第1~4个字节记录一些管线属性
   ///   第一位: 此Shader是不是图形管线
   ///   第二位: CullMode是否是Backface
+  ///   第三位: Depth On/Off
   /// 第5~8个字节 参数字节长度N
   /// 接下来是N个字节是表示参数的Json字符串
   /// 随后1个字节标识当前是什么阶段的Shader
@@ -91,7 +92,8 @@ struct ShaderBinaryData {
   [[nodiscard]] bool IsValid() const { return Data.Count() > 12; }
   [[nodiscard]] bool IsGraphicsShader() const { return IsValid() ? Data[0].Test(0) : false; }
   [[nodiscard]] bool IsCompute() const { return IsValid() ? !IsGraphicsShader() : false; }
-  [[nodiscard]] bool IsCullModeBackface() const { return Data[0].Test(1); }
+  [[nodiscard]] bool IsCullModeBackface() const { return IsValid() ? Data[0].Test(1) : false; }
+  [[nodiscard]] bool EnableDepth() const { return IsValid() ? Data[0].Test(2) : false; }
 
   [[nodiscard]] Array<ShaderParameterInfo> ParseParameterInfo();
 };
@@ -116,7 +118,7 @@ public:
 
   [[nodiscard]] const ShaderBinaryData& GetBinaryData() const { return mShaderData; }
 
-  String GetBinaryPath() const;
+  [[nodiscard]] String GetBinaryPath() const;
 
   static void ReadCache();
   static void WriteCache();
@@ -137,9 +139,12 @@ public:
 
   [[nodiscard]] const Array<ShaderParameterInfo>& GetParameterInfo() const { return mParameterInfos; }
 
+  [[nodiscard]] bool EnableDepthTest() const { return mShaderData.EnableDepth(); }
+  [[nodiscard]] bool IsCullModeBackface() const { return mShaderData.IsCullModeBackface(); }
+
 protected:
   /// 是否需要重新将Shader编译为spirv
-  bool NeedReTranslate() const;
+  [[nodiscard]] bool NeedReTranslate() const;
 
   /// 将slang shader编译为spirv二进制数据
   bool Translate();
